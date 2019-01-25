@@ -1,0 +1,17 @@
+[submodule "fmt"]
+	path = fmt
+	url = https://github.com/fmtlib/fmt
+	branch = release-4.0
+[submodule "uriparser"]
+	path = uriparser
+	url = https://github.com/UQ-RCC/uriparser
+	branch = nimrod
+[submodule "rabbitmq-c"]
+	path = rabbitmq-c
+	url = https://github.com/alanxz/rabbitmq-c
+[submodule "concurrentqueue"]
+	path = concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue
+[submodule "curl"]
+	path = curl
+	url = https://github.com/curl/curl
