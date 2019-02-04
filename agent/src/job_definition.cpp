@@ -40,7 +40,18 @@ const std::string& job_definition::token() const noexcept { return m_token; }
 const job_definition::command_vector& job_definition::commands() const noexcept { return m_commands; }
 const job_definition::env_map& job_definition::environment() const noexcept { return m_environment; }
 
+
+command::command(command_type type) noexcept :
+	m_type(type)
+{}
+
+command_type command::type() const noexcept
+{
+	return m_type;
+}
+
 onerror_command::onerror_command(action_t action) noexcept :
+	command(command_type::onerror),
 	m_action(action)
 {}
 
@@ -49,12 +60,8 @@ onerror_command::action_t onerror_command::action() const noexcept
 	return m_action;
 }
 
-command_type onerror_command::type_impl() const noexcept
-{
-	return command_type::onerror;
-}
-
 redirect_command::redirect_command(stream_t stream, bool append, const std::string& file) :
+	command(command_type::redirect),
 	m_stream(stream),
 	m_append(append),
 	m_file(file)
@@ -63,10 +70,10 @@ redirect_command::redirect_command(stream_t stream, bool append, const std::stri
 redirect_command::stream_t redirect_command::stream() const noexcept { return m_stream; }
 bool redirect_command::append() const noexcept { return m_append; }
 const std::string& redirect_command::file() const noexcept { return m_file; }
-command_type redirect_command::type_impl() const noexcept { return command_type::redirect; }
 
 
 copy_command::copy_command(context_t src_ctx, const std::string& src_path, context_t dst_ctx, const std::string& dst_path) :
+	command(command_type::copy),
 	m_source_context(src_ctx),
 	m_source_path(src_path),
 	m_dest_context(dst_ctx),
@@ -93,13 +100,9 @@ const std::string& copy_command::dest_path() const noexcept
 	return m_dest_path;
 }
 
-command_type copy_command::type_impl() const noexcept
-{
-	return command_type::copy;
-}
-
 
 exec_command::exec_command(const std::string& program, const argument_list& comps, bool search_path) :
+	command(command_type::exec),
 	m_program(program),
 	m_arguments(comps),
 	m_search_path(search_path)
@@ -118,11 +121,6 @@ const exec_command::argument_list& exec_command::arguments() const noexcept
 bool exec_command::search_path() const noexcept
 {
 	return m_search_path;
-}
-
-command_type exec_command::type_impl() const noexcept
-{
-	return command_type::exec;
 }
 
 

@@ -30,14 +30,17 @@ namespace nimrod {
 
 enum class command_type { onerror, redirect, copy, exec };
 
-template <typename T>
 class command
 {
+protected:
+	explicit command(command_type type) noexcept;
 public:
-	command_type type() const noexcept { return static_cast<const T*>(this)->type_impl(); }
+	command_type type() const noexcept;
+private:
+	command_type m_type;
 };
 
-class onerror_command : public command<onerror_command>
+class onerror_command : public command
 {
 public:
 	enum class action_t { fail, ignore };
@@ -48,12 +51,9 @@ public:
 
 private:
 	action_t m_action;
-
-	command_type type_impl() const noexcept;
-	friend class command<onerror_command>;
 };
 
-class redirect_command : public command<redirect_command>
+class redirect_command : public command
 {
 public:
 	enum class stream_t { stdout_, stderr_ };
@@ -69,12 +69,9 @@ private:
 	stream_t m_stream;
 	bool m_append;
 	std::string m_file;
-
-	command_type type_impl() const noexcept;
-	friend class command<redirect_command>;
 };
 
-class copy_command : public command<copy_command>
+class copy_command : public command
 {
 public:
 	enum class context_t { node, root };
@@ -93,12 +90,9 @@ private:
 
 	context_t m_dest_context;
 	std::string m_dest_path;
-
-	command_type type_impl() const noexcept;
-	friend class command<copy_command>;
 };
 
-class exec_command : public command<exec_command>
+class exec_command : public command
 {
 public:
 	using argument_list = std::vector<std::string>;
@@ -113,9 +107,6 @@ private:
 	std::string m_program;
 	argument_list m_arguments;
 	bool m_search_path;
-
-	command_type type_impl() const noexcept;
-	friend class command<exec_command>;
 };
 
 using _command_union = std::variant<onerror_command, redirect_command, copy_command, exec_command>;
