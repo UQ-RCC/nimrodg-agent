@@ -8,6 +8,7 @@ if(NOT WIN32)
 endif()
 
 find_package(OpenSSL 2.0.0 REQUIRED)
+find_package(CURL 7.64.0 REQUIRED)
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
@@ -165,18 +166,23 @@ set_property(TARGET agent PROPERTY CXX_STANDARD_REQUIRED ON)
 target_include_directories(agent PRIVATE "include")
 target_include_directories(agent PRIVATE "../concurrentqueue")
 target_include_directories(agent PUBLIC ${AGENT_GENERATED_INCLUDE_DIR})
-target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
-target_include_directories(agent PRIVATE "../curl/include")
-
-target_compile_definitions(agent PRIVATE CURL_STATICLIB)
 
 target_link_libraries(agent Threads::Threads)
 target_link_libraries(agent fmt-header-only)
 target_link_libraries(agent uuid)
 target_link_libraries(agent uriparser)
 target_link_libraries(agent rabbitmq-static)
+
+
+target_include_directories(agent PRIVATE ${CURL_INCLUDE_DIRS})
+target_link_libraries(agent ${CURL_LIBRARIES})
+
+
+target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
 target_link_libraries(agent ${OPENSSL_LIBRARIES})
-target_link_libraries(agent libcurl)
+
+# Hacky fix for now
+target_link_libraries(agent /home/zane/Desktop/abuild/prefix/lib/libssh2.a)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 	target_link_libraries(agent stdc++fs)

@@ -12,6 +12,3 @@
 [submodule "concurrentqueue"]
 	path = concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue
-[submodule "curl"]
-	path = curl
-	url = https://github.com/curl/curl
