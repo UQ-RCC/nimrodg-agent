@@ -42,7 +42,7 @@ private:
 public:
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
-	void get(const UriUriA *uri, const filesystem::path& path, const char *token) override;
+	void get(const Ugit riUriA *uri, const filesystem::path& path, const char *token) override;
 	void put(const UriUriA *uri, const filesystem::path& path, const char *token) override;
 	void cancel() override;
 
@@ -57,9 +57,9 @@ private:
 
 	void doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state);
 
-	size_t write_proc(char *ptr, size_t size, size_t nmemb);
-	size_t read_proc(char *ptr, size_t size, size_t nmemb);
-	int xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+	size_t write_proc(char *ptr, size_t size, size_t nmemb) noexcept;
+	size_t read_proc(char *ptr, size_t size, size_t nmemb) noexcept;
+	int xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) noexcept;
 
 	std::atomic<state_t> m_state;
 	std::atomic_bool m_cancelflag;

@@ -98,7 +98,9 @@ txman::txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bo
 	m_schemes[3] = { "ftps",	curlPool };		/* cURL, native */
 	m_schemes[4] = { "tftp",	curlPool };		/* cURL, native */
 	m_schemes[5] = { "gopher",	curlPool };		/* cURL, native */
-	m_schemes[6] = { "file",	localPool };	/* POSIX: Use Splice, Win32: Use CopyFileExW */
+	m_schemes[6] = { "scp",		curlPool };		/* cURL, native */
+	m_schemes[7] = { "sftp",	curlPool };		/* cURL, native */
+	m_schemes[8] = { "file",	localPool };	/* POSIX: Use Splice, Win32: Use CopyFileExW */
 }
 
 txman::future_pair txman::get(const UriUriA *uri, const filesystem::path& path, const char *token)

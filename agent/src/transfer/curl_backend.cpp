@@ -68,6 +68,9 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 		return CURLE_OK;
 	});
 
+	/* For SSH, allow both key auth and password. The password can be specified in the URI. Caveat emptor. */
+	curl_easy_setopt(m_context.get(), CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+
 	curl_easy_setopt(m_context.get(), CURLOPT_READDATA, this);
 	curl_easy_setopt(m_context.get(), CURLOPT_READFUNCTION, [](char *ptr, size_t size, size_t nmemb, void *user){
 		return reinterpret_cast<curl_backend*>(user)->read_proc(ptr, size, nmemb);
@@ -130,6 +133,10 @@ static long get_curl_proto(CURL *curl) noexcept
 			return CURLPROTO_TFTP;
 		else if(!c_stricmp(buf, "gopher"))
 			return CURLPROTO_GOPHER;
+		else if(!c_stricmp(buf, "sftp"))
+			return CURLPROTO_SFTP;
+		else if(!c_stricmp(buf, "scp"))
+			return CURLPROTO_SCP;
 	}
 
 	char *url = nullptr;
@@ -156,6 +163,10 @@ static long get_curl_proto(CURL *curl) noexcept
 		return CURLPROTO_TFTP;
 	else if(!c_strnicmp(url, "gopher", len))
 		return CURLPROTO_GOPHER;
+	else if(!c_strnicmp(url, "sftp", len))
+		return CURLPROTO_SFTP;
+	else if(!c_strnicmp(url, "scp", len))
+		return CURLPROTO_SCP;
 
 	return 0;
 }
@@ -269,6 +280,11 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 				curl_easy_setopt(m_context.get(), CURLOPT_NEW_FILE_PERMS, static_cast<long>(perms) & 0777);
 			else
 				curl_easy_setopt(m_context.get(), CURLOPT_NEW_FILE_PERMS, 0644);
+
+			/* For SCP */
+			uintmax_t size = filesystem::file_size(path);
+			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE, static_cast<long>(size));
+			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(size));
 		}
 		m_file.reset(xfopen(path, true));
 	}
@@ -291,7 +307,7 @@ void curl_backend::put(const UriUriA *uri, const filesystem::path& path, const c
 	return doit(uri, path, token, state_t::in_put);
 }
 
-size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb)
+size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb) noexcept
 {
 	/* If we're here from a PUT, the server's probably sent an error page. Ignore it. */
 	if(m_state == state_t::in_put)
@@ -299,13 +315,13 @@ size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb)
 	return fwrite(ptr, size, nmemb, m_file.get());
 }
 
-size_t curl_backend::read_proc(char *ptr, size_t size, size_t nmemb)
+size_t curl_backend::read_proc(char *ptr, size_t size, size_t nmemb) noexcept
 {
 	//assert(m_state == state_t::in_get);
 	return fread(ptr, size, nmemb, m_file.get());
 }
 
-int curl_backend::xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+int curl_backend::xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) noexcept
 {
 	if(m_cancelflag)
 		return -1;
