@@ -61,14 +61,14 @@ public:
 
 	txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
-	virtual ~txman(void) = default;
+	virtual ~txman() = default;
 	txman(const txman&) = delete;
 	txman(txman&&) = delete;
 
 	txman& operator=(const txman&) = delete;
 	txman& operator=(txman&&) = delete;
 
-	static future_pair default_future_pair(void) { return std::make_pair(0, tx::future_type()); }
+	static future_pair default_future_pair() { return std::make_pair(0, tx::future_type()); }
 
 	future_pair get(const UriUriA *uri, const filesystem::path& path, const char *token);
 	future_pair put(const UriUriA *uri, const filesystem::path& path, const char *token);
@@ -76,8 +76,8 @@ public:
 	void cancel(size_t id);
 	void cancel(const future_pair& fp);
 
-	nimrod::uuid uuid(void) const noexcept;
-	const char *uuid_string(void) const noexcept;
+	nimrod::uuid uuid() const noexcept;
+	const char *uuid_string() const noexcept;
 
 private:
 	constexpr static size_t max_backends = 16;

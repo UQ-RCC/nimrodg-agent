@@ -62,9 +62,10 @@ void ttt(nimrod::amqp_consumer& amqp, CURLM *mh)
 	if(amqpfd > maxfd)
 		maxfd = amqpfd;
 
-	struct timeval to;
-	to.tv_sec = 1;
-	to.tv_usec = 0;
+	struct timeval to = {
+		.tv_sec = 1,
+		.tv_usec = 0
+	};
 
 	int rv = select(maxfd + 1, &readfds, &writefds, &exceptfds, &to);
 	if(rv < 0)

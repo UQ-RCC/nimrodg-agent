@@ -46,12 +46,6 @@ static FILE *xfopen(const filesystem::path& path, bool read)
 #endif
 }
 
-static CURLcode curl_set_ssl(CURL *curl, void *sslctx, void *parm)
-{
-	set_ssl_store(reinterpret_cast<SSL_CTX*>(sslctx), static_cast<X509_STORE*>(parm));
-	return CURLE_OK;
-}
-
 curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost) :
 	transfer_backend(tx, proc),
 	m_state(state_t::ready),
@@ -69,16 +63,25 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 	curl_easy_setopt(m_context.get(), CURLOPT_SSL_VERIFYPEER, static_cast<long>(verifyPeer));
 	curl_easy_setopt(m_context.get(), CURLOPT_SSL_VERIFYHOST, verifyHost ? 2 : 0);
 	curl_easy_setopt(m_context.get(), CURLOPT_SSL_CTX_DATA, x509);
-	curl_easy_setopt(m_context.get(), CURLOPT_SSL_CTX_FUNCTION, curl_set_ssl);
+	curl_easy_setopt(m_context.get(), CURLOPT_SSL_CTX_FUNCTION, [](CURL *curl, void *ctx, void *parm){
+		set_ssl_store(reinterpret_cast<SSL_CTX*>(ctx), static_cast<X509_STORE*>(parm));
+		return CURLE_OK;
+	});
 
 	curl_easy_setopt(m_context.get(), CURLOPT_READDATA, this);
-	curl_easy_setopt(m_context.get(), CURLOPT_READFUNCTION, read_stub);
+	curl_easy_setopt(m_context.get(), CURLOPT_READFUNCTION, [](char *ptr, size_t size, size_t nmemb, void *user){
+		return reinterpret_cast<curl_backend*>(user)->read_proc(ptr, size, nmemb);
+	});
 
 	curl_easy_setopt(m_context.get(), CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(m_context.get(), CURLOPT_WRITEFUNCTION, write_stub);
+	curl_easy_setopt(m_context.get(), CURLOPT_WRITEFUNCTION, [](char *ptr, size_t size, size_t nmemb, void *user){
+		return reinterpret_cast<curl_backend*>(user)->write_proc(ptr, size, nmemb);
+	});
 
 	curl_easy_setopt(m_context.get(), CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFOFUNCTION, xferinfo_stub);
+	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFOFUNCTION, [](void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
+		return reinterpret_cast<curl_backend*>(clientp)->xferinfo_proc(dltotal, dlnow, ultotal, ulnow);
+	});
 	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFODATA, this);
 
 	curl_easy_setopt(m_context.get(), CURLOPT_PRIVATE, this);
@@ -86,12 +89,7 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 	curl_easy_setopt(m_context.get(), CURLOPT_USERAGENT, NIMRODG_USER_AGENT);
 }
 
-CURL *curl_backend::get_handle(void)
-{
-	return m_context.get();
-}
-
-long get_curl_proto(CURL *curl)
+static long get_curl_proto(CURL *curl) noexcept
 {
 	/*
 	** There's a bit of screwy going on here. Sometimes CURLINFO_PROTOCOL is correct.
@@ -321,19 +319,4 @@ void curl_backend::cancel()
 		return;
 
 	m_cancelflag = true;
-}
-
-size_t curl_backend::read_stub(char *ptr, size_t size, size_t nmemb, void *user)
-{
-	return reinterpret_cast<curl_backend*>(user)->read_proc(ptr, size, nmemb);
-}
-
-size_t curl_backend::write_stub(char *ptr, size_t size, size_t nmemb, void *user)
-{
-	return reinterpret_cast<curl_backend*>(user)->write_proc(ptr, size, nmemb);
-}
-
-int curl_backend::xferinfo_stub(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
-{
-	return reinterpret_cast<curl_backend*>(clientp)->xferinfo_proc(dltotal, dlnow, ultotal, ulnow);
 }
