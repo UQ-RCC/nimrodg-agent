@@ -42,7 +42,7 @@ private:
 public:
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
-	void get(const Ugit riUriA *uri, const filesystem::path& path, const char *token) override;
+	void get(const UriUriA *uri, const filesystem::path& path, const char *token) override;
 	void put(const UriUriA *uri, const filesystem::path& path, const char *token) override;
 	void cancel() override;
 
