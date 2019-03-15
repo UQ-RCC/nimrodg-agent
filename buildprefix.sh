@@ -1,17 +1,28 @@
-#!/bin/bash
+#!/bin/sh
 set -e
-
-LIBRESSL_VERSION=2.9.0
-LIBSSH2_VERSION=1.8.0
-CURL_VERSION=7.64.0
 
 if [ -z "$PREFIX" ]; then
     echo "\$PREFIX not set"
     exit 2
 fi
 
-export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
-mkdir -p $PKG_CONFIG_PATH
+if [ -z "$LIBRESSL_VERSION" ]; then
+    LIBRESSL_VERSION=2.9.0
+fi
+
+if [ -z "$LIBSSH2_VERSION" ]; then
+    LIBSSH2_VERSION=1.8.0
+fi
+
+if [ -z "$CURL_VERSION" ]; then
+    CURL_VERSION=7.64.0
+fi
+
+#export DEBUG_FLAGS=--enable-debug
+export PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig
+mkdir -p ${PKG_CONFIG_PATH}
+
+STARTCWD=$PWD
 
 ##
 # LibreSSL
@@ -23,12 +34,11 @@ fi
 tar -xf "libressl-${LIBRESSL_VERSION}.tar.gz"
 
 mkdir -p libressl-build
-pushd libressl-build
-    ../libressl-${LIBRESSL_VERSION}/configure --disable-asm --enable-shared=no --enable-static=yes --prefix=$PREFIX
+cd libressl-build
+    ../libressl-${LIBRESSL_VERSION}/configure --disable-asm --enable-shared=no --enable-static=yes --prefix=${PREFIX}
     make -j
     make install
-popd
-
+cd ${STARTCWD}
 
 ##
 # libssh2
@@ -40,9 +50,9 @@ fi
 tar -xf "libssh2-${LIBSSH2_VERSION}.tar.gz"
 
 mkdir -p libssh2-build
-pushd libssh2-build
-    ../libssh2-${LIBSSH2_VERSION}/configure \
-        --prefix=$PREFIX \
+cd libssh2-build
+    ../libssh2-${LIBSSH2_VERSION}/configure ${DEBUG_FLAGS} \
+        --prefix=${PREFIX} \
         --disable-shared \
         --enable-static \
         --disable-rpath \
@@ -51,7 +61,7 @@ pushd libssh2-build
         --disable-examples-build
     make -j
     make install
-popd
+cd ${STARTCWD}
 
 ##
 # cURL
@@ -63,9 +73,9 @@ fi
 tar -xf "curl-${CURL_VERSION}.tar.xz"
 
 mkdir -p curl-build
-pushd curl-build
-    ../curl-${CURL_VERSION}/configure \
-        --prefix=$PREFIX \
+cd curl-build
+    ../curl-${CURL_VERSION}/configure ${DEBUG_FLAGS} \
+        --prefix=${PREFIX} \
         --disable-shared \
         --enable-static \
         --disable-ares \
@@ -99,7 +109,8 @@ pushd curl-build
         --without-zlib
     make -j
     make install
-popd
+cd ${STARTCWD}
 
 
 # cmake -DCMAKE_INSTALL_PREFIX=$PWD/../prefix -DBUILD_SHARED_LIBS=OFF -DNIMRODG_PLATFORM_STRING="x86_64-pc-linux-gnu" ~/Documents/Coding/nimrodg-agent/
+
