@@ -348,11 +348,11 @@ std::string nimrod::uri_to_string(const UriUriA *uri)
 	int len = 0;
 	if(uriToStringCharsRequiredA(uri, &len))
 		throw std::bad_alloc();
-	++len;
 
 	std::string dbg;
 	dbg.resize(len);
 
+	++len;
 	uriToStringA(&dbg[0], uri, len, &len);
 
 	return dbg;
