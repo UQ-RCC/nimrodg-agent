@@ -56,16 +56,21 @@ Options:
 ```
 
 ## Build Instructions
-* Ensure you have a C++17 compiler installed. This should work on recent versions of MSVC (2017+).
-* Download and extract `https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-2.9.0.tar.gz` to the clone directory.
-  - If you want to use a different version, change the `add_subdirectory` directive in `CMakeLists.txt`
-* Update submodules: `git submodule update --init`
-* Decide on a platform string, such as `x86_64-pc-linux-gnu`
-* Do an out-of-tree CMake build: `cmake -DNIMRODG_PLATFORM_STRING=x86_64-pc-linux-gnu /path/to/clone/dir`
-* Build it: `make -j agent`
 
-The build scripts are designed to build _mostly-static_ binaries. If using _musl_, you can achieve fully-static binaries.
-It is recommended against using system-provided libraries due to the nature of the agent.
+```
+git clone https://github.com/UQ-RCC/nimrodg-agent
+git submodule update --init
+mkdir -p /path/to/build && cd /path/to/build
+export PREFIX=$PWD/prefix
+/path/to/checkout/buildprefix.sh
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+mkdir agent-build && cd agent-build
+cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DNIMRODG_PLATFORM_STRING="x86_64-pc-linux-gnu" \
+    /path/to/checkout
+make -j agent
+```
 
 ## License
 This project is licensed under the [Apache License, Version 2.0](https://opensource.org/licenses/Apache-2.0):
