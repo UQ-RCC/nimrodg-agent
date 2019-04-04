@@ -19,17 +19,11 @@
  */
 #define __STDC_FORMAT_MACROS
 #include <cinttypes>
-#include <cstdio>
+#include <iostream>
 
 #include <fmt/ostream.h>
 #include "threading.hpp"
 #include "log.hpp"
-
-#define XSTR(a) STR(a)
-#define STR(a) #a
-
-#define COMPONENT_STRING_SIZE 7
-#define COMPONENT_STRING_SIZE_AS_STRING XSTR(COMPONENT_STRING_SIZE)
 
 using namespace nimrod;
 
@@ -40,44 +34,46 @@ void log::vmanual(level_t level, const char *component, const char *fmt, fmt::pr
 	/* http://stackoverflow.com/a/8438730/21475 */
 	static thread_local int threadMarker;
 
-	FILE *stream = stderr;
+	/* NB: Using iostreams so output is redirected when in batch mode. */
+	std::ostream *stream = &std::cerr;
+
 	const char *sLevel = "UNKWN";
 
 	switch(level)
 	{
 		case level_t::error:
 			sLevel = "ERROR";
-			stream = stderr;
+			stream = &std::cerr;
 			break;
 		case level_t::warn:
 			sLevel = "WARN";
-			stream = stdout;
+			stream = &std::cout;
 			break;
 		case level_t::info:
 			sLevel = "INFO";
-			stream = stdout;
+			stream = &std::cout;
 			break;
 		case level_t::debug:
 			sLevel = "DEBUG";
-			stream = stdout;
+			stream = &std::cout;
 			break;
 		case level_t::trace:
 			sLevel = "TRACE";
-			stream = stdout;
+			stream = &std::cout;
 			break;
 	}
 
 	{
 		std::lock_guard<std::mutex> lock(logLock);
-		fprintf(
-			stream,
-			"%" COMPONENT_STRING_SIZE_AS_STRING "." COMPONENT_STRING_SIZE_AS_STRING "s [%" PRIxPTR "] [%5s] ",
+		fmt::fprintf(
+			*stream,
+			"%7.7s [%" PRIxPTR "] [%5s] ",
 			component,
 			reinterpret_cast<uintptr_t>(&threadMarker),
 			sLevel
 		);
 
-		fmt::vfprintf(stream, fmt, args);
-		fmt::print(stream, "\n");
+		fmt::vfprintf(*stream, fmt, args);
+		fmt::print(*stream, "\n");
 	}
 }

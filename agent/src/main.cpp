@@ -100,10 +100,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/*
-	** Handle output redirection.
-	** NB: I'm deliberately leaving cstdio out/err alone as they're handy for quick debugging.
-	*/
+	/* Handle output redirection. */
 	std::ofstream rstream;
 	switch(s.output)
 	{
