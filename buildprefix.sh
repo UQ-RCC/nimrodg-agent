@@ -18,6 +18,19 @@ if [ -z "$CURL_VERSION" ]; then
     CURL_VERSION=7.64.0
 fi
 
+export CFLAGS="${CFLAGS} -Os"
+export LDFLAGS="${LDFLAGS} -static"
+
+if [ -z "$CC" ]; then
+    CC=cc
+fi
+export CC
+
+if [ -z "$HOST" ]; then
+    HOST=$(${CC} -dumpmachine)
+fi
+export HOST
+
 #export DEBUG_FLAGS=--enable-debug
 export PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig
 mkdir -p ${PKG_CONFIG_PATH}
@@ -35,7 +48,12 @@ tar -xf "libressl-${LIBRESSL_VERSION}.tar.gz"
 
 mkdir -p libressl-build
 cd libressl-build
-    ../libressl-${LIBRESSL_VERSION}/configure --disable-asm --enable-shared=no --enable-static=yes --prefix=${PREFIX}
+    ../libressl-${LIBRESSL_VERSION}/configure \
+        --disable-asm \
+        --enable-shared=no \
+        --enable-static=yes \
+        --prefix=${PREFIX} \
+        --host=${HOST}
     make -j
     make install
 cd ${STARTCWD}
@@ -51,8 +69,11 @@ tar -xf "libssh2-${LIBSSH2_VERSION}.tar.gz"
 
 mkdir -p libssh2-build
 cd libssh2-build
-    ../libssh2-${LIBSSH2_VERSION}/configure ${DEBUG_FLAGS} \
+    # This is too old, so pinch LibreSSL's one
+    cp ../libressl-${LIBRESSL_VERSION}/config.sub ../libssh2-${LIBSSH2_VERSION}
+    CPPFLAGS="-I${PREFIX}/include" ../libssh2-${LIBSSH2_VERSION}/configure ${DEBUG_FLAGS} \
         --prefix=${PREFIX} \
+        --host=${HOST} \
         --disable-shared \
         --enable-static \
         --disable-rpath \
@@ -76,6 +97,7 @@ mkdir -p curl-build
 cd curl-build
     ../curl-${CURL_VERSION}/configure ${DEBUG_FLAGS} \
         --prefix=${PREFIX} \
+        --host=${HOST} \
         --disable-shared \
         --enable-static \
         --disable-ares \
