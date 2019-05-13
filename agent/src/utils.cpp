@@ -28,9 +28,21 @@
 
 using namespace nimrod;
 
-void nimrod::deleter_uri::operator()(UriUriA *uri) const { uriFreeUriMembersA(uri); delete uri; }
-void nimrod::deleter_amqp_conn::operator()(amqp_connection_state_t conn) const { amqp_destroy_connection(conn); }
-void nimrod::deleter_cstdio::operator()(FILE *f) const { fclose(f); }
+void nimrod::deleter_uri::operator()(UriUriA *uri) const noexcept
+{
+	uriFreeUriMembersA(uri);
+	delete uri;
+}
+
+void nimrod::deleter_amqp_conn::operator()(amqp_connection_state_t conn) const noexcept
+{
+	amqp_destroy_connection(conn);
+}
+
+void nimrod::deleter_cstdio::operator()(FILE *f) const noexcept
+{
+	fclose(f);
+}
 
 uri_ptr nimrod::parse_uri(const char *uri)
 {
@@ -86,6 +98,24 @@ int nimrod::c_strnicmp(const char *_l, const char *_r, size_t n)
 	if(!n--) return 0;
 	for(; *l && *r && n && toasciilower(*l) == toasciilower(*r); l++, r++, n--);
 	return *l - *r;
+}
+
+FILE *nimrod::xfopen(const filesystem::path& path, const char *mode) noexcept
+{
+	assert(mode);
+#ifdef _WIN32
+	size_t len = mbstowcs(nullptr, mode, 0);
+	if(len == static_cast<size_t>(-1))
+		return errno = EINVAL, nullptr;
+
+	wchar_t *wmode = reinterpret_cast<wchar_t*>(alloca(len + 1));
+	if(mbstowcs(wmode, mode, len + 1) == static_cast<size_t>(-1))
+		return errno = EINVAL, nullptr;
+
+	return _wfopen(path.c_str(), wmode);
+#else
+	return fopen(path.c_str(), mode);
+#endif
 }
 
 std::string nimrod::amqp_bytes_to_string(const amqp_bytes_t& b)

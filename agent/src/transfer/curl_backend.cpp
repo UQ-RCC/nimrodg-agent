@@ -33,17 +33,19 @@ using namespace nimrod::tx;
 */
 
 
-void nimrod::deleter_curl_multi::operator()(CURLM *m) const { curl_multi_cleanup(m); }
-void curl_backend::deleter_curl::operator()(CURL *c) const { curl_easy_cleanup(c); }
-void curl_backend::deleter_curl_slist::operator()(struct curl_slist *l) const { curl_slist_free_all(l); }
-
-static FILE *xfopen(const filesystem::path& path, bool read)
+void nimrod::deleter_curl_multi::operator()(CURLM *m) const noexcept
 {
-#ifdef _WIN32
-	return _wfopen(path.c_str(), read ? L"rb" : L"wb");
-#else
-	return fopen(path.c_str(), read ? "rb" : "wb");
-#endif
+	curl_multi_cleanup(m);
+}
+
+void tx::deleter_curl::operator()(CURL *c) const noexcept
+{
+	curl_easy_cleanup(c);
+}
+
+void tx::deleter_curl_slist::operator()(struct curl_slist *l) const noexcept
+{
+	curl_slist_free_all(l);
 }
 
 curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost) :
@@ -82,7 +84,7 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 	}));
 
 	curl_easy_setopt(m_context.get(), CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFOFUNCTION, static_cast<curl_xferinfo_callback >([](void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
+	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFOFUNCTION, static_cast<curl_xferinfo_callback>([](void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
 		return reinterpret_cast<curl_backend*>(clientp)->xferinfo_proc(dltotal, dlnow, ultotal, ulnow);
 	}));
 	curl_easy_setopt(m_context.get(), CURLOPT_XFERINFODATA, this);
@@ -267,7 +269,7 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 	if(state == state_t::in_get)
 	{
 		curl_easy_setopt(m_context.get(), CURLOPT_UPLOAD, 0L);
-		m_file.reset(xfopen(path, false));
+		m_file.reset(xfopen(path, "wb"));
 	}
 	else if(state == state_t::in_put)
 	{
@@ -286,7 +288,7 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE, static_cast<long>(size));
 			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(size));
 		}
-		m_file.reset(xfopen(path, true));
+		m_file.reset(xfopen(path, "rb"));
 	}
 
 	if(!m_file)

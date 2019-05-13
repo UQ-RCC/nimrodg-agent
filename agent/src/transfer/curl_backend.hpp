@@ -29,16 +29,16 @@
 
 namespace nimrod::tx {
 
+struct deleter_curl { void operator()(CURL *c) const noexcept; };
+using curl_ptr = std::unique_ptr<CURL, deleter_curl>;
+
+struct deleter_curl_slist { void operator()(struct curl_slist *l) const noexcept; };
+using curl_slist_ptr = std::unique_ptr<struct curl_slist, deleter_curl_slist>;
+
 class curl_backend : public transfer_backend
 {
 private:
-	enum class state_t
-	{
-		ready,
-		in_get,
-		in_put
-	};
-
+	enum class state_t { ready, in_get, in_put };
 public:
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
@@ -48,13 +48,6 @@ public:
 
 	void _handle_message(CURLMsg *msg);
 private:
-
-	struct deleter_curl { void operator()(CURL *c) const; };
-	using curl_ptr = std::unique_ptr<CURL, deleter_curl>;
-
-	struct deleter_curl_slist { void operator()(struct curl_slist *l) const; };
-	using curl_slist_ptr = std::unique_ptr<struct curl_slist, deleter_curl_slist>;
-
 	void doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state);
 
 	size_t write_proc(char *ptr, size_t size, size_t nmemb) noexcept;

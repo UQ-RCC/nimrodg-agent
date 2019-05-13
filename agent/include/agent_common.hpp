@@ -90,6 +90,8 @@ uri_ptr parse_uri(const char *uri);
 int c_stricmp(const char *l, const char *r);
 int c_strnicmp(const char *_l, const char *_r, size_t n);
 
+FILE *xfopen(const filesystem::path& path, const char *mode) noexcept;
+
 /*
 ** Convert an amqp_bytes_t structure to a C++ string.
 */

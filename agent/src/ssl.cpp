@@ -28,7 +28,19 @@
 
 using namespace nimrod;
 
-void nimrod::deleter_x509_store::operator()(X509_STORE *v) const { X509_STORE_free(v); }
+void nimrod::deleter_x509_store::operator()(X509_STORE *v) const noexcept
+{
+	X509_STORE_free(v);
+}
+
+struct deleter_bio_chain
+{
+	void operator()(BIO *p) noexcept
+	{
+		BIO_free_all(p);
+	}
+};
+using bio_chain_ptr = std::unique_ptr<BIO, deleter_bio_chain>;
 
 template <typename T>
 static T report_openssl_error(unsigned long err)
@@ -115,12 +127,15 @@ void nimrod::amqp_inject_x509_store(amqp_socket_t *socket, X509_STORE *ctx)
 	if(ctx == nullptr)
 		return;
 
+
+
 	/* Yes, this is a hack. No, I don't care. */
 	struct hack
 	{
 		const struct amqp_socket_class_t *klass;
 		SSL_CTX *ctx;
 	};
+
 
 	struct hack *h = reinterpret_cast<struct hack*>(socket);
 
@@ -155,13 +170,9 @@ std::unique_ptr<char[]> nimrod::base64_decode(const char *data, size_t inSize, s
 
 	std::unique_ptr<char[]> ptr = std::make_unique<char[]>(outSize);
 
-	using bio_chain_ptr = std::unique_ptr<BIO, decltype(BIO_free_all)*>;
-
-	BIO *_bio = BIO_new_mem_buf(const_cast<char*>(data), static_cast<int>(inSize));
-	if(_bio == nullptr)
+	bio_chain_ptr bio(BIO_new_mem_buf(const_cast<char*>(data), static_cast<int>(inSize)));
+	if(!bio)
 		return nullptr;
-
-	bio_chain_ptr bio(_bio, [](BIO *b) { if(b) BIO_free_all(b); });
 
 	BIO *b64 = BIO_new(BIO_f_base64());
 	if(b64 == nullptr)

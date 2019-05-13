@@ -62,20 +62,20 @@ typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
 namespace nimrod
 {
-struct deleter_uri { void operator()(UriUriA *uri) const; };
+struct deleter_uri { void operator()(UriUriA *uri) const noexcept; };
 using uri_ptr = std::unique_ptr<UriUriA, deleter_uri>;
 
-struct deleter_x509_store { void operator()(X509_STORE *ptr) const; };
+struct deleter_x509_store { void operator()(X509_STORE *ptr) const noexcept; };
 using x509_store_ptr = std::unique_ptr<X509_STORE, deleter_x509_store>;
 
-struct deleter_amqp_conn { void operator()(amqp_connection_state_t conn) const; };
+struct deleter_amqp_conn { void operator()(amqp_connection_state_t conn) const noexcept; };
 using amqp_conn_ptr = std::unique_ptr<amqp_connection_state_t_, deleter_amqp_conn>;
 
-struct deleter_cstdio { void operator()(FILE *f) const; };
+struct deleter_cstdio { void operator()(FILE *f) const noexcept; };
 using cstdio_ptr = std::unique_ptr<FILE, deleter_cstdio>;
 using file_ptr = cstdio_ptr;
 
-struct deleter_curl_multi { void operator()(CURLM *m) const; };
+struct deleter_curl_multi { void operator()(CURLM *m) const noexcept; };
 using curl_multi_ptr = std::unique_ptr<CURLM, deleter_curl_multi>;
 
 class agent;
