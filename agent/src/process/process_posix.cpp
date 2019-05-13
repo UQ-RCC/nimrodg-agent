@@ -99,8 +99,8 @@ posixprocess::posixprocess(
 	envp.emplace_back(nullptr);
 
 	/* Set variables up so the child has to do as little as possible */
-	auto pathStr = path.u8string();
-	auto cwdStr = cwd.u8string();
+	std::string pathStr = path.u8string();
+	std::string cwdStr = cwd.u8string();
 
 	set_all_close_on_exec();
 	int outFd = fileno(reinterpret_cast<FILE*>(out));
