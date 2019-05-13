@@ -123,7 +123,6 @@ std::string nimrod::amqp_bytes_to_string(const amqp_bytes_t& b)
 	return std::string(reinterpret_cast<const char*>(b.bytes), reinterpret_cast<const char*>(b.bytes) + b.len);
 }
 
-
 amqp_socket_t *nimrod::create_socket(settings& s, amqp_connection_state_t conn, X509_STORE *castore)
 {
 	amqp_socket_t *socket;
@@ -139,7 +138,7 @@ amqp_socket_t *nimrod::create_socket(settings& s, amqp_connection_state_t conn, 
 			return nullptr;
 		}
 
-		amqp_inject_x509_store(socket, castore);
+		set_ssl_store(reinterpret_cast<SSL_CTX*>(amqp_ssl_socket_get_context(socket)), castore);
 
 		{ /* Peer/Hostname verification */
 			const char *sslWarn = nullptr;

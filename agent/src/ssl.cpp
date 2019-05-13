@@ -122,26 +122,6 @@ void nimrod::set_ssl_store(SSL_CTX *ctx, X509_STORE *st)
 	CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_X509_STORE);
 }
 
-void nimrod::amqp_inject_x509_store(amqp_socket_t *socket, X509_STORE *ctx)
-{
-	if(ctx == nullptr)
-		return;
-
-
-
-	/* Yes, this is a hack. No, I don't care. */
-	struct hack
-	{
-		const struct amqp_socket_class_t *klass;
-		SSL_CTX *ctx;
-	};
-
-
-	struct hack *h = reinterpret_cast<struct hack*>(socket);
-
-	set_ssl_store(h->ctx, ctx);
-}
-
 static size_t base64_get_decoded_length(const char *data, size_t size)
 {
 	if((size % 4) != 0)

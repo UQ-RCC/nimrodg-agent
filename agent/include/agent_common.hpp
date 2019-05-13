@@ -119,7 +119,6 @@ x509_store_ptr new_ca_store(void);
 x509_store_ptr load_ca_store_mem(const char *data, size_t size);
 void dump_ca_store(const x509_store_ptr& castore);
 void set_ssl_store(SSL_CTX *ctx, X509_STORE *st);
-void amqp_inject_x509_store(amqp_socket_t *socket, X509_STORE *ctx);
 std::unique_ptr<char[]> base64_decode(const char *data, size_t inSize, size_t& outSize);
 
 /* console.cpp */
