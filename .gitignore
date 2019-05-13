@@ -5,5 +5,4 @@
 /.vscode/.cmaketools.json
 /build86/
 /cmake-*/
-/.idea/workspace.xml
-/.idea/tasks.xml
+/.idea/
