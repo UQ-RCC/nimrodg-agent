@@ -41,6 +41,9 @@ procman::procman(const job_definition& j, const filesystem::path& work_root, txm
 	m_paths.path_stderr = m_paths.path_job_root / "stderr.txt";
 	m_paths.path_working = m_paths.path_job_root / "working";
 	m_paths.path_tmp = m_paths.path_job_root / "tmp";
+	m_paths.path_default_intepreter = process::get_system_interpreter();
+	if(m_paths.path_default_intepreter.empty())
+		throw std::runtime_error("Unable to determine the default interpreter");
 
 	m_paths.uri_base_stor = j.txuri();
 	if(*m_paths.uri_base_stor.rbegin() != '/')
@@ -51,6 +54,8 @@ procman::procman(const job_definition& j, const filesystem::path& work_root, txm
 
 	filesystem::create_directories(m_paths.path_working);
 	filesystem::create_directories(m_paths.path_tmp);
+
+
 }
 
 procman::~procman()
@@ -294,7 +299,7 @@ command_result procman::run_command(const exec_command& cmd)
 	{
 		/* No program? Dump everything to the default shell. */
 		log::trace("JOB", "[%u] Program empty, using system interpreter...", m_command_index);
-		prog = process::get_system_interpreter();
+		prog = m_paths.path_default_intepreter;
 		log::trace("JOB", "[%u] Found system interpreter at %s", m_command_index, prog);
 
 		if(cmd.arguments().size() != 1)
@@ -322,7 +327,7 @@ command_result procman::run_command(const exec_command& cmd)
 		if(cmd.search_path() && !prog.has_parent_path())
 			prog = process::search_path(cmd.program());
 
-		log::trace("JOB", "[%u] Resolved program to \"%s\"", m_command_index, prog);
+		log::trace("JOB", "[%u] Resolved program to %s", m_command_index, prog);
 
 		args.reserve(components.size());
 

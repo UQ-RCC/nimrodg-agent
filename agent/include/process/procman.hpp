@@ -38,6 +38,7 @@ public:
 		filesystem::path path_stderr;
 		filesystem::path path_working;
 		filesystem::path path_tmp;
+		filesystem::path path_default_intepreter;
 
 		std::string uri_base_stor;
 		uri_ptr uri_base;

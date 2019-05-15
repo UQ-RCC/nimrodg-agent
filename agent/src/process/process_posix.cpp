@@ -263,83 +263,10 @@ filesystem::path posixprocess::get_system_interpreter_impl()
 	return "/bin/sh";
 }
 
-template <typename F>
-static filesystem::path visit_paths(const std::string& path, F&& proc)
-{
-	/* https://unix.stackexchange.com/q/311339 */
-
-	for(const char *start = path.c_str(); start != nullptr;)
-	{
-		const char *end = strchr(start, ':');
-		filesystem::path dir;
-
-		if(end == nullptr)
-		{
-			dir = std::string(start, start + strlen(start));
-		}
-		else
-		{
-			dir = std::string(start, end);
-			end += 1;
-		}
-
-		auto resolved = proc(dir);
-		if(resolved != dir)
-			return resolved;
-
-		start = end;
-	}
-	return filesystem::path();
-}
 
 filesystem::path posixprocess::search_path_impl(const std::string& program)
 {
-	std::string path = getenv("PATH");
-	if(path.empty())
-		path = get_cspath();
-
-	using file_type = filesystem::file_type;
-	using perms = filesystem::perms;
-
-	/* Shit like this makes me miss Win32. Replicate the behaviour of execvpe */
-	filesystem::path resolved = visit_paths(path, [&program](const filesystem::path& dir){
-		filesystem::path p = dir / program;
-		log::trace("PROCESS", "Searching %s", dir);
-
-		/* Use POSIX stat() here, std::filesystem can't do some things */
-		uid_t uid = getuid();
-		gid_t gid = getgid();
-		
-		struct stat _stat;
-		memset(&_stat, 0, sizeof(_stat));
-
-		auto s = p.u8string();
-		if(stat(s.c_str(), &_stat) < 0)
-			return dir;
-		
-		/* EACCES The file or a script interpreter is not a regular file. */
-		if(!S_ISREG(_stat.st_mode))
-			return dir;
-
-		/* Check permissions. */
-		bool canExec = false;
-		if((_stat.st_mode & S_IXUSR) && (_stat.st_uid == uid))
-			canExec = true;
-
-		if((_stat.st_mode & S_IXGRP) && (_stat.st_gid == gid))
-			canExec = true;
-		
-		if(_stat.st_mode & S_IXOTH)
-			canExec = true;
-
-		return canExec ? p : dir;
-	});
-	
-	if(resolved.empty())
-		throw make_errno_exception(ENOENT);
-
-	log::trace("PROCESS", "FOUND at %s", resolved);
-	return resolved;
+	return posix::search_path(program);
 }
 
 static_assert(sizeof(int) <= sizeof(process::iofile), "sizeof(int) > sizeof(iofile)");

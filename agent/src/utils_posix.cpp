@@ -40,20 +40,6 @@ std::system_error posix::make_errno_exception(int err)
 	return std::system_error(ec);
 }
 
-std::string posix::get_cspath()
-{
-	size_t n = confstr(_CS_PATH, nullptr, 0);
-	if(n == 0)
-		throw make_errno_exception(errno);
-	
-	std::string storage;
-	storage.reserve(n + 1);
-	if((n = confstr(_CS_PATH, &storage[0], n)) == 0)
-		throw make_errno_exception(errno);
-	
-	return storage;
-}
-
 /* https://stackoverflow.com/a/21952155 */
 void posix::set_all_close_on_exec()
 {
@@ -213,6 +199,93 @@ void enter_batch_mode() noexcept
 		fprintf(stderr, "dup2(): %s\n", strerror(errno));
 		exit(1);
 	}
+}
+
+#include <sys/stat.h>
+static int statfile(const char *p, uid_t uid, gid_t gid)
+{
+	struct stat statbuf{};
+	memset(&statbuf, 0, sizeof(statbuf));
+
+	if(stat(p, &statbuf) < 0)
+		return -1;
+
+	/* EACCES The file or a script interpreter is not a regular file. */
+	if(!S_ISREG(statbuf.st_mode))
+		return errno = EACCES, -1;
+
+	/* Check permissions, least-specific to most-specific.  */
+	if(statbuf.st_mode & S_IXOTH)
+		return 0;
+
+	if((statbuf.st_mode & S_IXGRP) && (statbuf.st_gid == gid))
+		return 0;
+
+	if((statbuf.st_mode & S_IXUSR) && (statbuf.st_uid == uid))
+		return 0;
+
+	/* EACCES Execute permission is denied for the file or a script or ELF interpreter. */
+	return errno = EACCES, -1;
+}
+
+std::string posix::search_path(const std::string& f)
+{
+	/* Get PATH. If empty, fall back to _CS_PATH. */
+	const char *path = getenv("PATH");
+	if(path == nullptr || path[0] == '\0')
+	{
+		size_t n = confstr(_CS_PATH, nullptr, 0);
+		if(n == 0)
+			throw make_errno_exception(EINVAL);
+
+		/* If _CS_PATH overflows the stack then something's wrong. */
+		char *_path = (char*)alloca(n * sizeof(char));
+		if(confstr(_CS_PATH, _path, n))
+			throw make_errno_exception(EINVAL);
+
+		path = _path;
+	}
+
+	const char *pend = path + strlen(path);
+
+	/* Get the max buffer size. */
+	size_t dlen = 0;
+	for(const char *o = path, *c = strchr(o, ':'); o < pend; o = c + 1, c = strchr(o, ':'))
+	{
+		if(c == nullptr)
+			c = pend;
+
+		size_t dist = c - o;
+		if(dist > dlen)
+			dlen = dist;
+	}
+
+	size_t flen = f.size() + 1; /* /%s */
+	dlen += flen + 1;
+
+	uid_t uid = getuid();
+	gid_t gid = getgid();
+
+	std::string buf;
+	buf.reserve(dlen);
+
+	for(const char *o = path, *c = strchr(o, ':'); o < pend; o = c + 1, c = strchr(o, ':'))
+	{
+		if(c == nullptr)
+			c = pend;
+
+		size_t dist = c - o;
+
+		buf.clear();
+		buf.append(o, dist).append(1, '/').append(f);
+
+		if((statfile(buf.c_str(), uid, gid)) < 0)
+			continue;
+
+		return buf;
+	}
+
+	throw make_errno_exception(ENOENT);
 }
 
 #endif
