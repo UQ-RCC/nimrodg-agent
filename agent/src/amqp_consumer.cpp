@@ -30,9 +30,23 @@ static amqp_bytes_t make_bytes(const std::string& s) noexcept
 	return { .len = s.size(), .bytes = const_cast<char*>(s.data()) };
 }
 
-const std::string& amqp_consumer::queue_name() const noexcept
+/* For struct timeval */
+#if defined(_WIN32)
+#	include <winsock2.h>
+#else
+#	include <sys/time.h>
+#endif
+
+static struct timeval *build_timeout(float timeout, struct timeval *tv)
 {
-	return m_queue_name;
+	if(timeout > 0)
+	{
+		tv->tv_sec = static_cast<long>(timeout);
+		tv->tv_usec = static_cast<long>((timeout - tv->tv_sec) * 1000000);
+		return tv;
+	}
+
+	return nullptr;
 }
 
 amqp_consumer::~amqp_consumer() noexcept
@@ -112,25 +126,6 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 	}
 }
 
-/* For struct timeval */
-#if defined(_WIN32)
-#	include <winsock2.h>
-#else
-#	include <sys/time.h>
-#endif
-
-static struct timeval *build_timeout(float timeout, struct timeval *tv)
-{
-	if(timeout > 0)
-	{
-		tv->tv_sec = static_cast<long>(timeout);
-		tv->tv_usec = static_cast<long>((timeout - tv->tv_sec) * 1000000);
-		return tv;
-	}
-
-	return nullptr;
-}
-
 std::future<amqp_consumer::send_result_t> amqp_consumer::send_message(const net::message_container& msg, bool ack)
 {
 	msgstate state = { msg, ack };
@@ -158,6 +153,11 @@ std::future<net::message_container> amqp_consumer::get_message()
 	/* If there's no messages, create a new promise */
 	m_recv_empty.emplace_back();
 	return m_recv_empty.back().get_future();
+}
+
+const std::string& amqp_consumer::queue_name() const noexcept
+{
+	return m_queue_name;
 }
 
 void amqp_consumer::write_message(const net::message_container& msg)
