@@ -270,15 +270,7 @@ command_result procman::run_command(const copy_command& cmd)
 
 std::ostream& operator<<(std::ostream& os, const process::string_vector& v)
 {
-	os << "[";
-	for(size_t i = 0; i < v.size(); ++i)
-	{
-		os << "\"" << v[i] << "\"";
-
-		if(i != v.size() - 1)
-			os << ", ";
-	}
-	return os << "]";
+	return nimrod::join(os, v.begin(), v.end());
 }
 
 command_result procman::run_command(const exec_command& cmd)

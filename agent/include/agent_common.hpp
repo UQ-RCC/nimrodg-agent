@@ -31,6 +31,7 @@
 #include <ostream>
 #include <istream>
 #include <sstream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include "config.h"
@@ -127,30 +128,28 @@ bool init_console_handlers(agent *a);
 /* settings.cpp */
 bool parse_program_arguments(int argc, char **argv, int& status, std::ostream& out, std::ostream& err, settings& s);
 
-template <typename It, typename Ot>
-Ot& join(Ot& os, It begin, It end)
+template <typename InputIt, typename Ot>
+Ot& join(Ot& os, InputIt begin, InputIt end, bool quote = true)
 {
 	os << "[";
-
-	size_t d = std::distance(begin, end);
-
-	size_t i = 0;
-	for(It it = begin; it != end; ++it, ++i)
+	for(;begin < end; ++begin)
 	{
-		os << *it;
+		if(quote)
+			os << std::quoted(*begin);
+		else
+			os << *begin;
 
-		if(i != d - 1)
+		if(begin != (end - 1))
 			os << ", ";
 	}
-
 	return os << "]", os;
 }
 
-template <typename It>
-std::string join(It begin, It end)
+template <typename InputIt>
+std::string join(InputIt begin, InputIt end, bool quote = true)
 {
 	std::ostringstream ss;
-	join(ss, begin, end);
+	join(ss, begin, end, quote);
 	return ss.str();
 }
 

@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 			for(const char * const *p = d->protocols; *p; ++p, ++nproto)
 				;
 
-			log::trace("AGENT", "  Supported protocols: %s", nimrod::join(d->protocols, d->protocols + nproto));
+			log::trace("AGENT", "  Supported protocols: %s", nimrod::join(d->protocols, d->protocols + nproto, false));
 		}
 
 		CURLcode err = curl_global_init(CURL_GLOBAL_WIN32);
