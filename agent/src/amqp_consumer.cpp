@@ -27,10 +27,7 @@ using namespace nimrod;
 
 static amqp_bytes_t make_bytes(const std::string& s) noexcept
 {
-	amqp_bytes_t b;
-	b.len = s.size();
-	b.bytes = const_cast<char*>(s.data());
-	return b;
+	return { .len = s.size(), .bytes = const_cast<char*>(s.data()) };
 }
 
 const std::string& amqp_consumer::queue_name() const noexcept
@@ -38,26 +35,10 @@ const std::string& amqp_consumer::queue_name() const noexcept
 	return m_queue_name;
 }
 
-amqp_consumer::amqp_consumer(amqp_consumer&& a) noexcept
-{
-	this->operator=(std::move(a));
-}
-
 amqp_consumer::~amqp_consumer() noexcept
 {
 	if(m_connection != nullptr)
 		amqp_channel_close(m_connection, m_channel, AMQP_REPLY_SUCCESS);
-}
-
-amqp_consumer& amqp_consumer::operator=(amqp_consumer&& a) noexcept
-{
-	m_connection = a.m_connection;
-	m_channel = a.m_channel;
-	m_queue_name = std::move(a.m_queue_name);
-	a.m_connection = nullptr;
-	a.m_channel = 0;
-
-	return *this;
 }
 
 amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, const std::string& routing_key, const std::string& fanout, const std::string& direct) :
@@ -269,7 +250,7 @@ static int read_message(amqp_connection_state_t conn, amqp_channel_t channel, ne
 
 	try
 	{
-		msg = net::message_read(reinterpret_cast<const char *>(_msg.body.bytes), _msg.body.len);
+		msg = net::message_read(reinterpret_cast<char*>(_msg.body.bytes), _msg.body.len);
 	}
 	catch(...)
 	{
