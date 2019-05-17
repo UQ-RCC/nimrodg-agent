@@ -185,7 +185,7 @@ static process::process_result make_process_result(pid_t pid, int status)
 	if(WIFSIGNALED(status))
 	{
 		int signum = WTERMSIG(status);
-		log::trace("PROCESS", "Child terminated with %s.", get_signal_string(signum));
+		log::trace("PROCESS", "Child terminated with %s.", strsignal(signum));
 		return std::make_pair(128 + signum, ec);
 	}
 

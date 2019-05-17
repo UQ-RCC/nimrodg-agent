@@ -55,7 +55,6 @@ using fd_ptr = std::unique_ptr<int, fd_deleter>;
 
 std::system_error make_errno_exception(int err);
 void set_all_close_on_exec();
-const char *get_signal_string(int signal);
 
 std::string search_path(const std::string& f);
 
