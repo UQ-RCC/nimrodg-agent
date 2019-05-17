@@ -79,7 +79,82 @@ void posix::set_all_close_on_exec()
             fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
+#include <map>
 #include <csignal>
+
+/*
+** *Whistles nonchalantly*
+** kill -l | sed 's/[0-9]*)//g' | xargs -n1 echo | awk '{ print "{" $0 ", \"" $0 "\"}," }'
+*/
+const static std::map<int, const char *> s_Sigmap = {
+	{SIGHUP, "SIGHUP"},
+	{SIGINT, "SIGINT"},
+	{SIGQUIT, "SIGQUIT"},
+	{SIGILL, "SIGILL"},
+	{SIGTRAP, "SIGTRAP"},
+	{SIGABRT, "SIGABRT"},
+	{SIGBUS, "SIGBUS"},
+	{SIGFPE, "SIGFPE"},
+	{SIGKILL, "SIGKILL"},
+	{SIGUSR1, "SIGUSR1"},
+	{SIGSEGV, "SIGSEGV"},
+	{SIGUSR2, "SIGUSR2"},
+	{SIGPIPE, "SIGPIPE"},
+	{SIGALRM, "SIGALRM"},
+	{SIGTERM, "SIGTERM"},
+	{SIGSTKFLT, "SIGSTKFLT"},
+	{SIGCHLD, "SIGCHLD"},
+	{SIGCONT, "SIGCONT"},
+	{SIGSTOP, "SIGSTOP"},
+	{SIGTSTP, "SIGTSTP"},
+	{SIGTTIN, "SIGTTIN"},
+	{SIGTTOU, "SIGTTOU"},
+	{SIGURG, "SIGURG"},
+	{SIGXCPU, "SIGXCPU"},
+	{SIGXFSZ, "SIGXFSZ"},
+	{SIGVTALRM, "SIGVTALRM"},
+	{SIGPROF, "SIGPROF"},
+	{SIGWINCH, "SIGWINCH"},
+	{SIGIO, "SIGIO"},
+	{SIGPWR, "SIGPWR"},
+	{SIGSYS, "SIGSYS"},
+	{SIGRTMIN, "SIGRTMIN"},
+	{SIGRTMIN+1, "SIGRTMIN+1"},
+	{SIGRTMIN+2, "SIGRTMIN+2"},
+	{SIGRTMIN+3, "SIGRTMIN+3"},
+	{SIGRTMIN+4, "SIGRTMIN+4"},
+	{SIGRTMIN+5, "SIGRTMIN+5"},
+	{SIGRTMIN+6, "SIGRTMIN+6"},
+	{SIGRTMIN+7, "SIGRTMIN+7"},
+	{SIGRTMIN+8, "SIGRTMIN+8"},
+	{SIGRTMIN+9, "SIGRTMIN+9"},
+	{SIGRTMIN+10, "SIGRTMIN+10"},
+	{SIGRTMIN+11, "SIGRTMIN+11"},
+	{SIGRTMIN+12, "SIGRTMIN+12"},
+	{SIGRTMIN+13, "SIGRTMIN+13"},
+	{SIGRTMIN+14, "SIGRTMIN+14"},
+	{SIGRTMIN+15, "SIGRTMIN+15"},
+	{SIGRTMAX-14, "SIGRTMAX-14"},
+	{SIGRTMAX-13, "SIGRTMAX-13"},
+	{SIGRTMAX-12, "SIGRTMAX-12"},
+	{SIGRTMAX-11, "SIGRTMAX-11"},
+	{SIGRTMAX-10, "SIGRTMAX-10"},
+	{SIGRTMAX-9, "SIGRTMAX-9"},
+	{SIGRTMAX-8, "SIGRTMAX-8"},
+	{SIGRTMAX-7, "SIGRTMAX-7"},
+	{SIGRTMAX-6, "SIGRTMAX-6"},
+	{SIGRTMAX-5, "SIGRTMAX-5"},
+	{SIGRTMAX-4, "SIGRTMAX-4"},
+	{SIGRTMAX-3, "SIGRTMAX-3"},
+	{SIGRTMAX-2, "SIGRTMAX-2"},
+	{SIGRTMAX-1, "SIGRTMAX-1"},
+	{SIGRTMAX, "SIGRTMAX"},
+};
+
+const char *posix::get_signal_string(int signal)
+{
+    return s_Sigmap.at(signal);
+}
 
 /* NB: Deliberately not in posix:: */
 void enter_batch_mode() noexcept

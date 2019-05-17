@@ -91,7 +91,7 @@ bool nimrod::init_console_handlers(agent *a)
 	/* Can't use sa_sigaction here, we may not always be on Linux */
 	new_action.sa_handler = [](int signum)
 	{
-		s_pAgent->log_message(log::level_t::info, "CONSOLE", "Caught %s", strsignal(signum));
+		s_pAgent->log_message(log::level_t::info, "CONSOLE", "Caught %s", posix::get_signal_string(signum));
 		switch(signum)
 		{
 			case SIGHUP:
@@ -115,10 +115,10 @@ bool nimrod::init_console_handlers(agent *a)
 	new_action.sa_restorer = nullptr;
 
 	auto sigaction_verbose = [](int s, struct sigaction *sa){
-		log::info("AGENT", "  %s...", strsignal(s));
+		log::info("AGENT", "  %s...", posix::get_signal_string(s));
 		if(sigaction(s, sa, nullptr) < 0)
 		{
-			log::error("AGENT", "Error registering console handler for %s.", strsignal(s));
+			log::error("AGENT", "Error registering console handler for %s.", posix::get_signal_string(s));
 			log::debug("AGENT", "  sigaction() returned < 0, errno = %d", errno);
 			log::error("AGENT", "  %s.", strerror(errno));
 			return false;
