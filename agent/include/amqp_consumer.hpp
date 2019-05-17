@@ -77,7 +77,6 @@ private:
 	std::string m_direct;
 
 	amqp_bytes_t m_routing_key_bytes;
-	amqp_bytes_t m_fanout_bytes;
 	amqp_bytes_t m_direct_bytes;
 
 	std::string m_queue_name;

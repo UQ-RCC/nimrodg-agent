@@ -48,7 +48,6 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 	m_fanout(fanout),
 	m_direct(direct),
 	m_routing_key_bytes(make_bytes(m_routing_key)),
-	m_fanout_bytes(make_bytes(m_fanout)),
 	m_direct_bytes(make_bytes(m_direct)),
 	m_last_delivery_tag(0)
 {
@@ -79,18 +78,6 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 		amqp_bytes_t queue_bytes = make_bytes(m_queue_name);
 
 		log::trace("AMQPC", "  Got queue '%s'", m_queue_name);
-
-		/* Bind to the broadcast exchange. */
-		log::trace("AMQPC", "Binding to broadcast exchange (%s)...", m_fanout);
-		amqp_queue_bind_ok_t *bc_bind_ok = amqp_queue_bind(
-			conn,
-			channel,
-			queue_bytes,
-			m_fanout_bytes,
-			amqp_empty_bytes,
-			amqp_empty_table
-		);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
 		/* Bind to the direct exchange */
 		log::trace("AMQPC", "Binding to direct exchange (%s)...", m_direct);
