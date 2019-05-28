@@ -65,12 +65,35 @@ uri_ptr nimrod::parse_uri(const char *uri)
 		return nullptr;
 
 	UriUriA *puri = new UriUriA;
-	if(puri == nullptr)
-		return nullptr;
 
 	*puri = rawUri;
 
 	return uri_ptr(puri);
+}
+
+bool nimrod::fixup_uri(UriUriA *uri)
+{
+	/* If the final component isn't a directory, make it one. */
+	UriPathSegmentA *seg;
+	for(seg = uri->pathHead; seg->next != nullptr;)
+		seg = seg->next;
+
+	/* Nothing to do. */
+	if(seg->text.first == seg->text.afterLast)
+		return true;
+
+	/* Add an empty "segment". */
+
+	/* FIXME: Change this malloc when using memory managers. */
+	UriPathSegmentA *ssseg = (UriPathSegmentA*)malloc(sizeof(UriPathSegmentA));
+	if(ssseg == nullptr)
+		throw std::bad_alloc();
+	ssseg->text = { .first = nullptr, .afterLast = nullptr };
+	ssseg->next = nullptr;
+	ssseg->reserved = nullptr;
+
+	seg->next = ssseg;
+	return true;
 }
 
 static int toasciilower(unsigned char c)
@@ -288,7 +311,7 @@ uri_ptr nimrod::resolve_uri(const UriUriA *base, const char *spath)
 	** If it's an absolute path, they probably meant it to be absolute relative to the base.
 	** Nice try script kiddies.
 	*/
-	path->absolutePath = 0;
+	path->absolutePath = URI_FALSE;
 
 	if(uriAddBaseUriA(&uuri, path.get(), base))
 		return nullptr;

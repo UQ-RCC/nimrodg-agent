@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <uriparser/Uri.h>
 #include "log.hpp"
 #include "process/procman.hpp"
 
@@ -46,16 +47,13 @@ procman::procman(const job_definition& j, const filesystem::path& work_root, txm
 		throw std::runtime_error("Unable to determine the default interpreter");
 
 	m_paths.uri_base_stor = j.txuri();
-	if(*m_paths.uri_base_stor.rbegin() != '/')
-		m_paths.uri_base_stor.append("/");
-
 	if(!(m_paths.uri_base = parse_uri(m_paths.uri_base_stor.c_str())))
 		throw std::runtime_error("Invalid transfer URI");
 
+	fixup_uri(m_paths.uri_base.get());
+
 	filesystem::create_directories(m_paths.path_working);
 	filesystem::create_directories(m_paths.path_tmp);
-
-
 }
 
 procman::~procman()
@@ -179,6 +177,33 @@ static void print_copy(size_t index, const char *desc, const UriUriA *srcUri, co
 	log::trace("JOB", "[%u]   Path: %s", index, dstPath);
 }
 
+/*
+ * "Inject" the base URI's query and fragment into the given one and invoke the
+ * given function with it. Avoids a malloc.
+ */
+template <typename V>
+static auto run_with_injected_uri(const UriUriA *base, UriUriA *uri, V&& proc)
+{
+	UriTextRangeA old_query = uri->query;
+	UriTextRangeA old_fragment = uri->fragment;
+	try
+	{
+		uri->query = base->query;
+		uri->fragment = base->fragment;
+
+		auto ret = proc(uri);
+		uri->query = old_query;
+		uri->fragment = old_fragment;
+		return ret;
+	}
+	catch(...)
+	{
+		uri->query = old_query;
+		uri->fragment = old_fragment;
+		throw;
+	}
+}
+
 command_result procman::run_command(const copy_command& cmd)
 {
 	using context_t = copy_command::context_t;
@@ -214,7 +239,9 @@ command_result procman::run_command(const copy_command& cmd)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed source URI.");
 
 		print_copy(m_command_index, "REMOTE GET", uri.get(), path);
-		m_transfer_info = m_tx->get(uri.get(), path, token);
+		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
+			return m_tx->get(uri, path, token);
+		});
 	}
 	else if(cmd.dest_context() == context_t::root && cmd.source_context() == context_t::node)
 	{
@@ -224,7 +251,9 @@ command_result procman::run_command(const copy_command& cmd)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed destination URI.");
 
 		print_copy(m_command_index, "REMOTE PUT", uri.get(), path);
-		m_transfer_info = m_tx->put(uri.get(), path, token);
+		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
+			return m_tx->put(uri, path, token);
+		});
 	}
 	else
 	{

@@ -87,6 +87,7 @@ struct settings
 ** to the UriUriA structure. If uri is nullptr or parsing failed, this returns nullptr.
 */
 uri_ptr parse_uri(const char *uri);
+bool fixup_uri(UriUriA *uri);
 
 int c_stricmp(const char *l, const char *r);
 int c_strnicmp(const char *_l, const char *_r, size_t n);
