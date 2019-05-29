@@ -37,9 +37,8 @@ using curl_slist_ptr = std::unique_ptr<struct curl_slist, deleter_curl_slist>;
 
 class curl_backend : public transfer_backend
 {
-private:
-	enum class state_t { ready, in_get, in_put };
 public:
+	enum class state_t { ready, in_get, in_put };
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
 	void get(const UriUriA *uri, const filesystem::path& path, const char *token) override;
@@ -54,11 +53,6 @@ private:
 	size_t read_proc(char *ptr, size_t size, size_t nmemb) noexcept;
 	int xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) noexcept;
 
-	std::array<
-		char,
-		std::extent_v<decltype(http_header_key_uuid)> + uuid::string_length + 3
-	> m_uuid_header;
-
 	std::atomic<state_t> m_state;
 	std::atomic_bool m_cancelflag;
 
@@ -66,7 +60,6 @@ private:
 	curl_ptr m_context;
 	curl_slist_ptr m_headers;
 	file_ptr m_file;
-	std::string m_uristring;
 
 	std::recursive_mutex m_mutex;
 };

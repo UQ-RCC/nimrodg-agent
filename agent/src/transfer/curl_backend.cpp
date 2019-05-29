@@ -22,6 +22,7 @@
 ** cURL goes here.
 */
 #include <uriparser/Uri.h>
+#include <sys/stat.h>
 #include "agent_common.hpp"
 #include "curl_backend.hpp"
 
@@ -58,9 +59,6 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 {
 	if(!m_context)
 		throw std::bad_alloc();
-
-	int nwrite = snprintf(m_uuid_header.data(), m_uuid_header.size(), "%s: %s", http_header_key_uuid, tx.uuid_string());
-	assert(nwrite == 58);
 
 	curl_easy_setopt(m_context.get(), CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(m_context.get(), CURLOPT_NOSIGNAL, 1);
@@ -290,6 +288,59 @@ static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
 	return CURLE_OK;
 }
 
+static CURLcode apply_curl_http(CURL *ctx, const UriUriA *uri, const char *token, curl_slist_ptr& headers, const nimrod::uuid& uuid)
+{
+	CURLcode cerr;
+
+	/* For HTTP, we only support basic auth. */
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_ONLY)) != CURLE_OK)
+		return cerr;
+
+	/* For HTTP, create our identification headers. */
+	headers.reset();
+	std::string tokhdr = "X-NimrodG-File-Auth-Token: ";
+	tokhdr.append(token);
+
+	curl_slist *list = nullptr;
+	if(!(list = curl_slist_append(list, tokhdr.c_str())))
+		return CURLE_OUT_OF_MEMORY;
+
+	headers.reset(list);
+
+	char buf[nimrod::uuid::string_length + sizeof(http_header_key_uuid) + 3];
+	sprintf(buf, "%s: ", http_header_key_uuid);
+	uuid.str(buf + sizeof(http_header_key_uuid) + 1, sizeof(nimrod::uuid::uuid_string_type));
+	assert(strlen(buf) == 58);
+
+	if(!(list = curl_slist_append(list, buf)))
+		return CURLE_OUT_OF_MEMORY;
+
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, headers.get())) != CURLE_OK)
+		return cerr;
+	return cerr;
+}
+
+static CURLcode apply_curl_stat(CURL *ctx, struct stat *stat)
+{
+	if(stat == nullptr)
+		return curl_easy_setopt(ctx, CURLOPT_UPLOAD, 0L);
+
+	CURLcode cerr;
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_UPLOAD, 1L)) != CURLE_OK)
+		return cerr;
+
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_NEW_FILE_PERMS, static_cast<long>(stat->st_mode & 0777))) != CURLE_OK)
+		return cerr;
+
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_INFILESIZE, static_cast<long>(stat->st_size))) != CURLE_OK)
+		return cerr;
+
+	if((cerr = curl_easy_setopt(ctx, CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(stat->st_size))) != CURLE_OK)
+		return cerr;
+
+	return CURLE_OK;
+}
+
 void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
@@ -306,60 +357,36 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 	if(token == nullptr)
 		token = "";
 
-	CURLcode cerr = apply_query_curlopts(m_context.get(), uri);
-	if(cerr != CURLE_OK)
+	CURLcode cerr;
+
+	/* Apply nimrod_* parameters. */
+	if((cerr = apply_query_curlopts(m_context.get(), uri)) != CURLE_OK)
 		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 
-	m_uristring = uri_to_string(uri);
-	curl_easy_setopt(m_context.get(), CURLOPT_URL, m_uristring.c_str());
+	/* Apply HTTP options. */
+	if((cerr = apply_curl_http(m_context.get(), uri, token, m_headers, this->uuid())))
+		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 
-	/* For HTTP, we only support basic auth. */
-	curl_easy_setopt(m_context.get(), CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_ONLY);
+	/* TODO: Clear nimrod_* parameters from the uri. */
+	std::string uristring = uri_to_string(uri);
+	if((cerr = curl_easy_setopt(m_context.get(), CURLOPT_URL, uristring.c_str())) != CURLE_OK)
+		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 
-	/* For HTTP, create our identification headers. */
-	m_headers.reset();
-	{
-		std::string tokhdr = "X-NimrodG-File-Auth-Token: ";
-		tokhdr.append(token);
-
-		curl_slist *list = nullptr;
-		if(!(list = curl_slist_append(list, tokhdr.c_str())))
-			throw std::bad_alloc();
-
-		if(!(list = curl_slist_append(list, m_uuid_header.data())))
-			throw std::bad_alloc();
-
-		m_headers.reset(list);
-		curl_easy_setopt(m_context.get(), CURLOPT_HTTPHEADER, m_headers.get());
-	}
-
-	if(state == state_t::in_get)
-	{
-		curl_easy_setopt(m_context.get(), CURLOPT_UPLOAD, 0L);
-		m_file.reset(xfopen(path, "wb"));
-	}
-	else if(state == state_t::in_put)
-	{
-		curl_easy_setopt(m_context.get(), CURLOPT_UPLOAD, 1L);
-
-		{ /* I know this is a race condition, but I don't care anymore. */
-			auto stats = filesystem::status(path);
-			auto perms = stats.permissions();
-			if(perms != filesystem::perms::unknown)
-				curl_easy_setopt(m_context.get(), CURLOPT_NEW_FILE_PERMS, static_cast<long>(perms) & 0777);
-			else
-				curl_easy_setopt(m_context.get(), CURLOPT_NEW_FILE_PERMS, 0644);
-
-			/* For SCP */
-			uintmax_t size = filesystem::file_size(path);
-			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE, static_cast<long>(size));
-			curl_easy_setopt(m_context.get(), CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(size));
-		}
-		m_file.reset(xfopen(path, "rb"));
-	}
-
+	m_file.reset(xfopen(path, state == state_t::in_get ? "wb" : "rb"));
 	if(!m_file)
 		return this->set_error(error_type::system, errno, strerror(errno));
+
+	struct stat *stat = nullptr;
+	struct stat _stat{};
+	if(state == state_t::in_put)
+	{
+		if(fstat(fileno(m_file.get()), &_stat) < 0)
+			return this->set_error(error_type::system, errno, strerror(errno));
+		stat = &_stat;
+	}
+
+	if((cerr = apply_curl_stat(m_context.get(), stat)) != CURLE_OK)
+		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 
 	curl_multi_add_handle(m_mh, m_context.get());
 
