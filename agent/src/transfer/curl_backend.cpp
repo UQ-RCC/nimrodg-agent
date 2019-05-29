@@ -21,6 +21,7 @@
 /*
 ** cURL goes here.
 */
+#include <uriparser/Uri.h>
 #include "agent_common.hpp"
 #include "curl_backend.hpp"
 
@@ -74,7 +75,7 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 	}));
 
 	/* For SSH, allow both key auth and password. The password can be specified in the URI. Caveat emptor. */
-	curl_easy_setopt(m_context.get(), CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+	curl_easy_setopt(m_context.get(), CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD | CURLSSH_AUTH_PUBLICKEY);
 
 	curl_easy_setopt(m_context.get(), CURLOPT_READDATA, this);
 	curl_easy_setopt(m_context.get(), CURLOPT_READFUNCTION, static_cast<curl_read_callback>([](char *ptr, size_t size, size_t nmemb, void *user){
@@ -227,6 +228,68 @@ void curl_backend::_handle_message(CURLMsg *msg)
 	m_cancelflag = false;
 }
 
+struct uri_query_list_deleter
+{
+	using pointer = UriQueryListA*;
+	void operator()(pointer p) noexcept { uriFreeQueryListA(p); }
+};
+using uri_query_list_ptr = std::unique_ptr<UriQueryListA*, uri_query_list_deleter>;
+
+static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
+{
+	if(uri->query.first == uri->query.afterLast)
+		return CURLE_OK;
+
+	UriQueryListA *_qlist = nullptr;
+	int urierr = uriDissectQueryMallocA(&_qlist, nullptr, uri->query.first, uri->query.afterLast);
+	if(urierr == URI_ERROR_MALLOC)
+		return CURLE_OUT_OF_MEMORY;
+	else if(urierr != URI_SUCCESS)
+		return CURLE_URL_MALFORMAT;
+
+	uri_query_list_ptr qlist(_qlist);
+
+	struct
+	{
+		const char *ssh_private_keyfile;
+		const char *ssh_host_public_key_md5;
+		const char *keypasswd;
+	} values = {
+		.ssh_private_keyfile = NIMRODG_DEVNULL,
+		.ssh_host_public_key_md5 = "00000000000000000000000000000000",
+		.keypasswd = nullptr
+	};
+
+	for(UriQueryListA *e = qlist.get(); e != nullptr; e = e->next)
+	{
+		if(c_stricmp("nimrod_ssh_private_keyfile", e->key) == 0)
+		{
+			values.ssh_private_keyfile = e->value;
+		}
+		else if(c_stricmp("nimrod_ssh_host_public_key_md5", e->key) == 0)
+		{
+			if(strlen(e->value) == 32)
+				values.ssh_host_public_key_md5 = e->value;
+		}
+		else if(c_stricmp("nimrod_keypasswd", e->key) == 0)
+		{
+			values.keypasswd = e->value;
+		}
+	}
+
+	CURLcode ret;
+	if((ret = curl_easy_setopt(ctx, CURLOPT_SSH_PRIVATE_KEYFILE, values.ssh_private_keyfile)) != CURLE_OK)
+		return ret;
+
+	if((ret = curl_easy_setopt(ctx, CURLOPT_SSH_HOST_PUBLIC_KEY_MD5, values.ssh_host_public_key_md5)) != CURLE_OK)
+		return ret;
+
+	if((ret = curl_easy_setopt(ctx, CURLOPT_KEYPASSWD, values.keypasswd)) != CURLE_OK)
+		return ret;
+
+	return CURLE_OK;
+}
+
 void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
@@ -242,6 +305,10 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 
 	if(token == nullptr)
 		token = "";
+
+	CURLcode cerr = apply_query_curlopts(m_context.get(), uri);
+	if(cerr != CURLE_OK)
+		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 
 	m_uristring = uri_to_string(uri);
 	curl_easy_setopt(m_context.get(), CURLOPT_URL, m_uristring.c_str());
