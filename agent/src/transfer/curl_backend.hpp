@@ -54,6 +54,11 @@ private:
 	size_t read_proc(char *ptr, size_t size, size_t nmemb) noexcept;
 	int xferinfo_proc(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) noexcept;
 
+	std::array<
+		char,
+		std::extent_v<decltype(http_header_key_uuid)> + uuid::string_length + 3
+	> m_uuid_header;
+
 	std::atomic<state_t> m_state;
 	std::atomic_bool m_cancelflag;
 

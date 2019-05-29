@@ -58,6 +58,9 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 	if(!m_context)
 		throw std::bad_alloc();
 
+	int nwrite = snprintf(m_uuid_header.data(), m_uuid_header.size(), "%s: %s", http_header_key_uuid, tx.uuid_string());
+	assert(nwrite == 58);
+
 	curl_easy_setopt(m_context.get(), CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(m_context.get(), CURLOPT_NOSIGNAL, 1);
 	curl_easy_setopt(m_context.get(), CURLOPT_CAINFO, nullptr);
@@ -256,10 +259,7 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 		if(!(list = curl_slist_append(list, tokhdr.c_str())))
 			throw std::bad_alloc();
 
-		std::string idhdr = "X-NimrodG-Agent-UUID: ";
-		idhdr.append(this->uuid_string());
-
-		if(!(list = curl_slist_append(list, idhdr.c_str())))
+		if(!(list = curl_slist_append(list, m_uuid_header.data())))
 			throw std::bad_alloc();
 
 		m_headers.reset(list);

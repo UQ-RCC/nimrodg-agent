@@ -27,7 +27,8 @@ namespace nimrod {
 
 struct uuid
 {
-	using uuid_string_type = char[37];
+	constexpr static size_t string_length = 36;
+	using uuid_string_type = char[string_length + 1];
 
 	uuid() noexcept;
 	explicit uuid(uuid_t u) noexcept;
