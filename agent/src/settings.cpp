@@ -284,7 +284,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				return false;
 
 			case ARGDEF_USERAGENT:
-				out << NIMRODG_USER_AGENT << std::endl;
+				out << NIMRODG_HTTP_USER_AGENT << std::endl;
 				status = 0;
 				return false;
 
