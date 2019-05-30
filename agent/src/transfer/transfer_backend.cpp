@@ -55,6 +55,11 @@ void transfer_backend::set_error(error_type err, int ret, const char *msg)
 	return set_result(std::make_pair(err, std::make_pair(-1, msg)));
 }
 
+void transfer_backend::set_errno(int err)
+{
+	return this->set_error(error_type::system, err, strerror(errno));
+}
+
 nimrod::uuid transfer_backend::uuid() const noexcept
 {
 	return m_tx.uuid();

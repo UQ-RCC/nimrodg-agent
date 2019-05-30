@@ -53,6 +53,8 @@ protected:
 
 	void set_result(result_type&& res);
 	void set_error(error_type err, int ret, const char *msg);
+	void set_errno(int err);
+
 	nimrod::uuid uuid() const noexcept;
 	const char *uuid_string() const noexcept;
 private:

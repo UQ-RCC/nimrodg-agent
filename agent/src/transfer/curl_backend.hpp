@@ -47,6 +47,8 @@ public:
 
 	void _handle_message(CURLMsg *msg);
 private:
+	void set_curl_error(CURLcode cerr);
+
 	void doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state);
 
 	size_t write_proc(char *ptr, size_t size, size_t nmemb) noexcept;

@@ -226,6 +226,11 @@ void curl_backend::_handle_message(CURLMsg *msg)
 	m_cancelflag = false;
 }
 
+void curl_backend::set_curl_error(CURLcode cerr)
+{
+	return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
+}
+
 struct uri_query_list_deleter
 {
 	using pointer = UriQueryListA*;
@@ -361,32 +366,32 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 
 	/* Apply nimrod_* parameters. */
 	if((cerr = apply_query_curlopts(m_context.get(), uri)) != CURLE_OK)
-		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
+		return this->set_curl_error(cerr);
 
 	/* Apply HTTP options. */
 	if((cerr = apply_curl_http(m_context.get(), uri, token, m_headers, this->uuid())))
-		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
+		return this->set_curl_error(cerr);
 
 	/* TODO: Clear nimrod_* parameters from the uri. */
 	std::string uristring = uri_to_string(uri);
 	if((cerr = curl_easy_setopt(m_context.get(), CURLOPT_URL, uristring.c_str())) != CURLE_OK)
-		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
+		return this->set_curl_error(cerr);
 
 	m_file.reset(xfopen(path, state == state_t::in_get ? "wb" : "rb"));
 	if(!m_file)
-		return this->set_error(error_type::system, errno, strerror(errno));
+		return this->set_errno(errno);
 
 	struct stat *stat = nullptr;
 	struct stat _stat{};
 	if(state == state_t::in_put)
 	{
 		if(fstat(fileno(m_file.get()), &_stat) < 0)
-			return this->set_error(error_type::system, errno, strerror(errno));
+			return this->set_errno(errno);
 		stat = &_stat;
 	}
 
 	if((cerr = apply_curl_stat(m_context.get(), stat)) != CURLE_OK)
-		return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
+		return this->set_curl_error(cerr);
 
 	curl_multi_add_handle(m_mh, m_context.get());
 

@@ -119,15 +119,15 @@ void posix_backend::doit(const UriUriA *uri, const filesystem::path& path, const
 	/* Open the files here to catch errors early. */
 	fd_ptr infd(open(src.c_str(), O_RDONLY | O_CLOEXEC));
 	if(!infd)
-		return this->set_error(error_type::system, errno, strerror(errno));
+		return this->set_errno(errno);
 
 	struct stat instats;
 	if(fstat(infd.get(), &instats))
-		return this->set_error(error_type::system, errno, strerror(errno));
+		return this->set_errno(errno);
 
 	fd_ptr outfd(open(dest.c_str(), O_WRONLY | O_CREAT | O_NOCTTY | O_TRUNC, instats.st_mode & 0777));
 	if(!outfd)
-		return this->set_error(error_type::system, errno, strerror(errno));
+		return this->set_errno(errno);
 
 	std::thread([this, instats](fd_ptr infd, fd_ptr outfd) {
 		m_state = state_t::busy;
