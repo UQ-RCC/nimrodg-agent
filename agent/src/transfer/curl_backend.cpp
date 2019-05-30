@@ -298,7 +298,7 @@ static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
 #define TEMPLATE_UUID_HEADER NIMRODG_HTTP_HEADER_UUID ": " TEMPLATE_UUID
 static_assert(sizeof(TEMPLATE_UUID) == nimrod::uuid::string_length + 1);
 
-static CURLcode apply_curl_http(CURL *ctx, const UriUriA *uri, const char *token, curl_slist_ptr& headers, const nimrod::uuid& uuid)
+static CURLcode apply_curl_http(CURL *ctx, const char *token, curl_slist_ptr& headers, const nimrod::uuid& uuid)
 {
 	CURLcode cerr;
 
@@ -384,7 +384,7 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 		return this->set_curl_error(cerr);
 
 	/* Apply HTTP options. */
-	if((cerr = apply_curl_http(m_context.get(), uri, token, m_headers, this->uuid())))
+	if((cerr = apply_curl_http(m_context.get(), token, m_headers, this->uuid())))
 		return this->set_curl_error(cerr);
 
 	/* TODO: Clear nimrod_* parameters from the uri. */
