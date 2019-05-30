@@ -258,8 +258,9 @@ static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
 		const char *ssh_host_public_key_md5;
 		const char *keypasswd;
 	} values = {
+		/* NB: Must be something, otherwise it'll try $HOME/.ssh/id_rsa */
 		.ssh_private_keyfile = NIMRODG_DEVNULL,
-		.ssh_host_public_key_md5 = "00000000000000000000000000000000",
+		.ssh_host_public_key_md5 = nullptr,
 		.keypasswd = nullptr
 	};
 
