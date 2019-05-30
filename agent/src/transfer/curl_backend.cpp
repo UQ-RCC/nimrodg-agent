@@ -312,7 +312,7 @@ static CURLcode apply_curl_http(CURL *ctx, const UriUriA *uri, const char *token
 	if(token != nullptr)
 	{
 		char buf[4096];
-		if(snprintf(buf, 4096, "X-NimrodG-File-Auth-Token: %s", token) >= 4096)
+		if(snprintf(buf, 4096, NIMRODG_HTTP_HEADER_TOKEN ": %s", token) >= 4096)
 			throw std::range_error("Token too long");
 
 		curl_slist *list = curl_slist_append(nullptr, buf);
