@@ -1,0 +1,70 @@
+---
+kind: pipeline
+name: x86_64-pc-linux-musl
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build agent
+    image: multiarch/alpine:amd64-v3.9
+    commands:
+      - apk add --update gcc g++ musl-dev make file pkgconfig cmake git
+      - mkdir -p build-x86_64-pc-linux-musl && cd build-x86_64-pc-linux-musl
+      - export PREFIX=$PWD/prefix
+      - $DRONE_WORKSPACE/buildprefix.sh
+      - mkdir -p build-agent && cd build-agent
+      - cmake
+          -DCMAKE_INSTALL_PREFIX=$PREFIX
+          -DCMAKE_BUILD_TYPE=MinSizeRel
+          -DBUILD_SHARED_LIBS=Off
+          -DCMAKE_C_FLAGS="$CFLAGS -Wall -Werror -Wno-implicit-fallthrough"
+          -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wall -Werror -Wno-implicit-fallthrough"
+          -DNIMRODG_PLATFORM_STRING=x86_64-pc-linux-musl
+          $DRONE_WORKSPACE
+      - make -j agent
+      - strip -s agent/agent
+    environment:
+      LIBRESSL_VERSION: 2.9.0
+      LIBSSH2_VERSION: 1.8.0
+      CURL_VERSION: 7.64.0
+      CFLAGS: -static -Os -march=x86-64
+      CXXFLAGS: -static -Os -march=x86-64
+      LDFLAGS: -static -flto
+
+---
+kind: pipeline
+name: i686-pc-linux-musl
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build agent
+    image: multiarch/alpine:i386-v3.9
+    commands:
+      - apk add --update gcc g++ musl-dev make file pkgconfig cmake git
+      - mkdir -p build-i686-pc-linux-musl && cd build-i686-pc-linux-musl
+      - export PREFIX=$PWD/prefix
+      - $DRONE_WORKSPACE/buildprefix.sh
+      - mkdir -p build-agent && cd build-agent
+      - cmake
+          -DCMAKE_INSTALL_PREFIX=$PREFIX
+          -DCMAKE_BUILD_TYPE=MinSizeRel
+          -DBUILD_SHARED_LIBS=Off
+          -DCMAKE_C_FLAGS="$CFLAGS -Wall -Werror -Wno-implicit-fallthrough"
+          -DCMAKE_CXX_FLAGS="$CXXFLAGS -Wall -Werror -Wno-implicit-fallthrough"
+          -DNIMRODG_PLATFORM_STRING=i686-pc-linux-musl
+          $DRONE_WORKSPACE
+      - make -j agent
+      - strip -s agent/agent
+    environment:
+      LIBRESSL_VERSION: 2.9.0
+      LIBSSH2_VERSION: 1.8.0
+      CURL_VERSION: 7.64.0
+      CFLAGS: -static -Os -march=i686
+      CXXFLAGS: -static -Os -march=i686
+      LDFLAGS: -static -flto
+
