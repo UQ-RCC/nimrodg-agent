@@ -239,12 +239,13 @@ void curl_backend::set_curl_error(CURLcode cerr)
 
 static UriQueryListA *strip_nimrod_parameters(UriQueryListA *qlist) noexcept
 {
-	for(UriQueryListA *e = qlist, *prev = nullptr, *qlist = nullptr; e != nullptr;)
+	UriQueryListA *nqlist = nullptr;
+	for(UriQueryListA *e = qlist, *prev = nullptr; e != nullptr;)
 	{
 		if(strstr(e->key, "nimrod_") != e->key)
 		{
-			if(qlist == nullptr)
-				qlist = e;
+			if(nqlist == nullptr)
+				nqlist = e;
 
 			prev = e;
 			e = e->next;
@@ -265,7 +266,7 @@ static UriQueryListA *strip_nimrod_parameters(UriQueryListA *qlist) noexcept
 		free(olde);
 	}
 
-	return qlist;
+	return nqlist;
 }
 
 static CURLcode apply_nimrod_parameters(CURL *ctx, UriQueryListA *qlist) noexcept
@@ -314,17 +315,18 @@ static CURLcode apply_nimrod_parameters(CURL *ctx, UriQueryListA *qlist) noexcep
 
 static CURLcode apply_curl_options(CURL *ctx, const UriUriA *uri)
 {
-	if(uri->query.first == uri->query.afterLast)
-		return CURLE_OK;
+	uri_query_list_ptr qlist;
+	if(uri->query.first != uri->query.afterLast)
+	{
+		UriQueryListA *_qlist = nullptr;
+		int urierr = uriDissectQueryMallocA(&_qlist, nullptr, uri->query.first, uri->query.afterLast);
+		if(urierr == URI_ERROR_MALLOC)
+			return CURLE_OUT_OF_MEMORY;
+		else if(urierr != URI_SUCCESS)
+			return CURLE_URL_MALFORMAT;
 
-	UriQueryListA *_qlist = nullptr;
-	int urierr = uriDissectQueryMallocA(&_qlist, nullptr, uri->query.first, uri->query.afterLast);
-	if(urierr == URI_ERROR_MALLOC)
-		return CURLE_OUT_OF_MEMORY;
-	else if(urierr != URI_SUCCESS)
-		return CURLE_URL_MALFORMAT;
-
-	uri_query_list_ptr qlist(_qlist);
+		qlist.reset(_qlist);
+	}
 
 	CURLcode cerr;
 	if((cerr = apply_nimrod_parameters(ctx, qlist.get())) != CURLE_OK)
