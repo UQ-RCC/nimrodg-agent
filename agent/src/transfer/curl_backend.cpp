@@ -34,6 +34,12 @@ using namespace nimrod::tx;
 ** The curl_multi_add_handle() calls will never fail -- I've satisfied their preconditions.
 */
 
+struct uri_query_list_deleter
+{
+	using pointer = UriQueryListA*;
+	void operator()(pointer p) noexcept { uriFreeQueryListA(p); }
+};
+using uri_query_list_ptr = std::unique_ptr<UriQueryListA*, uri_query_list_deleter>;
 
 void nimrod::deleter_curl_multi::operator()(CURLM *m) const noexcept
 {
@@ -231,27 +237,39 @@ void curl_backend::set_curl_error(CURLcode cerr)
 	return this->set_error(error_type::backend, static_cast<int>(cerr), curl_easy_strerror(cerr));
 }
 
-struct uri_query_list_deleter
+static UriQueryListA *strip_nimrod_parameters(UriQueryListA *qlist) noexcept
 {
-	using pointer = UriQueryListA*;
-	void operator()(pointer p) noexcept { uriFreeQueryListA(p); }
-};
-using uri_query_list_ptr = std::unique_ptr<UriQueryListA*, uri_query_list_deleter>;
+	for(UriQueryListA *e = qlist, *prev = nullptr, *qlist = nullptr; e != nullptr;)
+	{
+		if(strstr(e->key, "nimrod_") != e->key)
+		{
+			if(qlist == nullptr)
+				qlist = e;
 
-static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
+			prev = e;
+			e = e->next;
+			continue;
+		}
+
+		if(prev)
+			prev->next = e->next;
+
+		UriQueryListA *olde = e;
+
+		e = e->next;
+		prev = e;
+
+		/* FIXME: Memory managers */
+		free(const_cast<char*>(olde->key));
+		free(const_cast<char*>(olde->value));
+		free(olde);
+	}
+
+	return qlist;
+}
+
+static CURLcode apply_nimrod_parameters(CURL *ctx, UriQueryListA *qlist) noexcept
 {
-	if(uri->query.first == uri->query.afterLast)
-		return CURLE_OK;
-
-	UriQueryListA *_qlist = nullptr;
-	int urierr = uriDissectQueryMallocA(&_qlist, nullptr, uri->query.first, uri->query.afterLast);
-	if(urierr == URI_ERROR_MALLOC)
-		return CURLE_OUT_OF_MEMORY;
-	else if(urierr != URI_SUCCESS)
-		return CURLE_URL_MALFORMAT;
-
-	uri_query_list_ptr qlist(_qlist);
-
 	struct
 	{
 		const char *ssh_private_keyfile;
@@ -264,18 +282,18 @@ static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
 		.keypasswd = nullptr
 	};
 
-	for(UriQueryListA *e = qlist.get(); e != nullptr; e = e->next)
+	for(UriQueryListA *e = qlist; e != nullptr; e = e->next)
 	{
-		if(c_stricmp("nimrod_ssh_private_keyfile", e->key) == 0)
+		if(strcmp("nimrod_ssh_private_keyfile", e->key) == 0)
 		{
 			values.ssh_private_keyfile = e->value;
 		}
-		else if(c_stricmp("nimrod_ssh_host_public_key_md5", e->key) == 0)
+		else if(strcmp("nimrod_ssh_host_public_key_md5", e->key) == 0)
 		{
 			if(strlen(e->value) == 32)
 				values.ssh_host_public_key_md5 = e->value;
 		}
-		else if(c_stricmp("nimrod_keypasswd", e->key) == 0)
+		else if(strcmp("nimrod_keypasswd", e->key) == 0)
 		{
 			values.keypasswd = e->value;
 		}
@@ -292,6 +310,43 @@ static CURLcode apply_query_curlopts(CURL *ctx, const UriUriA *uri) noexcept
 		return ret;
 
 	return CURLE_OK;
+}
+
+static CURLcode apply_curl_options(CURL *ctx, const UriUriA *uri)
+{
+	if(uri->query.first == uri->query.afterLast)
+		return CURLE_OK;
+
+	UriQueryListA *_qlist = nullptr;
+	int urierr = uriDissectQueryMallocA(&_qlist, nullptr, uri->query.first, uri->query.afterLast);
+	if(urierr == URI_ERROR_MALLOC)
+		return CURLE_OUT_OF_MEMORY;
+	else if(urierr != URI_SUCCESS)
+		return CURLE_URL_MALFORMAT;
+
+	uri_query_list_ptr qlist(_qlist);
+
+	CURLcode cerr;
+	if((cerr = apply_nimrod_parameters(ctx, qlist.get())) != CURLE_OK)
+		return cerr;
+
+	/*
+	 * Strip the nimrod_* parameters from the list.
+	 * Any of the above values are now invalid, cURL should have copied them.
+	 */
+	qlist.reset(strip_nimrod_parameters(qlist.release()));
+
+	/* Create the new query string (if any). */
+	std::string newquery = uri_query_list_to_string(qlist.get());
+
+	/* "Copy" the uri and patch our new query string into it. */
+	UriUriA newuri = *uri;
+	newuri.query.first = newquery.data();
+	newuri.query.afterLast = newquery.data() + newquery.size();
+
+	/* Give cURL our sanitised URL. */
+	std::string uristring = uri_to_string(&newuri);
+	return curl_easy_setopt(ctx, CURLOPT_URL, uristring.c_str());
 }
 
 #define TEMPLATE_UUID "00000000-0000-0000-0000-000000000000"
@@ -374,22 +429,14 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 	if(path.empty())
 		return this->set_error(error_type::argument, -1, "Invalid path");
 
-	if(token == nullptr)
-		token = "";
-
 	CURLcode cerr;
 
-	/* Apply nimrod_* parameters. */
-	if((cerr = apply_query_curlopts(m_context.get(), uri)) != CURLE_OK)
+	/* Apply nimrod_* parameters and set the URL. */
+	if((cerr = apply_curl_options(m_context.get(), uri)) != CURLE_OK)
 		return this->set_curl_error(cerr);
 
-	/* Apply HTTP options. */
+	/* Apply HTTP options. These can be done independently. */
 	if((cerr = apply_curl_http(m_context.get(), token, m_headers, this->uuid())))
-		return this->set_curl_error(cerr);
-
-	/* TODO: Clear nimrod_* parameters from the uri. */
-	std::string uristring = uri_to_string(uri);
-	if((cerr = curl_easy_setopt(m_context.get(), CURLOPT_URL, uristring.c_str())) != CURLE_OK)
 		return this->set_curl_error(cerr);
 
 	m_file.reset(xfopen(path, state == state_t::in_get ? "wb" : "rb"));

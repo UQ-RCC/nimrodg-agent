@@ -110,6 +110,7 @@ uri_ptr resolve_uri(const char *base, const char *path);
 uri_ptr resolve_uri(const UriUriA *base, const char *path);
 filesystem::path resolve_path(const filesystem::path& base, const filesystem::path& path);
 std::string uri_to_string(const UriUriA *uri);
+std::string uri_query_list_to_string(const UriQueryListA *qlist);
 std::string path_to_uristring(const std::string& path);
 std::string uristring_to_path(const std::string& uristring);
 

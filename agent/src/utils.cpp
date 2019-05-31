@@ -398,16 +398,36 @@ filesystem::path nimrod::resolve_path(const filesystem::path& base, const filesy
 std::string nimrod::uri_to_string(const UriUriA *uri)
 {
 	int len = 0;
-	if(uriToStringCharsRequiredA(uri, &len))
+	if(uriToStringCharsRequiredA(uri, &len) != URI_SUCCESS)
 		throw std::bad_alloc();
 
 	std::string dbg;
 	dbg.resize(len);
 
 	++len;
-	uriToStringA(&dbg[0], uri, len, &len);
+	if(uriToStringA(dbg.data(), uri, len, &len) != URI_SUCCESS)
+		throw std::bad_alloc();
 
 	return dbg;
+}
+
+std::string nimrod::uri_query_list_to_string(const UriQueryListA *qlist)
+{
+	if(qlist == nullptr)
+		return "";
+
+	int len = 0;
+	if(uriComposeQueryCharsRequiredA(qlist, &len) != URI_SUCCESS)
+		throw std::bad_alloc();
+
+	std::string s;
+	s.resize(len);
+
+	++len;
+	if(uriComposeQueryA(s.data(), qlist, len, &len) != URI_SUCCESS)
+		throw std::bad_alloc();
+
+	return s;
 }
 
 std::string nimrod::path_to_uristring(const std::string& path)

@@ -45,6 +45,9 @@ namespace nimrod { namespace filesystem = std::experimental::filesystem; }
 struct UriUriStructA;
 typedef struct UriUriStructA UriUriA;
 
+struct UriQueryListStructA;
+typedef struct UriQueryListStructA UriQueryListA;
+
 /* <curl/curl.h> */
 typedef void CURL;
 typedef void CURLM;
