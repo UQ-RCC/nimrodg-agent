@@ -30,7 +30,6 @@ enum class message_type
 {
 	agent_init,
 	agent_lifecontrol,
-	agent_query,
 	agent_submit,
 	agent_hello,
 	agent_shutdown,

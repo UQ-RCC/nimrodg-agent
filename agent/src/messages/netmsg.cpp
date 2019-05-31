@@ -30,7 +30,6 @@ const char *net::get_message_type_string(message_type type) noexcept
 	{
 		case message_type::agent_init: return "agent.init";
 		case message_type::agent_lifecontrol: return "agent.lifecontrol";
-		case message_type::agent_query: return "agent.query";
 		case message_type::agent_submit: return "agent.submit";
 		case message_type::agent_hello: return "agent.hello";
 		case message_type::agent_shutdown: return "agent.shutdown";

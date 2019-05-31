@@ -136,7 +136,7 @@ bool agent::operator()(const interrupt_event& evt)
 	switch(m_state)
 	{
 		case state_t::in_job:
-			if(auto ms = std::get_if<std::monostate>(&m_deferred_event))
+			if(std::get_if<std::monostate>(&m_deferred_event))
 				;
 			else
 			{
@@ -151,6 +151,8 @@ bool agent::operator()(const interrupt_event& evt)
 		case state_t::waiting_for_init:
 			send_shutdown_signal(evt.signal()).wait();
 			break;
+		case state_t::stopped:
+			return true; /* Should never happen, but whatever. */
 	}
 
 	this->state(state_t::stopped);
@@ -191,6 +193,9 @@ static bool is_valid_for_state(agent::state_t state, const net::message_type typ
 
 		case net::message_type::agent_ping:
 			return true;
+
+		default:
+			break;
 	}
 
 	/* Now do state-specific checks */
@@ -204,6 +209,9 @@ static bool is_valid_for_state(agent::state_t state, const net::message_type typ
 
 		case agent::state_t::in_job:
 			return false;
+
+		default:
+			break;
 	}
 
 	return false;
@@ -264,7 +272,7 @@ bool agent::operator()(const network_message& _msg)
 	{
 		if(msg.type() == message_type::agent_init)
 		{
-			auto& init = msg.get<init_message>();
+			//auto& init = msg.get<init_message>();
 			/* For future reference, any initialisation should go here. */
 			this->state(state_t::idle);
 			return false;

@@ -68,11 +68,11 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 	try
 	{
 		log::trace("AMQPC", "Opening channel...");
-		amqp_channel_open_ok_t *channel_ok = amqp_channel_open(conn, channel);
+		amqp_channel_open(conn, channel);
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
 		log::trace("AMQPC", "Setting channel to confirm...");
-		amqp_confirm_select_ok_t *select_ok = amqp_confirm_select(conn, channel);
+		amqp_confirm_select(conn, channel);
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
 		log::trace("AMQPC", "Declaring queue...");
@@ -95,7 +95,7 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 
 		/* Bind to the direct exchange */
 		log::trace("AMQPC", "Binding to direct exchange (%s)...", m_direct);
-		amqp_queue_bind_ok_t *dc_bind_ok = amqp_queue_bind(
+		amqp_queue_bind(
 			conn,
 			channel,
 			queue_bytes,
@@ -106,7 +106,7 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
 		/* Say that we want our messages asynchronously */
-		amqp_basic_consume_ok_t *comsume_ok = amqp_basic_consume(
+		amqp_basic_consume(
 			conn,
 			channel,
 			queue_bytes,
@@ -186,6 +186,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	);
 
 	assert(ret == 0);
+	(void)ret;
 }
 
 void amqp_consumer::onactivity()
@@ -315,7 +316,7 @@ void amqp_consumer::read_proc()
 			}
 			case AMQP_BASIC_RETURN_METHOD:
 			{
-				amqp_basic_return_t *ret = reinterpret_cast<amqp_basic_return_t*>(frame.payload.method.decoded);
+				//amqp_basic_return_t *ret = reinterpret_cast<amqp_basic_return_t*>(frame.payload.method.decoded);
 
 				std::lock_guard<std::mutex> lock(m_map_mutex);
 				auto it = m_messages.begin();

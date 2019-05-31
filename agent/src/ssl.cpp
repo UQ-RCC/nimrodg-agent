@@ -165,7 +165,7 @@ std::unique_ptr<char[]> nimrod::base64_decode(const char *data, size_t inSize, s
 	BIO_set_flags(bio.get(), BIO_FLAGS_BASE64_NO_NL);
 	int len = BIO_read(bio.get(), ptr.get(), static_cast<int>(inSize));
 	/* If this is wrong, we're not a full base64 string. */
-	if(len != outSize)
+	if(static_cast<size_t>(len) != outSize)
 		return nullptr;
 
 	return ptr;

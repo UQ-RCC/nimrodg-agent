@@ -239,7 +239,6 @@ message_type nlohmann::adl_serializer<message_type>::from_json(const json& j)
 
 	if(t == "agent.init") return message_type::agent_init;
 	else if(t == "agent.lifecontrol") return message_type::agent_lifecontrol;
-	else if(t == "agent.query") return message_type::agent_query;
 	else if(t == "agent.submit") return message_type::agent_submit;
 	else if(t == "agent.hello") return message_type::agent_hello;
 	else if(t == "agent.shutdown") return message_type::agent_shutdown;
@@ -257,7 +256,6 @@ void nlohmann::adl_serializer<message_type>::to_json(json& j, const message_type
 	{
 		case message_type::agent_init: j = "agent.init"; break;
 		case message_type::agent_lifecontrol: j = "agent.lifecontrol"; break;
-		case message_type::agent_query: j = "agent.query"; break;
 		case message_type::agent_submit: j = "agent.submit"; break;
 		case message_type::agent_hello: j = "agent.hello"; break;
 		case message_type::agent_shutdown: j = "agent.shutdown"; break;
@@ -495,6 +493,7 @@ message_container nlohmann::adl_serializer<message_container>::from_json(const j
 		case message_type::agent_lifecontrol: return adl_serializer<lifecontrol_message>::from_json(j);
 		case message_type::agent_submit: return adl_serializer<submit_message>::from_json(j);
 		case message_type::agent_shutdown: return adl_serializer<shutdown_message>::from_json(j);
+		case message_type::agent_update: return adl_serializer<update_message>::from_json(j);
 		case message_type::agent_ping: return adl_serializer<ping_message>::from_json(j);
 		case message_type::agent_pong: return adl_serializer<pong_message>::from_json(j);
 	}
