@@ -47,6 +47,41 @@ static int errno2ret(int e)
 		return 1;
 }
 
+static void dokill(pid_t pid, int signal) noexcept
+{
+	if(pid == 0)
+		return;
+
+	pid_t our_group = getpgrp();
+	pid_t grp = getpgid(pid);
+
+	pid_t target = 0;
+
+	if(grp < 0)
+	{
+		log::warn("PROCESS", "getpgid(%d) failed with error %d, using PID.", pid, errno);
+		log::warn("PROCESS", " %s", strerror(errno));
+		target = pid;
+	}
+	else if(our_group == grp)
+	{
+		/* If setpgid failed in the child.  */
+		target = pid;
+	}
+	else
+	{
+		/* We can kill the entire group. */
+		target = -grp;
+	}
+
+	log::trace("PROCESS", "Calling kill(%d, %d)", target, signal);
+	if(::kill(target, signal) < 0)
+	{
+		log::error("PROCESS", "kill(%d, %d) failed with error %d", target, signal, errno);
+		log::error("PROCESS", " %s", strerror(errno));
+	}
+}
+
 posixprocess::posixprocess(
 	const filesystem::path& path,
 	const std::vector<std::string>& args,
@@ -130,10 +165,17 @@ posixprocess::posixprocess(
 
 		close(STDIN_FILENO);
 
+		/* Move us into our own group, so the agent can kill our entire group. */
+		if(setpgid(0, 0) < 0)
+		{
+			fprintf(stderr, "setpgid(0, 0) failed with error %d: %s\n", errno, strerror(errno));
+			_exit(errno2ret(errno));
+		}
+
 		/* We're screwed if these fail */
 		if(dup2(outFd, STDOUT_FILENO) < 0)
 		{
-			fprintf(stderr, "stdout dup2(%d, %d) failed with error %d:  %s\n", outFd, STDOUT_FILENO, errno, strerror(errno));
+			fprintf(stderr, "stdout dup2(%d, %d) failed with error %d: %s\n", outFd, STDOUT_FILENO, errno, strerror(errno));
 			_exit(errno2ret(errno));
 		}
 
@@ -142,7 +184,7 @@ posixprocess::posixprocess(
 
 		if(dup2(errFd, STDERR_FILENO) < 0)
 		{
-			fprintf(stderr, "stderr dup2() failed with error %d:  %s\n", errno, strerror(errno));
+			fprintf(stderr, "stderr dup2() failed with error %d: %s\n", errno, strerror(errno));
 			_exit(errno2ret(errno));
 		}
 
@@ -209,9 +251,9 @@ void posixprocess::on_child_exit(pid_t corpse, int status) noexcept
 
 posixprocess::~posixprocess() noexcept
 {
-	/* The process should've been killed properly by now. If it hasn't SIGKILL. */
+	/* The process should've been killed properly by now. If it hasn't SIGKILL the entire tree. */
 	if(m_pid != 0)
-		::kill(m_pid, SIGKILL);
+		dokill(m_pid, SIGKILL);
 }
 
 const filesystem::path& posixprocess::executable_path() const noexcept
@@ -241,10 +283,7 @@ std::future<process::process_result> posixprocess::get_future()
 
 void posixprocess::kill(bool force) noexcept
 {
-	if(m_pid == 0)
-		return;
-
-	::kill(m_pid, force ? SIGKILL : SIGTERM);
+	return dokill(m_pid.load(), force ? SIGKILL : SIGTERM);
 }
 
 filesystem::path posixprocess::get_system_interpreter_impl()
