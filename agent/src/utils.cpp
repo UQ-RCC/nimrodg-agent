@@ -269,17 +269,6 @@ x509_store_ptr nimrod::load_ca_store(const std::string& castore, settings::encod
 	return load_ca_store_mem(raw.get(), size);
 }
 
-void nimrod::try_delete_path(const filesystem::path& path)
-{
-	std::error_code ec;
-	/* Try to delete the path, this'll return false if it doesn't exist. */
-	filesystem::remove(path, ec);
-
-	/* We wanted access to report_filesystem_error(), which is why this is in utils.cpp */
-	if(ec)
-		report_filesystem_error("AGENT", path, ec);
-}
-
 uri_ptr nimrod::resolve_uri(const char *base, const char *spath)
 {
 	uri_ptr baseuri = parse_uri(base);
@@ -458,4 +447,51 @@ std::string nimrod::uristring_to_path(const std::string& uristring)
 
 	path.resize(strlen(path.c_str()));
 	return path;
+}
+
+
+std::error_code nimrod::create_directories(const filesystem::path& p) noexcept
+{
+	if(p.empty())
+		return std::error_code();
+
+	std::error_code ec;
+	bool b;
+	try
+	{
+		b = create_directories(p, ec);
+	}
+	catch(const std::bad_alloc& e)
+	{
+		b = false;
+		ec.assign(ENOMEM, std::system_category());
+	}
+
+	if(!b)
+		return ec;
+
+	return std::error_code();
+}
+
+std::error_code nimrod::remove_all(const filesystem::path& p) noexcept
+{
+	if(p.empty())
+		return std::error_code();
+
+	std::error_code err;
+	std::uintmax_t n;
+	try
+	{
+		n = remove_all(p, err);
+	}
+	catch(const std::bad_alloc& e)
+	{
+		err.assign(ENOMEM, std::system_category());
+		n = static_cast<std::uintmax_t>(-1);
+	}
+
+	if(n == static_cast<std::uintmax_t>(-1))
+		return err;
+
+	return std::error_code();
 }

@@ -90,18 +90,26 @@ int main(int argc, char **argv)
 	}
 
 	filesystem::path workRoot(s.work_root);
-
+	std::error_code errc = nimrod::create_directories(s.work_root);
+	if(errc)
 	{
-		std::error_code code;
-		if(!filesystem::create_directories(s.work_root, code) && code)
-		{
-			report_filesystem_error("AGENT", workRoot, code);
-			return 1;
-		}
+		report_filesystem_error("AGENT", workRoot, errc);
+		return 1;
 	}
 
 	/* Handle output redirection. */
 	std::ofstream rstream;
+
+	auto workroot_cleanup_proc = [&s, &rstream, &workRoot]() {
+		/* So we can delete it on Windows. */
+		if(s.output == settings::output_t::workroot)
+			rstream.close();
+
+		nimrod::remove_all(workRoot);
+	};
+
+	auto workroot_cleaner = make_protector(workroot_cleanup_proc);
+
 	switch(s.output)
 	{
 		case settings::output_t::console:
@@ -163,16 +171,17 @@ int main(int argc, char **argv)
 
 	/* Load the CA certs. These are used for the File Server as well. */
 	x509_store_ptr castore = load_ca_store(s.ca_path, s.ca_encoding);
-	if(!castore)
+
+	/* Delete the cert. */
+	if(!s.ca_no_delete && !s.ca_path.empty())
 	{
-		if(!s.ca_no_delete)
-			try_delete_path(s.ca_path);
-		return 1;
+		filesystem::path capath(s.ca_path);
+		if(!remove(capath, errc))
+			report_filesystem_error("AGENT", capath, errc);
 	}
 
-	/* Now delete the cert. */
-	if(!s.ca_no_delete && !s.ca_path.empty())
-		try_delete_path(s.ca_path);
+	if(!castore)
+		return 1;
 
 	dump_ca_store(castore);
 

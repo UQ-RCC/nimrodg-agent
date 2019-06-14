@@ -105,7 +105,6 @@ void report_filesystem_error(const char *component, const filesystem::path& path
 std::unique_ptr<char[]> load_entire_file(const filesystem::path& file, size_t& size);
 
 x509_store_ptr load_ca_store(const std::string& castore, settings::encoding_t encoding);
-void try_delete_path(const filesystem::path& path);
 uri_ptr resolve_uri(const char *base, const char *path);
 uri_ptr resolve_uri(const UriUriA *base, const char *path);
 filesystem::path resolve_path(const filesystem::path& base, const filesystem::path& path);
@@ -113,6 +112,11 @@ std::string uri_to_string(const UriUriA *uri);
 std::string uri_query_list_to_string(const UriQueryListA *qlist);
 std::string path_to_uristring(const std::string& path);
 std::string uristring_to_path(const std::string& uristring);
+
+/* Actual noexcept versions of std::filesystem functions. */
+std::error_code create_directories(const filesystem::path& p) noexcept;
+std::error_code remove_all(const filesystem::path& p) noexcept;
+
 
 std::ostream& operator<<(std::ostream& os, settings::encoding_t enc);
 
@@ -160,7 +164,6 @@ template <typename D>
 auto make_protector(D& deleter)
 {
 	using function_type = typename std::remove_pointer_t<typename std::remove_reference_t<D>>;
-	static_assert(std::is_function<function_type>::value, "D must be a function pointer");
 	using ptr_type = std::unique_ptr<D, void(*)(D*)>;
 	return ptr_type(&deleter, [](D* d) { (*d)(); });
 }
