@@ -23,7 +23,8 @@
 
 using namespace nimrod;
 
-procman::procman(const job_definition& j, const filesystem::path& work_root, txman *tx) :
+procman::procman(const uuid& agent_uuid, const job_definition& j, const filesystem::path& work_root, txman *tx) :
+	m_agent_uuid(agent_uuid),
 	m_job(j),
 	m_paths(),
 	m_tx(tx),
@@ -363,6 +364,12 @@ command_result procman::run_command(const exec_command& cmd)
 	envs["TEMP"] = m_paths.path_tmp;
 	envs["TMP"] = m_paths.path_tmp;
 #endif
+
+	envs["NIMROD_AGENT_UUID"] = m_agent_uuid.str();
+	envs["NIMROD_AGENT_VERSION"] = NIMRODG_GITVERSION;
+	envs["NIMROD_AGENT_PLATFORM"] = NIMRODG_PLATFORM_STRING;
+	envs["NIMROD_AGENT_USER_AGENT"] = NIMRODG_HTTP_USER_AGENT;
+
 	log::trace("JOB", "[%u] Command arguments: %s", m_command_index, nimrod::join(args.begin(), args.end(), true));
 	m_process = process::create_process(
 		prog,

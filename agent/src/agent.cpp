@@ -306,7 +306,7 @@ bool agent::operator()(const network_message& _msg)
 			auto& sub = msg.get<submit_message>();
 			try
 			{
-				m_procman = std::make_unique<procman>(sub.job(), m_work_root, m_tx);
+				m_procman = std::make_unique<procman>(m_uuid, sub.job(), m_work_root, m_tx);
 			}
 			catch(std::exception& e)
 			{

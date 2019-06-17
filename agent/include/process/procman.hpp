@@ -44,7 +44,7 @@ public:
 		uri_ptr uri_base;
 	};
 
-	procman(const job_definition& j, const filesystem::path& work_root, txman *tx);
+	procman(const uuid& agent_uuid, const job_definition& j, const filesystem::path& work_root, txman *tx);
 	~procman();
 
 	const uuid job_uuid() const noexcept;
@@ -69,6 +69,7 @@ private:
 	command_result run_command(const copy_command& cmd);
 	command_result run_command(const exec_command& cmd);
 
+	uuid m_agent_uuid;
 	job_definition m_job;
 	path_info m_paths;
 	txman *m_tx;
