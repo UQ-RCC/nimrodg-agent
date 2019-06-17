@@ -52,11 +52,14 @@ static void dokill(pid_t pid, int signal) noexcept
 	if(pid == 0)
 		return;
 
+	pid_t grp;
+	if(pid < 0)
+		grp = -pid;
+	else
+		grp = getpgid(pid);
+
 	pid_t our_group = getpgrp();
-	pid_t grp = getpgid(pid);
-
 	pid_t target = 0;
-
 	if(grp < 0)
 	{
 		log::warn("PROCESS", "getpgid(%d) failed with error %d, using PID.", pid, errno);
@@ -245,6 +248,19 @@ void posixprocess::on_child_exit(pid_t corpse, int status) noexcept
 		return;
 
 	log::trace("PROCESS", "on_child_exit(%d, %d) called", corpse, status);
+
+	/*
+	 * If we're here, we either came from (1) a voluntary termination, or from (2) dokill().
+	 * If (1), assume the program behaved nicely and has no children left.
+	 * If (2), tough shit. The program should pass signals correctly.
+	 *
+	 * SIGKILL the entire group. If (1), then this won't do anything.
+	 *
+	 * There is a minor race-condition here, but it's not possible to fix via any
+	 * non-root method that I know of.
+	 */
+	::kill(-corpse, SIGKILL);
+
 	this->m_pid = 0;
 	this->m_promise.set_value(make_process_result(corpse, status));
 }
