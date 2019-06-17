@@ -55,6 +55,18 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 
 	filesystem::create_directories(m_paths.path_working);
 	filesystem::create_directories(m_paths.path_tmp);
+
+	m_environment = m_job.environment();
+#if defined(NIMRODG_USE_POSIX)
+	m_environment["TMPDIR"] = m_paths.path_tmp;
+#elif defined(NIMRODG_USE_WIN32API)
+	m_environment["TEMP"] = m_paths.path_tmp;
+	m_environment["TMP"] = m_paths.path_tmp;
+#endif
+	m_environment["NIMROD_AGENT_UUID"] = m_agent_uuid.str();
+	m_environment["NIMROD_AGENT_VERSION"] = NIMRODG_GITVERSION;
+	m_environment["NIMROD_AGENT_PLATFORM"] = NIMRODG_PLATFORM_STRING;
+	m_environment["NIMROD_AGENT_USER_AGENT"] = NIMRODG_HTTP_USER_AGENT;
 }
 
 procman::~procman()
@@ -357,25 +369,12 @@ command_result procman::run_command(const exec_command& cmd)
 		args.insert(args.end(), components.begin() + 1, components.end());
 	}
 
-	process::environment_map envs(m_job.environment());
-#if defined(NIMRODG_USE_POSIX)
-	envs["TMPDIR"] = m_paths.path_tmp;
-#elif defined(NIMRODG_USE_WIN32API)
-	envs["TEMP"] = m_paths.path_tmp;
-	envs["TMP"] = m_paths.path_tmp;
-#endif
-
-	envs["NIMROD_AGENT_UUID"] = m_agent_uuid.str();
-	envs["NIMROD_AGENT_VERSION"] = NIMRODG_GITVERSION;
-	envs["NIMROD_AGENT_PLATFORM"] = NIMRODG_PLATFORM_STRING;
-	envs["NIMROD_AGENT_USER_AGENT"] = NIMRODG_HTTP_USER_AGENT;
-
 	log::trace("JOB", "[%u] Command arguments: %s", m_command_index, nimrod::join(args.begin(), args.end(), true));
 	m_process = process::create_process(
 		prog,
 		args,
 		m_paths.path_working,
-		envs,
+		m_environment,
 		m_ioout ? m_ioout.get() : m_ionull.get(),
 		m_ioerr ? m_ioerr.get() : m_ionull.get()
 	);

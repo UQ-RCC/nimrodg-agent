@@ -72,6 +72,7 @@ private:
 	uuid m_agent_uuid;
 	job_definition m_job;
 	path_info m_paths;
+	process::environment_map m_environment;
 	txman *m_tx;
 
 	size_t m_command_index;
