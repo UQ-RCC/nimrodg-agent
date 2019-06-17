@@ -26,6 +26,11 @@ event::event(event_type_t type) noexcept :
 	m_type(type)
 {}
 
+event_type_t event::type() const noexcept
+{
+	return m_type;
+}
+
 interrupt_event::interrupt_event() noexcept :
 	interrupt_event(interrupt_t::terminate, SIGTERM)
 {}

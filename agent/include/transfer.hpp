@@ -114,10 +114,6 @@ private:
 
 	nimrod::uuid m_uuid;
 	nimrod::uuid::uuid_string_type m_uuid_string;
-	CURLM *m_mh;
-	X509_STORE *m_certs;
-	bool m_verify_peer;
-	bool m_verify_host;
 };
 
 }

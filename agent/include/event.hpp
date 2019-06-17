@@ -49,6 +49,8 @@ public:
 
 	event& operator=(const event&) noexcept = default;
 	event& operator=(event&&) noexcept = default;
+
+	event_type_t type() const noexcept;
 protected:
 	explicit event(event_type_t type) noexcept;
 

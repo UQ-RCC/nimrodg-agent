@@ -49,7 +49,7 @@ static void dispatchProc(amqp_consumer& amqp, std::atomic_bool& done, agent& a)
 	{
 		try
 		{
-			network_message msg(std::move(amqp.get_message().get()));
+			network_message msg(amqp.get_message().get());
 			a.submit_event(std::move(msg));
 		}
 		catch(amqp_exception& e)

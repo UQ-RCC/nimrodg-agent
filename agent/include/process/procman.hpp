@@ -83,7 +83,6 @@ private:
 	iofile_ptr m_ioerr;
 	bool m_appenderr;
 	txman::future_pair m_transfer_info;
-	bool m_killflag;
 
 	std::mutex m_mutex;
 };

@@ -230,7 +230,7 @@ static const char *state_to_string(agent::state_t s)
 	return "UNKNOWN";
 }
 
-std::ostream& operator<<(std::ostream& os, agent::state_t s)
+std::ostream& nimrod::operator<<(std::ostream& os, agent::state_t s)
 {
 	return os << state_to_string(s);
 }

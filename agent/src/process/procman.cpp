@@ -297,11 +297,6 @@ command_result procman::run_command(const copy_command& cmd)
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, const process::string_vector& v)
-{
-	return nimrod::join(os, v.begin(), v.end());
-}
-
 command_result procman::run_command(const exec_command& cmd)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
@@ -368,7 +363,7 @@ command_result procman::run_command(const exec_command& cmd)
 	envs["TEMP"] = m_paths.path_tmp;
 	envs["TMP"] = m_paths.path_tmp;
 #endif
-	log::trace("JOB", "[%u] Command arguments: %s", m_command_index, args);
+	log::trace("JOB", "[%u] Command arguments: %s", m_command_index, nimrod::join(args.begin(), args.end(), true));
 	m_process = process::create_process(
 		prog,
 		args,

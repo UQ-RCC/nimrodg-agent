@@ -72,15 +72,11 @@ const char *transfer_backend::uuid_string() const noexcept
 
 txman::txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost) :
 	m_next_id(1),
-	m_uuid(uuid),
-	m_mh(mh),
-	m_certs(x509),
-	m_verify_peer(verifyPeer),
-	m_verify_host(verifyHost)
+	m_uuid(uuid)
 {
 	m_uuid.str(m_uuid_string, sizeof(m_uuid_string));
 
-	auto add_instance = [this](backend_pool *pool, backend_ptr&& ptr) {
+	auto add_instance = [](backend_pool *pool, backend_ptr&& ptr) {
 		pool->free.push_back(pool->instances.emplace_back(std::move(ptr)).get());
 	};
 
@@ -176,7 +172,7 @@ txman::future_pair txman::doit(const UriUriA *uri, const filesystem::path& path,
 	auto it2 = m_ops.emplace(std::make_pair(id, std::move(ops))).first;
 	se->pool->free.pop_back();
 
-	txman::future_pair ret = std::make_pair(id, std::move(it2->second.promise.get_future()));
+	txman::future_pair ret = std::make_pair(id, it2->second.promise.get_future());
 
 	/* Do this last, as it may fail immediately and undo what we've just done. */
 	if(put)

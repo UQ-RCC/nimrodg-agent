@@ -163,7 +163,6 @@ std::string join(InputIt begin, InputIt end, bool quote = true)
 template <typename D>
 auto make_protector(D& deleter)
 {
-	using function_type = typename std::remove_pointer_t<typename std::remove_reference_t<D>>;
 	using ptr_type = std::unique_ptr<D, void(*)(D*)>;
 	return ptr_type(&deleter, [](D* d) { (*d)(); });
 }

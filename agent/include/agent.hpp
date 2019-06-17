@@ -128,6 +128,8 @@ private:
 	friend class visitor;
 };
 
+std::ostream& operator<<(std::ostream& os, agent::state_t s);
+
 }
 
 #endif /* _NIMROD_AGENT_HPP */
