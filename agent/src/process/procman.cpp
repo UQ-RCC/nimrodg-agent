@@ -64,9 +64,9 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 	m_environment["TMP"] = m_paths.path_tmp;
 #endif
 	m_environment["NIMROD_AGENT_UUID"] = m_agent_uuid.str();
-	m_environment["NIMROD_AGENT_VERSION"] = NIMRODG_GITVERSION;
-	m_environment["NIMROD_AGENT_PLATFORM"] = NIMRODG_PLATFORM_STRING;
-	m_environment["NIMROD_AGENT_USER_AGENT"] = NIMRODG_HTTP_USER_AGENT;
+	m_environment["NIMROD_AGENT_VERSION"] = g_compile_info.version_string;
+	m_environment["NIMROD_AGENT_PLATFORM"] = g_compile_info.platform_string;
+	m_environment["NIMROD_AGENT_USER_AGENT"] = g_compile_info.user_agent;
 }
 
 procman::~procman()

@@ -99,7 +99,7 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 
 	curl_easy_setopt(m_context.get(), CURLOPT_PRIVATE, this);
 
-	curl_easy_setopt(m_context.get(), CURLOPT_USERAGENT, NIMRODG_HTTP_USER_AGENT);
+	curl_easy_setopt(m_context.get(), CURLOPT_USERAGENT, g_compile_info.user_agent);
 }
 
 static long get_curl_proto(CURL *curl) noexcept

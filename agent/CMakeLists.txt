@@ -26,25 +26,19 @@ else()
 	set(NIMRODG_USE_POSIX 0)
 endif()
 
-execute_process(
-	COMMAND git describe --tags --always
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	OUTPUT_VARIABLE NIMRODG_GITVERSION
-	RESULT_VARIABLE GIT_STATUS
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	ERROR_STRIP_TRAILING_WHITESPACE
-)
-
-if(NOT GIT_STATUS EQUAL 0)
-	message(WARNING "Failed to retrieve git info, status: ${GIT_STATUS}")
-endif()
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+git_describe(GIT_DESCRIBE)
+git_local_changes(GIT_LOCAL_CHANGES)
 
 if(NOT NIMRODG_PLATFORM_STRING)
 	message(FATAL_ERROR "No platform string provided")
 endif()
 
-set(AGENT_GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include" )
+set(AGENT_GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
+set(AGENT_GENERATED_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/src")
+
 configure_file("${PROJECT_SOURCE_DIR}/include/config.h.in" "${AGENT_GENERATED_INCLUDE_DIR}/config.h")
+configure_file("${PROJECT_SOURCE_DIR}/src/config.cpp.in" "${AGENT_GENERATED_SRC_DIR}/config.cpp")
 
 set(MESSAGE_FILES
 	./include/messages/base_message.hpp
@@ -106,6 +100,8 @@ source_group("Transfer" FILES ${TRANSFER_FILES})
 set(AGENT_FILES
 	./include/config.h.in
 	${AGENT_GENERATED_INCLUDE_DIR}/config.h
+	./src/config.cpp.in
+	${AGENT_GENERATED_SRC_DIR}/config.cpp
 
 	../concurrentqueue/concurrentqueue.h
 	../concurrentqueue/blockingconcurrentqueue.h

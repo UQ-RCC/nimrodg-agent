@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 		std::clog.rdbuf(rstream.rdbuf());
 	}
 
-	log::info("AGENT", NIMRODG_AGENT_VERSION_STRING " starting up...");
+	log::info("AGENT", "%s starting up...", g_compile_info.description);
 	log::info("AGENT", "UUID: %s", s.uuid);
 	log::info("AGENT", "Work Root %s...", workRoot);
 
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 	}
 
 dead:
-	log::info("AGENT", NIMRODG_AGENT_VERSION_STRING " signing off...");
+	log::info("AGENT", "%s signing off...", g_compile_info.description);
 	amqp_connection_close(conn.get(), AMQP_REPLY_SUCCESS);
 	return 0;
 }

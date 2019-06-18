@@ -4,6 +4,7 @@ project(nimrodg-agent)
 enable_language(C CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+include(GetGitRevisionDescription)
 
 set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 

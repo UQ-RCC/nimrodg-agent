@@ -274,17 +274,17 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		switch(c)
 		{
 			case ARGDEF_VERSION:
-				out << NIMRODG_AGENT_VERSION_STRING << std::endl;
+				out << g_compile_info.description << std::endl;
 				status = 0;
 				return false;
 
 			case ARGDEF_PLATFORM:
-				out << NIMRODG_PLATFORM_STRING << std::endl;
+				out << g_compile_info.platform_string << std::endl;
 				status = 0;
 				return false;
 
 			case ARGDEF_USERAGENT:
-				out << NIMRODG_HTTP_USER_AGENT << std::endl;
+				out << g_compile_info.user_agent << std::endl;
 				status = 0;
 				return false;
 
