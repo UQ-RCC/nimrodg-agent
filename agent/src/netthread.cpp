@@ -96,7 +96,9 @@ void ttt(nimrod::amqp_consumer& amqp, CURLM *mh)
 	{
 		/* cURL activity */
 		int nh;
-		curl_multi_perform(mh, &nh);
+		CURLMcode merr;
+		while((merr = curl_multi_perform(mh, &nh)) == CURLM_CALL_MULTI_PERFORM)
+			;
 
 		int nmsg = 0;
 		CURLMsg *msg;
