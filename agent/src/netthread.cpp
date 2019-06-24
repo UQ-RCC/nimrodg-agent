@@ -42,14 +42,31 @@ void ttt(nimrod::amqp_consumer& amqp, CURLM *mh)
 	FD_ZERO(&writefds);
 	FD_ZERO(&exceptfds);
 
-	/* Add our cURL sockets. */
-	bool docurl = false;
-	int maxfd = -1;
-	/* NB: Will never fail. */
-	curl_multi_fdset(mh, &readfds, &writefds, &exceptfds, &maxfd);
+	/* Start with a default timeout of 1s */
+	struct timeval timeout = {
+		.tv_sec = 1,
+		.tv_usec = 0
+	};
 
-	if(maxfd == -1)
-		docurl = true;
+	int maxfd = 0;
+
+	{
+		int _maxfd = -1;
+		/* NB: Will never fail. */
+		curl_multi_fdset(mh, &readfds, &writefds, &exceptfds, &_maxfd);
+		maxfd = std::max(maxfd, _maxfd);
+
+		/* Non-fd activity, still needs to be called. */
+		if(_maxfd < 0)
+		{
+			long ms;
+			if(curl_multi_timeout(mh, &ms) != CURLM_OK || ms < 0)
+				ms = 100; /* Suggested in curl_multi_fdset(3). */
+
+			timeout.tv_sec = 0;
+			timeout.tv_usec = ms * 1000;
+		}
+	}
 
 	/* Add the AMQP socket. */
 	int amqpfd = amqp.getsockfd();
@@ -57,21 +74,18 @@ void ttt(nimrod::amqp_consumer& amqp, CURLM *mh)
 	{
 		FD_SET(amqpfd, &readfds);
 		FD_SET(amqpfd, &writefds);
+		maxfd = std::max(maxfd, amqpfd);
 	}
 
-	if(amqpfd > maxfd)
-		maxfd = amqpfd;
+	int rv;
+	for(;;)
+	{
+		if((rv = select(maxfd + 1, &readfds, &writefds, &exceptfds, &timeout)) >= 0)
+			break;
 
-	struct timeval to = {
-		.tv_sec = 1,
-		.tv_usec = 0
-	};
-
-	int rv = select(maxfd + 1, &readfds, &writefds, &exceptfds, &to);
-	if(rv < 0)
-		return;
-	else if(rv == 0)
-		return;
+		if(errno == EAGAIN || errno == EINTR)
+			continue;
+	}
 
 	int amqcount = 0;
 	if(FD_ISSET(amqpfd, &readfds))
@@ -92,24 +106,21 @@ void ttt(nimrod::amqp_consumer& amqp, CURLM *mh)
 		amqp.onactivity();
 	}
 
-	if(docurl || rv - amqcount > 0)
+
+	int nh;
+	CURLMcode merr;
+	while((merr = curl_multi_perform(mh, &nh)) == CURLM_CALL_MULTI_PERFORM)
+		;
+
+	int nmsg = 0;
+	CURLMsg *msg;
+	while((msg = curl_multi_info_read(mh, &nmsg)))
 	{
-		/* cURL activity */
-		int nh;
-		CURLMcode merr;
-		while((merr = curl_multi_perform(mh, &nh)) == CURLM_CALL_MULTI_PERFORM)
-			;
+		if(msg->msg != CURLMSG_DONE)
+			continue;
 
-		int nmsg = 0;
-		CURLMsg *msg;
-		while((msg = curl_multi_info_read(mh, &nmsg)))
-		{
-			if(msg->msg != CURLMSG_DONE)
-				continue;
-
-			nimrod::tx::curl_backend *backend;
-			curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &backend);
-			backend->_handle_message(msg);
-		}
+		nimrod::tx::curl_backend *backend;
+		curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &backend);
+		backend->_handle_message(msg);
 	}
 }
