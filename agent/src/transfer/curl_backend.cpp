@@ -482,6 +482,9 @@ size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb) noexcept
 
 size_t curl_backend::read_proc(char *ptr, size_t size, size_t nmemb) noexcept
 {
+	if(m_cancelflag)
+		return CURL_READFUNC_ABORT;
+
 	//assert(m_state == state_t::in_get);
 	return fread(ptr, size, nmemb, m_file.get());
 }
