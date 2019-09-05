@@ -98,7 +98,7 @@ size_t procman::command_index() const noexcept
 	return m_command_index;
 }
 
-onerror_command::action_t procman::error_policy(void) const noexcept
+onerror_command::action_t procman::error_policy() const noexcept
 {
 	return m_error_policy;
 }

@@ -130,7 +130,7 @@ win32::wenvironment_map win32::create_environment_map(LPWCH envBlock)
 }
 
 using wenv_ptr = std::unique_ptr<WCHAR, decltype(FreeEnvironmentStringsW)*>;
-win32::wenvironment_map win32::create_environment_map_from_system(void)
+win32::wenvironment_map win32::create_environment_map_from_system()
 {
 	wenv_ptr wenv(GetEnvironmentStringsW(), &FreeEnvironmentStringsW);
 

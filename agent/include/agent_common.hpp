@@ -100,7 +100,7 @@ FILE *xfopen(const filesystem::path& path, const char *mode) noexcept;
 std::string amqp_bytes_to_string(const amqp_bytes_t& b);
 
 amqp_socket_t *create_socket(settings& s, amqp_connection_state_t conn, X509_STORE *castore);
-void debug_break(void);
+void debug_break();
 void report_filesystem_error(const char *component, const filesystem::path& path, const std::error_code& code);
 std::unique_ptr<char[]> load_entire_file(const filesystem::path& file, size_t& size);
 
@@ -121,8 +121,8 @@ std::error_code remove_all(const filesystem::path& p) noexcept;
 std::ostream& operator<<(std::ostream& os, settings::encoding_t enc);
 
 /* ssl.cpp */
-void init_openssl(void);
-x509_store_ptr new_ca_store(void);
+void init_openssl();
+x509_store_ptr new_ca_store();
 x509_store_ptr load_ca_store_mem(const char *data, size_t size);
 void dump_ca_store(const x509_store_ptr& castore);
 void set_ssl_store(SSL_CTX *ctx, X509_STORE *st);

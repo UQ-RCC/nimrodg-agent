@@ -79,14 +79,14 @@ void posix::set_all_close_on_exec()
             fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
-#include <map>
+#include <unordered_map>
 #include <csignal>
 
 /*
 ** *Whistles nonchalantly*
 ** kill -l | sed 's/[0-9]*)//g' | xargs -n1 echo | awk '{ print "{" $0 ", \"" $0 "\"}," }'
 */
-const static std::map<int, const char *> s_Sigmap = {
+const static std::unordered_map<int, const char *> s_Sigmap = {
 	{SIGHUP, "SIGHUP"},
 	{SIGINT, "SIGINT"},
 	{SIGQUIT, "SIGQUIT"},

@@ -77,7 +77,6 @@ public:
 	void cancel(const future_pair& fp);
 
 	nimrod::uuid uuid() const noexcept;
-	const char *uuid_string() const noexcept;
 
 private:
 	constexpr static size_t max_backends = 16;
@@ -113,7 +112,6 @@ private:
 	std::array<scheme_entry, max_backends> m_schemes;
 
 	nimrod::uuid m_uuid;
-	nimrod::uuid::uuid_string_type m_uuid_string;
 };
 
 }

@@ -34,9 +34,7 @@ agent::agent(uuid uu, const filesystem::path& workRoot) :
 	m_work_root(workRoot),
 	m_uuid(uu),
 	m_termevent(std::bind(&agent::_rev_pred, this), std::bind(&agent::_rev_proc, this, std::placeholders::_1))
-{
-	m_uuid.str(m_uuid_string, sizeof(m_uuid_string));
-}
+{}
 
 void agent::submit_event(const event_union& evt)
 {
@@ -54,7 +52,7 @@ void agent::_enqueue(event_union&& evt)
 	m_queue.enqueue(std::move(evt));
 }
 
-void agent::run(void)
+void agent::run()
 {
 	constexpr size_t event_cache_size = 32;
 	event_union events[event_cache_size];
@@ -77,17 +75,12 @@ void agent::set_amqp(amqp_consumer *amqp, txman *tx)
 	m_tx = tx;
 }
 
-nimrod::uuid agent::get_uuid(void) const noexcept
+nimrod::uuid agent::get_uuid() const noexcept
 {
 	return m_uuid;
 }
 
-const char *agent::uuid_string(void) const noexcept
-{
-	return m_uuid_string;
-}
-
-agent::state_t agent::state(void) const noexcept
+agent::state_t agent::state() const noexcept
 {
 	return m_state;
 }
@@ -136,9 +129,7 @@ bool agent::operator()(const interrupt_event& evt)
 	switch(m_state)
 	{
 		case state_t::in_job:
-			if(std::get_if<std::monostate>(&m_deferred_event))
-				;
-			else
+			if(!std::get_if<std::monostate>(&m_deferred_event))
 			{
 				/* Already have an interrupt, ignore. */
 				return false;
@@ -291,8 +282,7 @@ bool agent::operator()(const network_message& _msg)
 	{
 		if(msg.type() == message_type::agent_lifecontrol)
 		{
-			auto& lf = msg.get<lifecontrol_message>();
-			if(lf.operation() == lifecontrol_message::operation_t::terminate)
+			if(const lifecontrol_message& lf = msg.get<lifecontrol_message>(); lf.operation() == lifecontrol_message::operation_t::terminate)
 			{
 				send_shutdown_requested().wait();
 				this->state(state_t::stopped);
@@ -366,7 +356,7 @@ bool agent::operator()(const network_message& _msg)
 	return false;
 }
 
-bool agent::_rev_pred(void)
+bool agent::_rev_pred()
 {
 	return m_proc_terminated;
 }
@@ -381,7 +371,7 @@ void agent::_rev_proc(rearmable_event_result result)
 	this->submit_event(watchdog_event());
 }
 
-void agent::run_next_job(void)
+void agent::run_next_job()
 {
 	if(m_procman->command_index() < m_procman->num_commands())
 	{
@@ -507,7 +497,7 @@ agent::send_future agent::send_update(const uuid& job_uuid, const command_result
 	return send_message(net::update_message(this->m_uuid, job_uuid, res, action), ack);
 }
 
-agent::send_future agent::send_pong(void)
+agent::send_future agent::send_pong()
 {
 	return send_message(net::pong_message(this->m_uuid));
 }

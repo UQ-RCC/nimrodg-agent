@@ -170,7 +170,3 @@ std::unique_ptr<char[]> nimrod::base64_decode(const char *data, size_t inSize, s
 
 	return ptr;
 }
-
-/* Temporary work-around for LibreSSL */
-//extern "C" void SSL_COMP_free_compression_methods(void) {}
-//extern "C" int FIPS_mode_set(int ONOFF) { return 0; }

@@ -28,8 +28,6 @@ namespace nimrod {
 
 namespace tx {
 
-constexpr const char http_header_key_uuid[] = "X-NimrodG-Agent-UUID";
-
 using result_proc = void(txman::*)(transfer_backend *self, result_type&& res);
 
 class transfer_backend
@@ -56,7 +54,6 @@ protected:
 	void set_errno(int err);
 
 	nimrod::uuid uuid() const noexcept;
-	const char *uuid_string() const noexcept;
 private:
 	txman& m_tx;
 	result_proc m_proc;

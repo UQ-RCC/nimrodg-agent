@@ -63,7 +63,7 @@ using wenvironment_map = std::map<std::wstring, std::wstring, wcs_lexicographica
 wenvironment_map create_environment_map(LPWCH envBlock);
 
 /* Extract the current environment and dump them into a map. */
-wenvironment_map create_environment_map_from_system(void);
+wenvironment_map create_environment_map_from_system();
 
 /*
 ** Create the environment block.

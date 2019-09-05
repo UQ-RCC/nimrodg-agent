@@ -65,16 +65,10 @@ nimrod::uuid transfer_backend::uuid() const noexcept
 	return m_tx.uuid();
 }
 
-const char *transfer_backend::uuid_string() const noexcept
-{
-	return m_tx.uuid_string();
-}
-
 txman::txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost) :
 	m_next_id(1),
 	m_uuid(uuid)
 {
-	m_uuid.str(m_uuid_string, sizeof(m_uuid_string));
 
 	auto add_instance = [](backend_pool *pool, backend_ptr&& ptr) {
 		pool->free.push_back(pool->instances.emplace_back(std::move(ptr)).get());
@@ -91,7 +85,7 @@ txman::txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bo
 	add_instance(localPool, create_local_backend(*this, &txman::result_handler));
 
 	for(auto& s : m_schemes)
-		s = { nullptr, nullptr };
+		s = { .scheme = nullptr, .pool = nullptr };
 
 	m_schemes[0] = { "http",	curlPool };		/* cURL, native */
 	m_schemes[1] = { "https",	curlPool };		/* cURL, native */
@@ -131,11 +125,6 @@ void txman::cancel(const future_pair& fp)
 nimrod::uuid txman::uuid() const noexcept
 {
 	return m_uuid;
-}
-
-const char *txman::uuid_string() const noexcept
-{
-	return m_uuid_string;
 }
 
 txman::future_pair txman::doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put)

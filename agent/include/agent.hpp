@@ -67,13 +67,12 @@ public:
 		return log_message(level, label, "%s", msg);
 	}
 
-	void run(void);
+	void run();
 	void set_amqp(amqp_consumer *amqp, txman *tx);
 
-	nimrod::uuid get_uuid(void) const noexcept;
-	const char *uuid_string(void) const noexcept;
+	nimrod::uuid get_uuid() const noexcept;
 
-	state_t state(void) const noexcept;
+	state_t state() const noexcept;
 
 	bool nohup() const noexcept;
 	void nohup(bool b) noexcept;
@@ -86,7 +85,7 @@ private:
 	send_future send_shutdown_requested(bool ack = false);
 	send_future send_shutdown_signal(int signal, bool ack = false);
 	send_future send_update(const uuid& job_uuid, const command_result& res, net::update_message::action_t action, bool ack = false);
-	send_future send_pong(void);
+	send_future send_pong();
 
 	void state(state_t s) noexcept;
 
@@ -97,7 +96,7 @@ private:
 	bool operator()(const watchdog_event& msg);
 	bool operator()(const message_event& msg);
 
-	void run_next_job(void);
+	void run_next_job();
 
 	void _enqueue(event_union&& evt);
 
@@ -109,12 +108,11 @@ private:
 	const filesystem::path m_work_root;
 
 	uuid m_uuid;
-	uuid::uuid_string_type m_uuid_string;
 
 	std::unique_ptr<procman> m_procman;
 	std::future<void> m_proctask;
 
-	bool _rev_pred(void);
+	bool _rev_pred();
 	void _rev_proc(rearmable_event_result);
 	rearmable_event_e m_termevent;
 	std::atomic_bool m_proc_terminated;

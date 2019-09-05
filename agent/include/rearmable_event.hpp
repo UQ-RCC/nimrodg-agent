@@ -46,7 +46,7 @@ public:
 		m_active(false)
 	{}
 
-	~rearmable_event(void)
+	~rearmable_event()
 	{
 		abort();
 
@@ -87,16 +87,16 @@ public:
 		return false;
 	}
 
-	operator bool(void) const noexcept { return m_active; }
+	operator bool() const noexcept { return m_active; }
 
-	void abort(void) noexcept
+	void abort() noexcept
 	{
 		bool exp = false;
 		if(m_abort.compare_exchange_strong(exp, true))
 			m_cv.notify_all();
 	}
 
-	void notify(void) noexcept { m_cv.notify_all(); }
+	void notify() noexcept { m_cv.notify_all(); }
 
 private:
 
