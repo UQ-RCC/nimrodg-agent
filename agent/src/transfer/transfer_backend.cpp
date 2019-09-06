@@ -40,6 +40,7 @@ static txman::backend_ptr create_local_backend(Args&&... args)
 {
 	return std::make_unique<local_backend_type>(std::forward<Args>(args)...);
 }
+
 transfer_backend::transfer_backend(txman& tx, result_proc proc) :
 	m_tx(tx),
 	m_proc(proc)
@@ -98,23 +99,11 @@ txman::txman(nimrod::uuid uuid, CURLM *mh, X509_STORE *x509, bool verifyPeer, bo
 	m_schemes[8] = { "file",	localPool };	/* POSIX: Use Splice, Win32: Use CopyFileExW */
 }
 
-txman::future_pair txman::get(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, false);
-}
-
-txman::future_pair txman::put(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, true);
-}
 
 void txman::cancel(size_t id)
 {
-	auto it = m_ops.find(id);
-	if(it == m_ops.end())
-		return;
-
-	it->second.tx->cancel();
+	if(auto it = m_ops.find(id); it != m_ops.end())
+		it->second.tx->cancel();
 }
 
 void txman::cancel(const future_pair& fp)
@@ -127,7 +116,7 @@ nimrod::uuid txman::uuid() const noexcept
 	return m_uuid;
 }
 
-txman::future_pair txman::doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put)
+txman::future_pair txman::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
 {
 	if(!uri || !uri->scheme.first || !uri->scheme.afterLast || uri->scheme.first > uri->scheme.afterLast)
 		return make_error(0, tx::error_type::argument, -1, "Invalid or NULL URI");
@@ -164,11 +153,7 @@ txman::future_pair txman::doit(const UriUriA *uri, const filesystem::path& path,
 	txman::future_pair ret = std::make_pair(id, it2->second.promise.get_future());
 
 	/* Do this last, as it may fail immediately and undo what we've just done. */
-	if(put)
-		b->put(uri, path, token);
-	else
-		b->get(uri, path, token);
-
+	b->do_transfer(op, uri, path, token);
 	return ret;
 }
 

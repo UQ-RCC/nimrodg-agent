@@ -40,13 +40,10 @@ private:
 public:
 	posix_backend(txman& tx, tx::result_proc proc);
 
-	void get(const UriUriA *uri, const filesystem::path& path, const char *token) override;
-	void put(const UriUriA *uri, const filesystem::path& path, const char *token) override;
-
+	void do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token) override;
 	void cancel() override;
 
 private:
-	void doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put);
 
 	state_t m_state;
 	std::atomic_bool m_stopflag;

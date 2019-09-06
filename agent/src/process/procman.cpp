@@ -241,7 +241,7 @@ command_result procman::run_command(const copy_command& cmd)
 				return command_result::make_precondition_failure(m_command_index, 0.0f, "parse_uri() failed on uristring.");
 
 			print_copy(m_command_index, "LOCAL COPY", srcUri.get(), dstPath);
-			m_transfer_info = m_tx->get(srcUri.get(), dstPath, token);
+			m_transfer_info = m_tx->do_transfer(tx::operation_t::get, srcUri.get(), dstPath, token);
 		}
 	}
 	else if(cmd.dest_context() == context_t::node && cmd.source_context() == context_t::root)
@@ -253,7 +253,7 @@ command_result procman::run_command(const copy_command& cmd)
 
 		print_copy(m_command_index, "REMOTE GET", uri.get(), path);
 		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
-			return m_tx->get(uri, path, token);
+			return m_tx->do_transfer(tx::operation_t::get, uri, path, token);
 		});
 	}
 	else if(cmd.dest_context() == context_t::root && cmd.source_context() == context_t::node)
@@ -265,7 +265,7 @@ command_result procman::run_command(const copy_command& cmd)
 
 		print_copy(m_command_index, "REMOTE PUT", uri.get(), path);
 		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
-			return m_tx->put(uri, path, token);
+			return m_tx->do_transfer(tx::operation_t::put, uri, path, token);
 		});
 	}
 	else

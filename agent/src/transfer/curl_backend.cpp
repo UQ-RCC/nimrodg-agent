@@ -462,14 +462,9 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 	m_state = state;
 }
 
-void curl_backend::get(const UriUriA *uri, const filesystem::path& path, const char *token)
+void curl_backend::do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
 {
-	return doit(uri, path, token, state_t::in_get);
-}
-
-void curl_backend::put(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, state_t::in_put);
+	return doit(uri, path, token, op == operation_t::get ? state_t::in_get : state_t::in_put);
 }
 
 size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb) noexcept

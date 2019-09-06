@@ -32,7 +32,7 @@ win32_backend::win32_backend(txman& tx, result_proc proc) :
 	m_stopflag(false)
 {}
 
-void win32_backend::doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put)
+void win32_backend::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
 {
 	if(m_state != state_t::ready)
 		throw std::logic_error("Invalid state transition");
@@ -50,7 +50,7 @@ void win32_backend::doit(const UriUriA *uri, const filesystem::path& path, const
 	std::wstring src = win32::to_win_wchar(pathstring);
 	std::wstring dest = path.c_str();
 
-	if(put)
+	if(op == tx::operation_t::put)
 		src.swap(dest);
 
 	//fprintf(stderr, "source = %ls, dest = %ls\n", src.c_str(), dest.c_str());
@@ -68,16 +68,6 @@ void win32_backend::doit(const UriUriA *uri, const filesystem::path& path, const
 			std::make_pair(dwErr, win32::get_win32_error_message(dwErr))
 		));
 	}).detach();
-}
-
-void win32_backend::get(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, false);
-}
-
-void win32_backend::put(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, true);
 }
 
 void win32_backend::cancel()

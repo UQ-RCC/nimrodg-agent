@@ -44,6 +44,8 @@ enum class error_type
 	system
 };
 
+enum class operation_t { get, put };
+
 using transfer_id_type = size_t;
 using result_type = std::pair<error_type, std::pair<int, std::string>>;
 using future_type = std::future<result_type>;
@@ -70,8 +72,7 @@ public:
 
 	static future_pair default_future_pair() { return std::make_pair(0, tx::future_type()); }
 
-	future_pair get(const UriUriA *uri, const filesystem::path& path, const char *token);
-	future_pair put(const UriUriA *uri, const filesystem::path& path, const char *token);
+	future_pair do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token);
 
 	void cancel(size_t id);
 	void cancel(const future_pair& fp);
@@ -80,8 +81,6 @@ public:
 
 private:
 	constexpr static size_t max_backends = 16;
-
-	future_pair doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put);
 
 	void result_handler(tx::transfer_backend *tx, tx::result_type&& res);
 

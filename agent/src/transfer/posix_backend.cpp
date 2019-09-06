@@ -94,7 +94,7 @@ posix_backend::posix_backend(txman& tx, result_proc proc) :
 	m_stopflag(false)
 {}
 
-void posix_backend::doit(const UriUriA *uri, const filesystem::path& path, const char *token, bool put)
+void posix_backend::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
 {
 	if(m_state != state_t::ready)
 		throw std::logic_error("Invalid state transition");
@@ -111,7 +111,7 @@ void posix_backend::doit(const UriUriA *uri, const filesystem::path& path, const
 
 	std::string dest = path.c_str();
 
-	if(put)
+	if(op == tx::operation_t::put)
 		src.swap(dest);
 
 	//fprintf(stderr, "source = %s, dest = %s\n", src.c_str(), dest.c_str());
@@ -140,16 +140,6 @@ void posix_backend::doit(const UriUriA *uri, const filesystem::path& path, const
 			std::make_pair(err, strerror(err))
 		));
 	}, std::move(infd), std::move(outfd)).detach();
-}
-
-void posix_backend::get(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, false);
-}
-
-void posix_backend::put(const UriUriA *uri, const filesystem::path& path, const char *token)
-{
-	return doit(uri, path, token, true);
 }
 
 void posix_backend::cancel()

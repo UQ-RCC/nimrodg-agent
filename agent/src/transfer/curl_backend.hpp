@@ -41,8 +41,7 @@ public:
 	enum class state_t { ready, in_get, in_put };
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
-	void get(const UriUriA *uri, const filesystem::path& path, const char *token) override;
-	void put(const UriUriA *uri, const filesystem::path& path, const char *token) override;
+	void do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token) override;
 	void cancel() override;
 
 	void _handle_message(CURLMsg *msg);
