@@ -134,18 +134,23 @@ static int parseerror(int val, std::ostream& s, const char *argv0, const char *m
 	return usage(val, s, argv0);
 }
 
+static int atoi(std::string_view v)
+{
+	char *buf = (char*)alloca((v.size() + 1) * sizeof(char));
+	memcpy(buf, v.data(), v.size());
+	buf[v.size()] = '\0';
+
+	return ::atoi(buf);
+}
+
 static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 {
 	uri_ptr& uri = s.amqp_uri;
 
 	{ /* Scheme */
-		s.amqp_sscheme = std::string(uri->scheme.first, uri->scheme.afterLast);
-
-		if(!uri->scheme.first || !uri->scheme.afterLast || s.amqp_sscheme.empty())
-		{
-			out << "URI Scheme cannot be empty. Must be one of [amqp, amqps]." << std::endl;
-			return false;
-		}
+		s.amqp_sscheme = make_view(uri->scheme.first, uri->scheme.afterLast);
+		if(s.amqp_sscheme.empty())
+			   return out << "URI Scheme cannot be empty. Must be one of [amqp, amqps]." << std::endl, false;
 
 		if(s.amqp_sscheme == "amqp")
 			s.amqp_scheme = settings::amqp_scheme_t::amqp;
@@ -156,15 +161,17 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 	}
 
 	{ /* Host */
-		s.amqp_host = std::string(uri->hostText.first, uri->hostText.afterLast);
-		if(!uri->hostText.first || !uri->hostText.afterLast || s.amqp_host.empty())
+		if(!uri->hostText.first || !uri->hostText.afterLast || (uri->hostText.first == uri->hostText.afterLast))
 			return out << "Host cannot be empty." << std::endl, false;
+
+		s.amqp_host = std::string(uri->hostText.first, uri->hostText.afterLast);
 	}
 
 	{ /* Port */
+		std::string_view sport = make_view(uri->portText.first, uri->portText.afterLast);
 
 		/* No port specified? Use defaults. */
-		if(!uri->portText.first || !uri->portText.afterLast)
+		if(sport.empty())
 		{
 			if(s.amqp_scheme == settings::amqp_scheme_t::amqp)
 				s.amqp_port = 5672;
@@ -173,14 +180,9 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 		}
 		else
 		{
-			std::string sport = std::string(uri->portText.first, uri->portText.afterLast);
-
-			int port = atoi(sport.c_str());
+			int port = atoi(sport);
 			if(port <= 0 || port > 65535)
-			{
-				out << "Port must be in the range [1, 65535]." << std::endl;
-				return false;
-			}
+				return out << "Port must be in the range [1, 65535]." << std::endl, false;
 
 			s.amqp_port = static_cast<uint16_t>(port);
 		}
@@ -188,7 +190,7 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 
 	{ /* User/Pass */
 		/* Don't do NULL checks here, allow it. */
-		std::string user(uri->userInfo.first, uri->userInfo.afterLast);
+		std::string_view user = make_view(uri->userInfo.first, uri->userInfo.afterLast);
 
 		size_t colonPos = user.find(':', 0);
 
@@ -205,16 +207,20 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 
 	{ /* VHost */
 		/* NB: Things like nim%2Frod will be split into nim/rod. This is intentional. */
-		std::vector<char> vhost;
+		size_t nreq = 0;
+		for(UriPathSegmentA *seg = uri->pathHead; seg; seg = seg->next)
+			nreq += std::distance(seg->text.first, seg->text.afterLast) + 1;
+
+		s.amqp_vhost.reserve(nreq);
+
 		for(UriPathSegmentA *seg = uri->pathHead; seg; seg = seg->next)
 		{
-			vhost.insert(vhost.end(), seg->text.first, seg->text.afterLast);
-			vhost.push_back('/');
+			s.amqp_vhost.insert(s.amqp_vhost.end(), seg->text.first, seg->text.afterLast);
+			s.amqp_vhost.push_back('/');
 		}
 		if(uri->pathHead)
-			vhost.pop_back();
-		vhost.push_back('\0');
-		s.amqp_vhost = vhost.data();
+			s.amqp_vhost.pop_back();
+		s.amqp_vhost.push_back('\0');
 	}
 
 	return true;

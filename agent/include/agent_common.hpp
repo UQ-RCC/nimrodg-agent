@@ -33,6 +33,7 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "config.h"
 #include "uuid.hpp"
@@ -49,32 +50,32 @@ struct settings
 
 	settings();
 
-	std::string		ca_path;
-	encoding_t		ca_encoding;
-	bool			ca_no_delete;
+       std::string		ca_path;
+       encoding_t		ca_encoding;
+       bool				ca_no_delete;
 
-	std::string		amqp_raw_uri;
-	uri_ptr			amqp_uri;
-	amqp_scheme_t	amqp_scheme;
-	std::string		amqp_sscheme;
-	std::string		amqp_host;
-	uint16_t		amqp_port;
-	std::string		amqp_user;
-	std::string		amqp_pass;
-	std::string		amqp_vhost;
-	std::string		amqp_routing_key;
-	std::string		amqp_fanout_exchange;
-	std::string		amqp_direct_exchange;
+       std::string		amqp_raw_uri;
+       uri_ptr			amqp_uri;
+       amqp_scheme_t	amqp_scheme;
+       std::string_view	amqp_sscheme;
+       std::string		amqp_host;
+       uint16_t			amqp_port;
+       std::string		amqp_user;
+       std::string		amqp_pass;
+       std::string		amqp_vhost;
+       std::string		amqp_routing_key;
+       std::string		amqp_fanout_exchange;
+       std::string		amqp_direct_exchange;
 
-	bool			ssl_no_verify_peer;
-	bool			ssl_no_verify_hostname;
+       bool				ssl_no_verify_peer;
+       bool				ssl_no_verify_hostname;
 
-	nimrod::uuid	uuid;
-	std::string		work_root;
+       nimrod::uuid		uuid;
+       std::string		work_root;
 
-	bool			batch;
-	output_t		output;
-	bool			nohup;
+       bool				batch;
+       output_t			output;
+       bool				nohup;
 };
 
 
@@ -93,6 +94,8 @@ int c_stricmp(const char *l, const char *r);
 int c_strnicmp(const char *_l, const char *_r, size_t n);
 
 FILE *xfopen(const filesystem::path& path, const char *mode) noexcept;
+
+std::string_view make_view(const char *b, const char *e) noexcept;
 
 /*
 ** Convert an amqp_bytes_t structure to a C++ string.
