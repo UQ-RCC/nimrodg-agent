@@ -9,7 +9,10 @@ endif()
 
 find_package(OpenSSL 2.0.0 REQUIRED)
 find_package(LibSSH2 1.8.0 REQUIRED)
-find_package(CURL 7.64.0 REQUIRED)
+
+find_package(CURL 7.64.0 REQUIRED REQUIRED COMPONENTS HTTP HTTPS SSL FTPS GOPHER SCP SFTP TFTP)
+target_link_libraries(CURL::libcurl INTERFACE ${LIBSSH2_LIBRARY})
+
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
@@ -156,28 +159,30 @@ add_executable(agent
 	${TRANSFER_FILES}
 )
 
-set_property(TARGET agent PROPERTY C_STANDARD 11)
-set_property(TARGET agent PROPERTY CXX_STANDARD 17)
-set_property(TARGET agent PROPERTY CXX_STANDARD_REQUIRED ON)
+set_target_properties(agent PROPERTIES
+	C_STANDARD 11
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+)
 
-target_include_directories(agent PRIVATE "include")
-target_include_directories(agent PRIVATE "../concurrentqueue")
-target_include_directories(agent PUBLIC ${AGENT_GENERATED_INCLUDE_DIR})
+target_include_directories(agent
+	PRIVATE "include" "../concurrentqueue"
+	PUBLIC ${AGENT_GENERATED_INCLUDE_DIR}
+)
 
-target_link_libraries(agent Threads::Threads)
-target_link_libraries(agent fmt-header-only)
-target_link_libraries(agent uuid)
-target_link_libraries(agent uriparser)
-target_link_libraries(agent rabbitmq-static)
+target_link_libraries(agent
+	Threads::Threads
+	fmt-header-only
+	uuid
+	uriparser
+	rabbitmq-static
+	CURL::libcurl
+)
 
-
-target_include_directories(agent PRIVATE ${CURL_INCLUDE_DIRS})
-target_link_libraries(agent ${CURL_LIBRARIES})
-
-target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
-target_link_libraries(agent ${OPENSSL_LIBRARIES})
-
-target_link_libraries(agent ${LIBSSH2_LIBRARY})
+#target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
+#target_link_libraries(agent ${OPENSSL_LIBRARIES})
+#
+#target_link_libraries(agent ${LIBSSH2_LIBRARY})
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 	target_link_libraries(agent stdc++fs)
@@ -186,3 +191,4 @@ endif()
 if(MSVC)
 	target_compile_definitions(agent PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
 endif()
+
