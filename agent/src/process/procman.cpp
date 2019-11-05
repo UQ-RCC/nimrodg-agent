@@ -48,7 +48,7 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 		throw std::runtime_error("Unable to determine the default interpreter");
 
 	m_paths.uri_base_stor = j.txuri();
-	if(!(m_paths.uri_base = parse_uri(m_paths.uri_base_stor.c_str())))
+	if(!(m_paths.uri_base = parse_uri(m_paths.uri_base_stor)))
 		throw std::runtime_error("Invalid transfer URI");
 
 	fixup_uri(m_paths.uri_base.get());
@@ -236,7 +236,7 @@ command_result procman::run_command(const copy_command& cmd)
 			if(uristring.empty())
 				return command_result::make_exception(m_command_index, 0.0f, "Path->URI conversion failed.");
 
-			uri_ptr srcUri = parse_uri(uristring.c_str());
+			uri_ptr srcUri = parse_uri(uristring);
 			if(!srcUri)
 				return command_result::make_precondition_failure(m_command_index, 0.0f, "parse_uri() failed on uristring.");
 
@@ -247,7 +247,7 @@ command_result procman::run_command(const copy_command& cmd)
 	else if(cmd.dest_context() == context_t::node && cmd.source_context() == context_t::root)
 	{
 		filesystem::path path = resolve_path(m_paths.path_working, cmd.dest_path());
-		uri_ptr uri = resolve_uri(m_paths.uri_base.get(), cmd.source_path().c_str());
+		uri_ptr uri = resolve_uri(m_paths.uri_base.get(), cmd.source_path());
 		if(!uri)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed source URI.");
 
@@ -259,7 +259,7 @@ command_result procman::run_command(const copy_command& cmd)
 	else if(cmd.dest_context() == context_t::root && cmd.source_context() == context_t::node)
 	{
 		filesystem::path path = resolve_path(m_paths.path_working, cmd.source_path());
-		uri_ptr uri = resolve_uri(m_paths.uri_base.get(), cmd.dest_path().c_str());
+		uri_ptr uri = resolve_uri(m_paths.uri_base.get(), cmd.dest_path());
 		if(!uri)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed destination URI.");
 

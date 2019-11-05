@@ -44,7 +44,7 @@ void nimrod::deleter_cstdio::operator()(FILE *f) const noexcept
 	fclose(f);
 }
 
-uri_ptr nimrod::parse_uri(const char *uri)
+uri_ptr nimrod::parse_uri(std::string_view uri)
 {
 	if(uri == nullptr)
 		return nullptr;
@@ -57,7 +57,7 @@ uri_ptr nimrod::parse_uri(const char *uri)
 
 	state.uri = &rawUri;
 
-	int ret = uriParseUriA(&state, uri);
+	int ret = uriParseUriExA(&state, uri.begin(), uri.end());
 	if(ret == URI_ERROR_MALLOC)
 		throw std::bad_alloc();
 
@@ -278,7 +278,7 @@ x509_store_ptr nimrod::load_ca_store(const std::string& castore, settings::encod
 	return load_ca_store_mem(raw.get(), size);
 }
 
-uri_ptr nimrod::resolve_uri(const char *base, const char *spath)
+uri_ptr nimrod::resolve_uri(std::string_view base, std::string_view spath)
 {
 	uri_ptr baseuri = parse_uri(base);
 	if(!baseuri)
@@ -296,7 +296,7 @@ uri_ptr nimrod::resolve_uri(const char *base, const char *spath)
 **
 ** Also works with file:// URIs
 */
-uri_ptr nimrod::resolve_uri(const UriUriA *base, const char *spath)
+uri_ptr nimrod::resolve_uri(const UriUriA *base, std::string_view spath)
 {
 	UriUriA uuri;
 	memset(&uuri, 0, sizeof(uuri));
@@ -386,7 +386,7 @@ filesystem::path nimrod::resolve_path(const filesystem::path& base, const filesy
 		return filesystem::path();
 
 	/* Let the URI validation handle it. */
-	uri_ptr resolved = nimrod::resolve_uri(base_uristring.c_str(), path_uristring.c_str());
+	uri_ptr resolved = nimrod::resolve_uri(base_uristring, path_uristring);
 	if(!resolved)
 		return filesystem::path();
 

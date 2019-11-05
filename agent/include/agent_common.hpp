@@ -87,7 +87,7 @@ struct settings
 ** If the URI is valid and was parsed successfully, returns a pointer
 ** to the UriUriA structure. If uri is nullptr or parsing failed, this returns nullptr.
 */
-uri_ptr parse_uri(const char *uri);
+uri_ptr parse_uri(std::string_view uri);
 bool fixup_uri(UriUriA *uri);
 
 int c_stricmp(const char *l, const char *r);
@@ -108,8 +108,8 @@ void report_filesystem_error(const char *component, const filesystem::path& path
 std::unique_ptr<char[]> load_entire_file(const filesystem::path& file, size_t& size);
 
 x509_store_ptr load_ca_store(const std::string& castore, settings::encoding_t encoding);
-uri_ptr resolve_uri(const char *base, const char *path);
-uri_ptr resolve_uri(const UriUriA *base, const char *path);
+uri_ptr resolve_uri(std::string_view base, std::string_view path);
+uri_ptr resolve_uri(const UriUriA *base, std::string_view path);
 filesystem::path resolve_path(const filesystem::path& base, const filesystem::path& path);
 std::string uri_to_string(const UriUriA *uri);
 std::string uri_query_list_to_string(const UriQueryListA *qlist);

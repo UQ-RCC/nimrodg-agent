@@ -398,7 +398,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		s.amqp_direct_exchange = "amq.direct";
 
 	{ /* Validate the AMQP URI */
-		if(!(s.amqp_uri = parse_uri(s.amqp_raw_uri.c_str())))
+		if(!(s.amqp_uri = parse_uri(s.amqp_raw_uri)))
 		{
 			status = parseerror(2, out, argv[0], "Malformed URI.");
 			return false;
