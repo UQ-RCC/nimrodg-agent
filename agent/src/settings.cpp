@@ -26,6 +26,8 @@
 #include <uriparser/Uri.h>
 #include <fstream>
 #include <optional>
+#include <iostream>
+#include "json.hpp"
 #include "agent_common.hpp"
 #include "uuid.hpp"
 #include "parg/parg.h"
@@ -276,80 +278,122 @@ static bool parse_output(std::string_view s, settings::output_t& out)
 
 struct tmpargs
 {
-	using svopt_t = std::optional<std::string_view>;
+	using sopt_t = std::optional<std::string>;
 	using bopt_t = std::optional<bool>;
 
-	svopt_t	uuid;
-	svopt_t work_root;
-	svopt_t	amqp_uri;
-	svopt_t	amqp_routing_key;
-	svopt_t	amqp_fanout_exchange;
-	svopt_t	amqp_direct_exchange;
+	sopt_t	uuid;
+	sopt_t work_root;
+	sopt_t	amqp_uri;
+	sopt_t	amqp_routing_key;
+	sopt_t	amqp_fanout_exchange;
+	sopt_t	amqp_direct_exchange;
 	bopt_t	no_verify_peer;
 	bopt_t	no_verify_host;
-	svopt_t	ca_cert;
-	svopt_t	ca_encoding;
+	sopt_t	ca_cert;
+	sopt_t	ca_encoding;
 	bopt_t	ca_no_delete;
 	bopt_t	batch;
-	svopt_t	output;
+	sopt_t	output;
 	bopt_t	nohup;
 };
 
-#include <iostream>
-#include "json.hpp"
-static void load_config_file(tmpargs& s, const char *path)
+template<typename T>
+int get_json_value(const nlohmann::json& j, std::string_view key, nlohmann::json::value_t type, std::optional<T>& opt)
 {
-	fprintf(stderr, "XXXX: %s\n", path);
-	//std::cerr << "XXXX: " << path << std::endl;
+	auto it = j.find(key);
+	if(it == j.end())
+		return 1;
 
+	if(it->type() != type)
+		return -1;
+
+	opt = it->get<T>();
+	return 0;
+}
+
+static int load_config_file(tmpargs& s, const char *path, std::ostream& err)
+{
 	std::ifstream f;
-	f.exceptions(std::ios::badbit | std::ios::failbit);
 	f.open(path, std::ios::in | std::ios::binary);
 
+	if(!f)
+	{
+		err << "Unable to open configuration file." << std::endl;
+		return 1;
+	}
 
-	nlohmann::json j = nlohmann::json::parse(f);
+	nlohmann::json j;
+	try
+	{
+		j = nlohmann::json::parse(f);
+	}
+	catch(const nlohmann::detail::exception& e)
+	{
+		err << e.what() << std::endl;
+		return 1;
+	}
 
-	if(auto v = j["/uuid"_json_pointer]; v.is_string())
-		s.uuid = v.get<std::string_view>();
+	/*
+	 * NB: Using find() instead of[] to avoid copies.
+	 * Also, a key not existing is not an error. A key of the wrong type is.
+	 */
+	using jv_t = nlohmann::json::value_t;
 
-	if(auto v = j["/work_root"_json_pointer]; v.is_string())
-		s.work_root = v.get<std::string_view>();
+	if(get_json_value(j, "uuid", jv_t::string, s.uuid) < 0)
+		return -1;
 
-	if(auto v = j["/amqp/uri"_json_pointer]; v.is_string())
-		s.amqp_uri = v.get<std::string_view>();
+	if(get_json_value(j, "work_root", jv_t::string, s.work_root) < 0)
+		return -1;
 
-	if(auto v = j["/amqp/routing_key"_json_pointer]; v.is_string())
-		s.amqp_routing_key = v.get<std::string_view>();
+	if(auto it = j.find("amqp"); it != j.end())
+	{
+		if(!it->is_object())
+			return -1;
 
-	if(auto v = j["/amqp/fanout_exchange"_json_pointer]; v.is_string())
-		s.amqp_fanout_exchange = v.get<std::string_view>();
+		if(get_json_value(*it, "uri", jv_t::string, s.amqp_uri) < 0)
+			return -1;
 
-	if(auto v = j["/amqp/direct_exchange"_json_pointer]; v.is_string())
-		s.amqp_direct_exchange = v.get<std::string_view>();
+		if(get_json_value(*it, "routing_key", jv_t::string, s.amqp_routing_key) < 0)
+			return -1;
 
-	if(auto v = j["/no_verify_peer"_json_pointer]; v.is_boolean())
-		s.no_verify_peer = v.get<bool>();
+		if(get_json_value(*it, "fanout_exchange", jv_t::string, s.amqp_fanout_exchange) < 0)
+			return -1;
 
-	if(auto v = j["/no_verify_host"_json_pointer]; v.is_boolean())
-		s.no_verify_host = v.get<bool>();
+		if(get_json_value(*it, "direct_exchange", jv_t::string, s.amqp_direct_exchange) < 0)
+			return -1;
+	}
 
-	if(auto v = j["/ca/cert"_json_pointer]; v.is_string())
-		s.ca_cert = v.get<std::string_view>();
+	if(get_json_value(j, "no_verify_peer", jv_t::boolean, s.no_verify_peer) < 0)
+		return -1;
 
-	if(auto v = j["/ca/encoding"_json_pointer]; v.is_string())
-		s.ca_encoding = v.get<std::string_view>();
+	if(get_json_value(j, "no_verify_host", jv_t::boolean, s.no_verify_host) < 0)
+		return -1;
 
-	if(auto v = j["/ca/no_delete"_json_pointer]; v.is_boolean())
-		s.ca_no_delete = v.get<bool>();
+	if(auto it = j.find("ca"); it != j.end())
+	{
+		if(!it->is_object())
+			return -1;
 
-	if(auto v = j["/batch"_json_pointer]; v.is_boolean())
-		s.batch = v.get<bool>();
+		if(get_json_value(*it, "cert", jv_t::string, s.ca_cert) < 0)
+			return -1;
 
-	if(auto v = j["/output"_json_pointer]; v.is_string())
-		s.output = v.get<std::string_view>();
+		if(get_json_value(*it, "encoding", jv_t::string, s.ca_encoding) < 0)
+			return -1;
 
-	if(auto v = j["/nohup"_json_pointer]; v.is_boolean())
-		s.nohup = v.get<bool>();
+		if(get_json_value(*it, "no_delete", jv_t::boolean, s.ca_no_delete) < 0)
+			return -1;
+	}
+
+	if(get_json_value(j, "batch", jv_t::boolean, s.batch) < 0)
+		return -1;
+
+	if(get_json_value(j, "output", jv_t::string, s.output) < 0)
+		return -1;
+
+	if(get_json_value(j, "nohup", jv_t::boolean, s.nohup) < 0)
+		return -1;
+
+	return 0;
 }
 
 bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::ostream& out, std::ostream& err, settings& s)
@@ -382,7 +426,12 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				return false;
 
 			case ARGDEF_CONFIG:
-				load_config_file(tmp, ps.optarg);
+				if((status = load_config_file(tmp, ps.optarg, err)) != 0)
+				{
+					if(status < 0)
+						std::cerr << "Malformed configuration file." << std::endl;
+					return false;
+				}
 				break;
 
 			case ARGDEF_UUID:
@@ -425,7 +474,6 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				tmp.ca_encoding = ps.optarg;
 				break;
 
-
 			case ARGDEF_NO_CA_DELETE:
 				tmp.ca_no_delete = true;
 				break;
@@ -463,7 +511,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 	{
 		uuid_t _uuid;
 
-		if(uuid_parse_range(tmp.uuid->begin(), tmp.uuid->end(), _uuid) < 0)
+		if(uuid_parse(tmp.uuid->c_str(), _uuid) < 0)
 		{
 			status = parseerror(2, out, argv[0], "Malformed UUID");
 			return false;
