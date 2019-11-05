@@ -21,6 +21,7 @@
 #ifndef _NIMROD_MESSAGES_MESSAGES_HPP
 #define _NIMROD_MESSAGES_MESSAGES_HPP
 
+#include <string_view>
 #include "base_message.hpp"
 #include "../process/command_result.hpp"
 
@@ -31,8 +32,8 @@ class hello_message : public base_message<hello_message>
 public:
 	const static message_type type_value = message_type::agent_hello;
 
-	hello_message(nimrod::uuid uuid, const std::string& queue);
-	const std::string& queue() const noexcept;
+	hello_message(nimrod::uuid uuid, std::string_view queue);
+	std::string_view queue() const noexcept;
 private:
 	std::string m_queue;
 };

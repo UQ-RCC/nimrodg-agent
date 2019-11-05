@@ -25,7 +25,7 @@
 
 using namespace nimrod;
 
-static amqp_bytes_t make_bytes(const std::string& s) noexcept
+static constexpr amqp_bytes_t make_bytes(std::string_view s) noexcept
 {
 	return { .len = s.size(), .bytes = const_cast<char*>(s.data()) };
 }
@@ -37,7 +37,7 @@ static amqp_bytes_t make_bytes(const std::string& s) noexcept
 #	include <sys/time.h>
 #endif
 
-static struct timeval *build_timeout(float timeout, struct timeval *tv)
+static struct timeval *build_timeout(float timeout, struct timeval *tv) noexcept
 {
 	if(timeout > 0)
 	{
@@ -55,14 +55,12 @@ amqp_consumer::~amqp_consumer() noexcept
 		amqp_channel_close(m_connection, m_channel, AMQP_REPLY_SUCCESS);
 }
 
-amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, const std::string& routing_key, const std::string& fanout, const std::string& direct) :
+amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view fanout, std::string_view direct) :
 	m_connection(conn),
 	m_channel(channel),
+	m_user(user),
 	m_routing_key(routing_key),
-	m_fanout(fanout),
 	m_direct(direct),
-	m_routing_key_bytes(make_bytes(m_routing_key)),
-	m_direct_bytes(make_bytes(m_direct)),
 	m_last_delivery_tag(0)
 {
 	try
@@ -94,12 +92,12 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 		log::trace("AMQPC", "  Got queue '%s'", m_queue_name);
 
 		/* Bind to the direct exchange */
-		log::trace("AMQPC", "Binding to direct exchange (%s)...", m_direct);
+		log::trace("AMQPC", "Binding to direct exchange (%s)...", direct);
 		amqp_queue_bind(
 			conn,
 			channel,
 			queue_bytes,
-			m_direct_bytes,
+			make_bytes(m_direct),
 			queue_bytes,
 			amqp_empty_table
 		);
@@ -128,8 +126,12 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 
 std::future<amqp_consumer::send_result_t> amqp_consumer::send_message(const net::message_container& msg, bool ack)
 {
-	msgstate state = { msg, ack };
-	state.state = send_result_t::none;
+	msgstate state = {
+		.message = msg,
+		.need_ack = ack,
+		.promise = std::promise<send_result_t>(),
+	    .state = send_result_t::none
+	};
 
 	/* Keep this lock outside, we don't want the message begin sent until we've retrieved the future. */
 	std::lock_guard<std::mutex> lock(m_map_mutex);
@@ -155,7 +157,7 @@ std::future<net::message_container> amqp_consumer::get_message()
 	return m_recv_empty.back().get_future();
 }
 
-const std::string& amqp_consumer::queue_name() const noexcept
+std::string_view amqp_consumer::queue_name() const noexcept
 {
 	return m_queue_name;
 }
@@ -167,18 +169,41 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	// https://github.com/alanxz/rabbitmq-c/blob/master/examples/amqp_sendstring.c
 	amqp_basic_properties_t props;
 	memset(&props, 0, sizeof(props));
-	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
-	props.delivery_mode = 2;
 
-	amqp_bytes_t bytes;
-	bytes.len = s.size();
-	bytes.bytes = s.data();
+	props._flags			= AMQP_BASIC_DELIVERY_MODE_FLAG
+							| AMQP_BASIC_CONTENT_TYPE_FLAG
+							| AMQP_BASIC_CONTENT_ENCODING_FLAG
+							| AMQP_BASIC_TYPE_FLAG
+							| AMQP_BASIC_TIMESTAMP_FLAG
+							| AMQP_BASIC_USER_ID_FLAG
+							| AMQP_BASIC_APP_ID_FLAG
+							| AMQP_BASIC_MESSAGE_ID_FLAG
+							;
+
+	props.delivery_mode		= 2;
+	props.content_type		= make_bytes(net::message_content_type()); /* Same as HTTP "Content-Type" */
+	props.content_encoding	= make_bytes("identity"); /* Same as HTTP "Content-Encoding" */
+	props.type				= make_bytes(net::get_message_type_string(msg.type()));
+	props.timestamp			= static_cast<uint64_t>(time(nullptr)); /* AMQP assumes this is in seconds. */
+	props.user_id			= make_bytes(m_user);
+	props.app_id			= make_bytes("nimrod");
+
+	uuid u;
+	uuid::uuid_string_type uuid_string;
+	u.str(uuid_string, sizeof(uuid_string));
+
+	props.message_id		= { .len = uuid::string_length, .bytes = uuid_string };
+
+	amqp_bytes_t bytes{
+		.len = s.size(),
+		.bytes = s.data()
+	};
 
 	int ret = amqp_basic_publish(
 		m_connection,
 		m_channel,
-		m_direct_bytes,
-		m_routing_key_bytes,
+		make_bytes(m_direct),
+		make_bytes(m_routing_key),
 		1,	/* Mandatory */
 		0,	/* Not immediate */
 		&props,
@@ -255,7 +280,7 @@ void amqp_consumer::read_proc()
 {
 	amqp_maybe_release_buffers(m_connection);
 
-	struct timeval time;
+	struct timeval time{};
 	struct timeval *tv = build_timeout(0.1f, &time);
 
 	// TODO: This properly

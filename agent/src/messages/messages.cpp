@@ -22,12 +22,12 @@
 using namespace nimrod;
 using namespace nimrod::net;
 
-hello_message::hello_message(nimrod::uuid uuid, const std::string& queue) :
+hello_message::hello_message(nimrod::uuid uuid, std::string_view queue) :
 	message_base_type(uuid),
 	m_queue(queue)
 {}
 
-const std::string& hello_message::queue() const noexcept
+std::string_view hello_message::queue() const noexcept
 {
 	return m_queue;
 }

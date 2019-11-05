@@ -44,6 +44,8 @@ public:
 message_container message_read(const char *buffer, size_t size);
 std::string message_write(const message_container& msg);
 
+std::string_view message_content_type() noexcept;
+
 std::ostream& operator<<(std::ostream& os, const message_container& msg);
 
 }

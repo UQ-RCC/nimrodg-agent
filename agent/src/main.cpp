@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 	std::atomic_bool exit_amqp(false);
 	try
 	{
-		amqp_consumer amqp(conn.get(), 1, s.amqp_routing_key, s.amqp_fanout_exchange, s.amqp_direct_exchange);
+		amqp_consumer amqp(conn.get(), 1, s.amqp_user, s.amqp_routing_key, s.amqp_fanout_exchange, s.amqp_direct_exchange);
 		ag.set_amqp(&amqp, &txm);
 
 		/* Spin off the network worker (networker?). */

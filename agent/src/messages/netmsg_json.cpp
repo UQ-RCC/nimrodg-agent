@@ -515,3 +515,8 @@ std::string net::message_write(const net::message_container& msg)
 {
 	return static_cast<nlohmann::json>(msg).dump();
 }
+
+std::string_view net::message_content_type() noexcept
+{
+	return "application/json; charset=utf-8";
+}

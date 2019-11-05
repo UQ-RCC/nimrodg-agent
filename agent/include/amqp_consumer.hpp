@@ -26,6 +26,7 @@
 #include <map>
 #include <queue>
 #include <future>
+#include <string_view>
 #include "threading.hpp"
 #include <amqp.h>
 #include "amqp_exception.hpp"
@@ -40,9 +41,10 @@ public:
 	amqp_consumer(
 		amqp_connection_state_t conn,
 		amqp_channel_t channel,
-		const std::string& routing_key,
-		const std::string& fanout,
-		const std::string& direct
+		std::string_view user,
+		std::string_view routing_key,
+		std::string_view fanout,
+		std::string_view direct
 	);
 	amqp_consumer(const amqp_consumer&) = delete;
 	amqp_consumer(amqp_consumer&&) noexcept = delete;
@@ -54,7 +56,7 @@ public:
 	std::future<send_result_t> send_message(const net::message_container& msg, bool ack = false);
 	std::future<net::message_container> get_message();
 
-	const std::string& queue_name() const noexcept;
+	std::string_view queue_name() const noexcept;
 
 	void onactivity();
 
@@ -72,12 +74,10 @@ private:
 
 	amqp_connection_state_t m_connection;
 	amqp_channel_t m_channel;
-	std::string m_routing_key;
-	std::string m_fanout;
-	std::string m_direct;
 
-	amqp_bytes_t m_routing_key_bytes;
-	amqp_bytes_t m_direct_bytes;
+	std::string_view m_user;
+	std::string_view m_routing_key;
+	std::string_view m_direct;
 
 	std::string m_queue_name;
 
