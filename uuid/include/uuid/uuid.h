@@ -84,6 +84,7 @@ int uuid_is_null(const uuid_t uu);
 
 /* parse.c */
 int uuid_parse(const char *in, uuid_t uu);
+int uuid_parse_range(const char *in_start, const char *in_end, uuid_t uu);
 
 /* unparse.c */
 void uuid_unparse(const uuid_t uu, char *out);

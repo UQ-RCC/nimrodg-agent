@@ -24,48 +24,55 @@
 
 #include <fmt/format.h>
 #include <uriparser/Uri.h>
+#include <fstream>
+#include <optional>
 #include "agent_common.hpp"
 #include "uuid.hpp"
 #include "parg/parg.h"
 
-#define ARGDEF_VERSION					'v'
-#define ARGDEF_PLATFORM					'p'
-#define ARGDEF_USERAGENT				'u'
-#define ARGDEF_HELP						'h'
-#define ARGDEF_NO_CA_DELETE				300
-#define ARGDEF_NO_VERIFY_PEER			301
-#define ARGDEF_NO_VERIFY_HOST			302
-#define ARGDEF_CACERT					303
-#define ARGDEF_CAENC					304
-#define ARGDEF_WORKROOT					305
-#define ARGDEF_BATCH					306
-#define ARGDEF_OUTPUT					307
-#define ARGDEF_NOHUP					308
-#define ARGDEF_UUID						309
-#define ARGDEF_AMQPURI					310
-#define ARGDEF_AMQP_ROUTING_KEY			311
-#define ARGDEF_AMQP_FANOUT_EXCHANGE		312
-#define ARGDEF_AMQP_DIRECT_EXCHANGE		313
+enum
+{
+	ARGDEF_VERSION					= 'v',
+	ARGDEF_PLATFORM					= 'p',
+	ARGDEF_USERAGENT				= 'u',
+	ARGDEF_HELP						= 'h',
+	ARGDEF_CONFIG					= 'c',
+	ARGDEF_UUID						= 300,
+	ARGDEF_WORKROOT,
+	ARGDEF_AMQP_URI,
+	ARGDEF_AMQP_ROUTING_KEY,
+	ARGDEF_AMQP_FANOUT_EXCHANGE,
+	ARGDEF_AMQP_DIRECT_EXCHANGE,
+	ARGDEF_NO_VERIFY_PEER,
+	ARGDEF_NO_VERIFY_HOST,
+	ARGDEF_CACERT,
+	ARGDEF_CAENC,
+	ARGDEF_NO_CA_DELETE,
+	ARGDEF_BATCH,
+	ARGDEF_OUTPUT,
+	ARGDEF_NOHUP,
+};
 
 static struct parg_option argdefs[] = {
 	{ "version",				PARG_NOARG,		nullptr, ARGDEF_VERSION },
 	{ "platform",				PARG_NOARG,		nullptr, ARGDEF_PLATFORM },
 	{ "user-agent",				PARG_NOARG,		nullptr, ARGDEF_USERAGENT },
 	{ "help",					PARG_NOARG,		nullptr, ARGDEF_HELP },
-	{ "cacert",					PARG_REQARG,	nullptr, ARGDEF_CACERT },
-	{ "caenc",					PARG_REQARG,	nullptr, ARGDEF_CAENC },
-	{ "no-ca-delete",			PARG_NOARG,		nullptr, ARGDEF_NO_CA_DELETE },
-	{ "no-verify-peer",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_PEER },
-	{ "no-verify-host",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_HOST },
-	{ "work-root",				PARG_REQARG,	nullptr, ARGDEF_WORKROOT },
-	{ "batch",					PARG_NOARG,		nullptr, ARGDEF_BATCH },
-	{ "output",					PARG_REQARG,	nullptr, ARGDEF_OUTPUT },
-	{ "nohup",					PARG_NOARG,		nullptr, ARGDEF_NOHUP },
 	{ "uuid",					PARG_REQARG,	nullptr, ARGDEF_UUID },
-	{ "amqp-uri",				PARG_REQARG,	nullptr, ARGDEF_AMQPURI },
+	{ "config",					PARG_REQARG,	nullptr, ARGDEF_CONFIG },
+	{ "work-root",				PARG_REQARG,	nullptr, ARGDEF_WORKROOT },
+	{ "amqp-uri",				PARG_REQARG,	nullptr, ARGDEF_AMQP_URI },
 	{ "amqp-routing-key",		PARG_REQARG,	nullptr, ARGDEF_AMQP_ROUTING_KEY },
 	{ "amqp-fanout-exchange",	PARG_REQARG,	nullptr, ARGDEF_AMQP_FANOUT_EXCHANGE },
 	{ "amqp-direct-exchange",	PARG_REQARG,	nullptr, ARGDEF_AMQP_DIRECT_EXCHANGE },
+	{ "no-verify-peer",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_PEER },
+	{ "no-verify-host",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_HOST },
+	{ "cacert",					PARG_REQARG,	nullptr, ARGDEF_CACERT },
+	{ "caenc",					PARG_REQARG,	nullptr, ARGDEF_CAENC },
+	{ "no-ca-delete",			PARG_NOARG,		nullptr, ARGDEF_NO_CA_DELETE },
+	{ "batch",					PARG_NOARG,		nullptr, ARGDEF_BATCH },
+	{ "output",					PARG_REQARG,	nullptr, ARGDEF_OUTPUT },
+	{ "nohup",					PARG_NOARG,		nullptr, ARGDEF_NOHUP },
 	{ nullptr, 0, nullptr, 0 }
 };
 
@@ -78,6 +85,26 @@ static const char *USAGE_OPTIONS =
 "                          Display HTTP user agent\n"
 "  -h, --help\n"
 "                          Display help message\n"
+"  -c, --config=PATH\n"
+"                          Path to a configuration file.\n"
+"                          - Any arguments already provided will be overridden.\n"
+"                          - Any subsequent arguments will override the configuration values.\n"
+"  --uuid=UUID\n"
+"                          The UUID of the agent. If omitted, use a random one\n"
+"  --work-root=PATH\n"
+"                          Change directory to PATH if specified\n"
+"  --amqp-uri=URI\n"
+"                          The URI of the AMQP broker\n"
+"  --amqp-routing-key=KEY\n"
+"                          The routing key to use to contact the Nimrod master. Defaults to \"iamthemaster\"\n"
+"  --amqp-fanout-exchange=NAME\n"
+"                          The name of the fanout exchange to use. Defaults to \"amqp.fanout\"\n"
+"  --amqp-direct-exchange=NAME\n"
+"                          The name of the direct exchange to use. Defaults to \"amqp.direct\"\n"
+"  --no-verify-peer\n"
+"                          Disable peer verification\n"
+"  --no-verify-host\n"
+"                          Disable hostname verification\n"
 "  --cacert=PATH\n"
 "                          Path to the CA certificate\n"
 "  --caenc={plain,base64}\n"
@@ -87,14 +114,6 @@ static const char *USAGE_OPTIONS =
 "                          The double-encoding is used to account for the RFC7468 headers\n"
 "  --no-ca-delete\n"
 "                          Don't delete the CA certificate after reading\n"
-"  --no-verify-peer\n"
-"                          Disable peer verification\n"
-"  --no-verify-host\n"
-"                          Disable hostname verification\n"
-"  --uuid=UUID\n"
-"                          The UUID of the agent. If omitted, use a random one\n"
-"  --work-root=PATH\n"
-"                          Change directory to PATH if specified\n"
 "  --batch\n"
 "                          Enter batch mode. Implies --nohup and --output=workroot\n"
 "                          - Upon start, the agent fork()'s and prints the child PID and a newline character\n"
@@ -109,14 +128,6 @@ static const char *USAGE_OPTIONS =
 "                          - workroot = Redirect everything to a file called output.txt in the work root\n"
 "  --nohup\n"
 "                          Ignore SIGHUP. Ignored on non-POSIX systems.\n"
-"  --amqp-uri=URI\n"
-"                          The URI of the AMQP broker\n"
-"  --amqp-routing-key=KEY\n"
-"                          The routing key to use to contact the Nimrod master. Defaults to \"iamthemaster\"\n"
-"  --amqp-fanout-exchange=NAME\n"
-"                          The name of the fanout exchange to use. Defaults to \"amqp.fanout\"\n"
-"  --amqp-direct-exchange=NAME\n"
-"                          The name of the direct exchange to use. Defaults to \"amqp.direct\"\n"
 ;
 
 using namespace nimrod;
@@ -231,11 +242,11 @@ static filesystem::path build_default_workdir(uuid& uu)
 	return filesystem::temp_directory_path() / fmt::format("nimrodg-agent-{}", uu.str());
 }
 
-static bool parse_encoding(const char *s, settings::encoding_t& enc)
+static bool parse_encoding(std::string_view s, settings::encoding_t& enc)
 {
-	if(!strcmp(s, "plain"))
+	if(s == "plain")
 		return enc = settings::encoding_t::plain, true;
-	else if(!strcmp(s, "base64"))
+	else if(s == "base64")
 		return enc = settings::encoding_t::base64, true;
 
 	return false;
@@ -251,31 +262,103 @@ std::ostream& nimrod::operator<<(std::ostream& os, settings::encoding_t enc)
 		return os.setstate(std::ios_base::failbit), os;
 }
 
-static bool parse_output(const char *s, settings::output_t& out)
+static bool parse_output(std::string_view s, settings::output_t& out)
 {
-	if(!strcmp(s, "console"))
+	if(s == "console")
 		return out = settings::output_t::console, true;
-	else if(!strcmp(s, "off"))
+	else if(s == "off")
 		return out = settings::output_t::off, true;
-	else if(!strcmp(s, "workroot"))
+	else if(s == "workroot")
 		return out = settings::output_t::workroot, true;
 
 	return false;
 }
 
+struct tmpargs
+{
+	using svopt_t = std::optional<std::string_view>;
+	using bopt_t = std::optional<bool>;
+
+	svopt_t	uuid;
+	svopt_t work_root;
+	svopt_t	amqp_uri;
+	svopt_t	amqp_routing_key;
+	svopt_t	amqp_fanout_exchange;
+	svopt_t	amqp_direct_exchange;
+	bopt_t	no_verify_peer;
+	bopt_t	no_verify_host;
+	svopt_t	ca_cert;
+	svopt_t	ca_encoding;
+	bopt_t	ca_no_delete;
+	bopt_t	batch;
+	svopt_t	output;
+	bopt_t	nohup;
+};
+
+#include <iostream>
+#include "json.hpp"
+static void load_config_file(tmpargs& s, const char *path)
+{
+	fprintf(stderr, "XXXX: %s\n", path);
+	//std::cerr << "XXXX: " << path << std::endl;
+
+	std::ifstream f;
+	f.exceptions(std::ios::badbit | std::ios::failbit);
+	f.open(path, std::ios::in | std::ios::binary);
+
+
+	nlohmann::json j = nlohmann::json::parse(f);
+
+	if(auto v = j["/uuid"_json_pointer]; v.is_string())
+		s.uuid = v.get<std::string_view>();
+
+	if(auto v = j["/work_root"_json_pointer]; v.is_string())
+		s.work_root = v.get<std::string_view>();
+
+	if(auto v = j["/amqp/uri"_json_pointer]; v.is_string())
+		s.amqp_uri = v.get<std::string_view>();
+
+	if(auto v = j["/amqp/routing_key"_json_pointer]; v.is_string())
+		s.amqp_routing_key = v.get<std::string_view>();
+
+	if(auto v = j["/amqp/fanout_exchange"_json_pointer]; v.is_string())
+		s.amqp_fanout_exchange = v.get<std::string_view>();
+
+	if(auto v = j["/amqp/direct_exchange"_json_pointer]; v.is_string())
+		s.amqp_direct_exchange = v.get<std::string_view>();
+
+	if(auto v = j["/no_verify_peer"_json_pointer]; v.is_boolean())
+		s.no_verify_peer = v.get<bool>();
+
+	if(auto v = j["/no_verify_host"_json_pointer]; v.is_boolean())
+		s.no_verify_host = v.get<bool>();
+
+	if(auto v = j["/ca/cert"_json_pointer]; v.is_string())
+		s.ca_cert = v.get<std::string_view>();
+
+	if(auto v = j["/ca/encoding"_json_pointer]; v.is_string())
+		s.ca_encoding = v.get<std::string_view>();
+
+	if(auto v = j["/ca/no_delete"_json_pointer]; v.is_boolean())
+		s.ca_no_delete = v.get<bool>();
+
+	if(auto v = j["/batch"_json_pointer]; v.is_boolean())
+		s.batch = v.get<bool>();
+
+	if(auto v = j["/output"_json_pointer]; v.is_string())
+		s.output = v.get<std::string_view>();
+
+	if(auto v = j["/nohup"_json_pointer]; v.is_boolean())
+		s.nohup = v.get<bool>();
+}
+
 bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::ostream& out, std::ostream& err, settings& s)
 {
-	parg_state ps;
+	parg_state ps{};
 	parg_init(&ps);
 
-	bool have_uri = false;
-	bool have_key = false;
-	bool have_fanout = false;
-	bool have_direct = false;
-
-	s = settings();
-
-	for(int c; (c = parg_getopt_long(&ps, argc, argv, "vpuh", argdefs, nullptr)) != -1; )
+	tmpargs tmp;
+	for(int c; (c = parg_getopt_long(&ps, argc, argv, "vpuhc:", argdefs, nullptr)) != -1; )
 	{
 		switch(c)
 		{
@@ -298,82 +381,66 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				status = usage(0, out, argv[0]);
 				return false;
 
-			case ARGDEF_NO_CA_DELETE:
-				s.ca_no_delete = true;
-				break;
-
-			case ARGDEF_NO_VERIFY_PEER:
-				s.ssl_no_verify_peer = true;
-				break;
-
-			case ARGDEF_NO_VERIFY_HOST:
-				s.ssl_no_verify_hostname = true;
-				break;
-
-			case ARGDEF_CACERT:
-				s.ca_path = ps.optarg;
-				break;
-
-			case ARGDEF_CAENC:
-				if(!parse_encoding(ps.optarg, s.ca_encoding))
-				{
-					status = usage(2, out, argv[0]);
-					return false;
-				}
-				break;
-
-			case ARGDEF_WORKROOT:
-				s.work_root = ps.optarg;
-				break;
-
-			case ARGDEF_BATCH:
-				s.batch = true;
-				break;
-
-			case ARGDEF_OUTPUT:
-				if(!parse_output(ps.optarg, s.output))
-				{
-					status = usage(2, out, argv[0]);
-					return false;
-				}
-				break;
-
-			case ARGDEF_NOHUP:
-				s.nohup = true;
-				break;
-
-			case ARGDEF_AMQPURI:
-				s.amqp_raw_uri = ps.optarg;
-				have_uri = true;
-				break;
-
-			case ARGDEF_AMQP_ROUTING_KEY:
-				s.amqp_routing_key = ps.optarg;
-				have_key = true;
-				break;
-
-			case ARGDEF_AMQP_FANOUT_EXCHANGE:
-				s.amqp_fanout_exchange = ps.optarg;
-				have_fanout = true;
-				break;
-
-			case ARGDEF_AMQP_DIRECT_EXCHANGE:
-				s.amqp_direct_exchange = ps.optarg;
-				have_direct = true;
+			case ARGDEF_CONFIG:
+				load_config_file(tmp, ps.optarg);
 				break;
 
 			case ARGDEF_UUID:
-			{
-				uuid_t _uuid;
-				if(uuid_parse(ps.optarg, _uuid) < 0)
-				{
-					status = parseerror(2, out, argv[0], "Malformed UUID");
-					return false;
-				}
-
-				s.uuid = _uuid;
+				tmp.uuid = ps.optarg;
 				break;
-			}
+
+			case ARGDEF_WORKROOT:
+				tmp.work_root = ps.optarg;
+				break;
+
+			case ARGDEF_AMQP_URI:
+				tmp.amqp_uri = ps.optarg;
+				break;
+
+			case ARGDEF_AMQP_ROUTING_KEY:
+				tmp.amqp_routing_key = ps.optarg;
+				break;
+
+			case ARGDEF_AMQP_FANOUT_EXCHANGE:
+				tmp.amqp_fanout_exchange = ps.optarg;
+				break;
+
+			case ARGDEF_AMQP_DIRECT_EXCHANGE:
+				tmp.amqp_direct_exchange = ps.optarg;
+				break;
+
+			case ARGDEF_NO_VERIFY_PEER:
+				tmp.no_verify_peer = true;
+				break;
+
+			case ARGDEF_NO_VERIFY_HOST:
+				tmp.no_verify_host = true;
+				break;
+
+			case ARGDEF_CACERT:
+				tmp.ca_cert = ps.optarg;
+				break;
+
+			case ARGDEF_CAENC:
+				tmp.ca_encoding = ps.optarg;
+				break;
+
+
+			case ARGDEF_NO_CA_DELETE:
+				tmp.ca_no_delete = true;
+				break;
+
+			case ARGDEF_BATCH:
+				tmp.batch = true;
+				break;
+
+			case ARGDEF_OUTPUT:
+				tmp.output = ps.optarg;
+				break;
+
+			case ARGDEF_NOHUP:
+				tmp.nohup = true;
+				break;
 
 			case '?':
 			default:
@@ -382,21 +449,35 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		}
 	}
 
-	if(!have_uri)
+
+	/* This is technically the only required argument. */
+	if(!tmp.amqp_uri)
 	{
 		status = parseerror(2, out, argv[0], "Option --amqp-uri is required.");
 		return false;
 	}
 
-	if(!have_key)
-		s.amqp_routing_key = "iamthemaster";
+	s = settings();
 
-	if(!have_fanout)
-		s.amqp_fanout_exchange = "amq.fanout";
+	if(tmp.uuid)
+	{
+		uuid_t _uuid;
 
-	if(!have_direct)
-		s.amqp_direct_exchange = "amq.direct";
+		if(uuid_parse_range(tmp.uuid->begin(), tmp.uuid->end(), _uuid) < 0)
+		{
+			status = parseerror(2, out, argv[0], "Malformed UUID");
+			return false;
+		}
 
+		s.uuid = _uuid;
+	}
+
+	if(!tmp.work_root)
+		s.work_root = build_default_workdir(s.uuid).string();
+	else
+		s.work_root = tmp.work_root.value();
+
+	s.amqp_raw_uri = tmp.amqp_uri.value();
 	{ /* Validate the AMQP URI */
 		if(!(s.amqp_uri = parse_uri(s.amqp_raw_uri)))
 		{
@@ -411,13 +492,39 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		}
 	}
 
+	s.amqp_routing_key = tmp.amqp_routing_key.value_or("iamthemaster");
+	s.amqp_fanout_exchange = tmp.amqp_fanout_exchange.value_or("amq.fanout");
+	s.amqp_direct_exchange = tmp.amqp_direct_exchange.value_or("amq.direct");
 
-	/*
-	** If no work-root was specified, regenerate the default
-	** one with our new UUID.
-	*/
-	if(s.work_root.empty())
-		s.work_root = build_default_workdir(s.uuid).string();
+	s.ssl_no_verify_peer = tmp.no_verify_peer.value_or(false);
+	s.ssl_no_verify_hostname = tmp.no_verify_host.value_or(false);
+
+	s.ca_path = tmp.ca_cert.value_or("");
+
+	if(!tmp.ca_encoding)
+	{
+		s.ca_encoding = settings::encoding_t::plain;
+	}
+	else if(!parse_encoding(tmp.ca_encoding.value(), s.ca_encoding))
+	{
+		status = usage(2, out, argv[0]);
+		return false;
+	}
+
+	s.ca_no_delete = tmp.ca_no_delete.value_or(false);
+	s.batch = tmp.batch.value_or(false);
+
+	if(!tmp.output)
+	{
+		s.output = settings::output_t::console;
+	}
+	else if(!parse_output(tmp.output.value(), s.output))
+	{
+		status = usage(2, out, argv[0]);
+		return false;
+	}
+
+	s.nohup = tmp.nohup.value_or(false);
 
 	if(s.batch)
 	{
@@ -429,9 +536,8 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 }
 
 settings::settings() :
-	ca_path(""),
-	ca_encoding(encoding_t::plain),
-	ca_no_delete(false),
+	uuid(),
+	work_root(""),
 	amqp_raw_uri(""),
 	amqp_uri(nullptr),
 	amqp_scheme(amqp_scheme_t::amqp),
@@ -446,8 +552,9 @@ settings::settings() :
 	amqp_direct_exchange(""),
 	ssl_no_verify_peer(false),
 	ssl_no_verify_hostname(false),
-	uuid(),
-	work_root(""),
+	ca_path(""),
+	ca_encoding(encoding_t::plain),
+	ca_no_delete(false),
 	batch(false),
 	output(output_t::console),
 	nohup(false)

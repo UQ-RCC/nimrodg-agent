@@ -1,0 +1,20 @@
+{
+  "uuid": "00000000-0000-0000-0000-000000000000",
+  "work_root": "/tmp",
+  "amqp": {
+    "uri": "amqp://guest:guest@127.0.0.1/nimrod",
+    "routing_key": "iamthemaster",
+    "fanout_exchange": "amqp.fanout",
+    "direct_exchange": "amqp.direct"
+  },
+  "no_verify_peer": true,
+  "no_verify_host": true,
+  "ca": {
+    "cert": "/etc/ssl/certs/ca-certificates.crt",
+    "encoding": "plain",
+    "no_delete": false
+  },
+  "batch": true,
+  "output": "console",
+  "nohup": true
+}

@@ -50,32 +50,32 @@ struct settings
 
 	settings();
 
-       std::string		ca_path;
-       encoding_t		ca_encoding;
-       bool				ca_no_delete;
+	nimrod::uuid		uuid;
+	std::string			work_root;
 
-       std::string		amqp_raw_uri;
-       uri_ptr			amqp_uri;
-       amqp_scheme_t	amqp_scheme;
-       std::string_view	amqp_sscheme;
-       std::string		amqp_host;
-       uint16_t			amqp_port;
-       std::string		amqp_user;
-       std::string		amqp_pass;
-       std::string		amqp_vhost;
-       std::string		amqp_routing_key;
-       std::string		amqp_fanout_exchange;
-       std::string		amqp_direct_exchange;
+	std::string			amqp_raw_uri;
+	uri_ptr				amqp_uri;
+	amqp_scheme_t		amqp_scheme;
+	std::string_view	amqp_sscheme;
+	std::string			amqp_host;
+	uint16_t			amqp_port;
+	std::string			amqp_user;
+	std::string			amqp_pass;
+	std::string			amqp_vhost;
+	std::string			amqp_routing_key;
+	std::string			amqp_fanout_exchange;
+	std::string			amqp_direct_exchange;
 
-       bool				ssl_no_verify_peer;
-       bool				ssl_no_verify_hostname;
+	bool				ssl_no_verify_peer;
+	bool				ssl_no_verify_hostname;
 
-       nimrod::uuid		uuid;
-       std::string		work_root;
+	std::string			ca_path;
+	encoding_t			ca_encoding;
+	bool				ca_no_delete;
 
-       bool				batch;
-       output_t			output;
-       bool				nohup;
+	bool				batch;
+	output_t			output;
+	bool				nohup;
 };
 
 
