@@ -14,6 +14,24 @@ Options:
                           Display HTTP user agent
   -h, --help
                           Display help message
+  -c, --config=PATH
+                          Path to a configuration file.
+                          - Any arguments already provided will be overridden.
+                          - Any subsequent arguments will override the configuration values.
+  --uuid=UUID
+                          The UUID of the agent. If omitted, use a random one
+  --work-root=PATH
+                          Change directory to PATH if specified
+  --amqp-uri=URI
+                          The URI of the AMQP broker
+  --amqp-routing-key=KEY
+                          The routing key to use to contact the Nimrod master. Defaults to "iamthemaster"
+  --amqp-direct-exchange=NAME
+                          The name of the direct exchange to use. Defaults to "amqp.direct"
+  --no-verify-peer
+                          Disable peer verification
+  --no-verify-host
+                          Disable hostname verification
   --cacert=PATH
                           Path to the CA certificate
   --caenc={plain,base64}
@@ -23,14 +41,6 @@ Options:
                           The double-encoding is used to account for the RFC7468 headers
   --no-ca-delete
                           Don't delete the CA certificate after reading
-  --no-verify-peer
-                          Disable peer verification
-  --no-verify-host
-                          Disable hostname verification
-  --uuid=UUID
-                          The UUID of the agent. If omitted, use a random one
-  --work-root=PATH
-                          Change directory to PATH if specified
   --batch
                           Enter batch mode. Implies --nohup and --output=workroot
                           - Upon start, the agent fork()'s and prints the child PID and a newline character
@@ -45,14 +55,6 @@ Options:
                           - workroot = Redirect everything to a file called output.txt in the work root
   --nohup
                           Ignore SIGHUP. Ignored on non-POSIX systems.
-  --amqp-uri=URI
-                          The URI of the AMQP broker
-  --amqp-routing-key=KEY
-                          The routing key to use to contact the Nimrod master. Defaults to "iamthemaster"
-  --amqp-fanout-exchange=NAME
-                          The name of the fanout exchange to use. Defaults to "amqp.fanout"
-  --amqp-direct-exchange=NAME
-                          The name of the direct exchange to use. Defaults to "amqp.direct"
 ```
 
 ## Build Instructions
