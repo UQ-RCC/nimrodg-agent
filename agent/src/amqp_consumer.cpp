@@ -178,6 +178,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 							| AMQP_BASIC_USER_ID_FLAG
 							| AMQP_BASIC_APP_ID_FLAG
 							| AMQP_BASIC_MESSAGE_ID_FLAG
+							| AMQP_BASIC_HEADERS_FLAG
 							;
 
 	props.delivery_mode		= 2;
@@ -193,6 +194,18 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	u.str(uuid_string, sizeof(uuid_string));
 
 	props.message_id		= { .len = uuid::string_length, .bytes = uuid_string };
+
+	/* Add a "User-Agent" header. */
+	amqp_table_entry_t ua = {
+		.key = make_bytes("User-Agent"),
+		.value = {
+			.kind = AMQP_FIELD_KIND_UTF8,
+			.value = { .bytes = make_bytes(g_compile_info.user_agent) }
+		}
+	};
+
+	props.headers.num_entries = 1;
+	props.headers.entries = { &ua };
 
 	amqp_bytes_t bytes{
 		.len = s.size(),
