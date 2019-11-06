@@ -241,7 +241,9 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 
 static filesystem::path build_default_workdir(uuid& uu)
 {
-	return filesystem::temp_directory_path() / fmt::format("nimrodg-agent-{}", uu.str());
+	uuid::uuid_string_type us;
+	uu.str(us, sizeof(us));
+	return filesystem::temp_directory_path() / "nimrodg-agent" / us;
 }
 
 static bool parse_encoding(std::string_view s, settings::encoding_t& enc)
