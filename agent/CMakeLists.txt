@@ -184,7 +184,7 @@ target_link_libraries(agent
 #
 #target_link_libraries(agent ${LIBSSH2_LIBRARY})
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	target_link_libraries(agent stdc++fs)
 endif()
 
