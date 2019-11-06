@@ -7,7 +7,7 @@ if [ -z "$PREFIX" ]; then
 fi
 
 if [ -z "$LIBRESSL_VERSION" ]; then
-    LIBRESSL_VERSION=2.9.0
+    LIBRESSL_VERSION=3.0.2
 fi
 
 if [ -z "$LIBSSH2_VERSION" ]; then
