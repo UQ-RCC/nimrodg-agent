@@ -43,7 +43,6 @@ public:
 		amqp_channel_t channel,
 		std::string_view user,
 		std::string_view routing_key,
-		std::string_view fanout,
 		std::string_view direct
 	);
 	amqp_consumer(const amqp_consumer&) = delete;

@@ -63,7 +63,6 @@ struct settings
 	std::string			amqp_pass;
 	std::string			amqp_vhost;
 	std::string			amqp_routing_key;
-	std::string			amqp_fanout_exchange;
 	std::string			amqp_direct_exchange;
 
 	bool				ssl_no_verify_peer;

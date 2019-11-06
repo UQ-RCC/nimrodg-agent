@@ -55,7 +55,7 @@ amqp_consumer::~amqp_consumer() noexcept
 		amqp_channel_close(m_connection, m_channel, AMQP_REPLY_SUCCESS);
 }
 
-amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view fanout, std::string_view direct) :
+amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view direct) :
 	m_connection(conn),
 	m_channel(channel),
 	m_user(user),

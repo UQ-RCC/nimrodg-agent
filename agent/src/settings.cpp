@@ -43,7 +43,6 @@ enum
 	ARGDEF_WORKROOT,
 	ARGDEF_AMQP_URI,
 	ARGDEF_AMQP_ROUTING_KEY,
-	ARGDEF_AMQP_FANOUT_EXCHANGE,
 	ARGDEF_AMQP_DIRECT_EXCHANGE,
 	ARGDEF_NO_VERIFY_PEER,
 	ARGDEF_NO_VERIFY_HOST,
@@ -65,7 +64,6 @@ static struct parg_option argdefs[] = {
 	{ "work-root",				PARG_REQARG,	nullptr, ARGDEF_WORKROOT },
 	{ "amqp-uri",				PARG_REQARG,	nullptr, ARGDEF_AMQP_URI },
 	{ "amqp-routing-key",		PARG_REQARG,	nullptr, ARGDEF_AMQP_ROUTING_KEY },
-	{ "amqp-fanout-exchange",	PARG_REQARG,	nullptr, ARGDEF_AMQP_FANOUT_EXCHANGE },
 	{ "amqp-direct-exchange",	PARG_REQARG,	nullptr, ARGDEF_AMQP_DIRECT_EXCHANGE },
 	{ "no-verify-peer",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_PEER },
 	{ "no-verify-host",			PARG_NOARG,		nullptr, ARGDEF_NO_VERIFY_HOST },
@@ -99,8 +97,6 @@ static const char *USAGE_OPTIONS =
 "                          The URI of the AMQP broker\n"
 "  --amqp-routing-key=KEY\n"
 "                          The routing key to use to contact the Nimrod master. Defaults to \"iamthemaster\"\n"
-"  --amqp-fanout-exchange=NAME\n"
-"                          The name of the fanout exchange to use. Defaults to \"amqp.fanout\"\n"
 "  --amqp-direct-exchange=NAME\n"
 "                          The name of the direct exchange to use. Defaults to \"amqp.direct\"\n"
 "  --no-verify-peer\n"
@@ -287,7 +283,6 @@ struct tmpargs
 	sopt_t work_root;
 	sopt_t	amqp_uri;
 	sopt_t	amqp_routing_key;
-	sopt_t	amqp_fanout_exchange;
 	sopt_t	amqp_direct_exchange;
 	bopt_t	no_verify_peer;
 	bopt_t	no_verify_host;
@@ -356,9 +351,6 @@ static int load_config_file(tmpargs& s, const char *path, std::ostream& err)
 			return -1;
 
 		if(get_json_value(*it, "routing_key", jv_t::string, s.amqp_routing_key) < 0)
-			return -1;
-
-		if(get_json_value(*it, "fanout_exchange", jv_t::string, s.amqp_fanout_exchange) < 0)
 			return -1;
 
 		if(get_json_value(*it, "direct_exchange", jv_t::string, s.amqp_direct_exchange) < 0)
@@ -452,10 +444,6 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				tmp.amqp_routing_key = ps.optarg;
 				break;
 
-			case ARGDEF_AMQP_FANOUT_EXCHANGE:
-				tmp.amqp_fanout_exchange = ps.optarg;
-				break;
-
 			case ARGDEF_AMQP_DIRECT_EXCHANGE:
 				tmp.amqp_direct_exchange = ps.optarg;
 				break;
@@ -543,7 +531,6 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 	}
 
 	s.amqp_routing_key = tmp.amqp_routing_key.value_or("iamthemaster");
-	s.amqp_fanout_exchange = tmp.amqp_fanout_exchange.value_or("amq.fanout");
 	s.amqp_direct_exchange = tmp.amqp_direct_exchange.value_or("amq.direct");
 
 	s.ssl_no_verify_peer = tmp.no_verify_peer.value_or(false);
@@ -598,7 +585,6 @@ settings::settings() :
 	amqp_pass(""),
 	amqp_vhost(""),
 	amqp_routing_key(""),
-	amqp_fanout_exchange(""),
 	amqp_direct_exchange(""),
 	ssl_no_verify_peer(false),
 	ssl_no_verify_hostname(false),
