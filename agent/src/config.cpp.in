@@ -5,13 +5,28 @@
  * --------------------------------------------------------------------------*/
 #include "config.h"
 
+#include <amqp.h>
+#include <curl/curlver.h>
+
 const compile_info_t g_compile_info = {
-	.git_sha1			= "@GIT_SHA1@",
-	.git_description	= "@GIT_DESCRIBE@",
-	.git_local_changes	= "@GIT_LOCAL_CHANGES@",
-	.platform_string	= "@NIMRODG_PLATFORM_STRING@",
-	.version_string		= "@GIT_DESCRIBE@",
-	.description		= "Nimrod/G Agent, version @GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
-	.user_agent			= "NimrodG/@GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
-	.dev_null			= NIMRODG_DEVNULL
+	.git = {
+		.sha1			= "@GIT_SHA1@",
+		.description	= "@GIT_DESCRIBE@",
+		.dirty			= @GIT_DIRTY@,
+	},
+	.version = {
+		.agent			= "@GIT_DESCRIBE@",
+		.openssl		= "@OPENSSL_VERSION@",
+		.curl			= LIBCURL_VERSION,
+		.uriparser		= "@URIPARSER_VERSION_STRING@",
+		.rabbitmq_c		= AMQ_VERSION_STRING,
+	},
+	.agent = {
+		.version		= "@GIT_DESCRIBE@",
+		.platform		= "@NIMRODG_PLATFORM_STRING@",
+		.description	= "Nimrod/G Agent, version @GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
+		.user_agent		= "NimrodG/@GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
+		.dev_null		= NIMRODG_DEVNULL,
+	}
 };
+

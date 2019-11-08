@@ -28,14 +28,30 @@
 
 typedef struct
 {
-	const char *git_sha1;
-	const char *git_description;
-	const char *git_local_changes;
-	const char *platform_string;
-	const char *version_string;
-	const char *description;
-	const char *user_agent;
-	const char *dev_null;
+	struct
+	{
+		const char *sha1;
+		const char *description;
+		int dirty;
+	} git;
+
+	struct
+	{
+		const char *agent;
+		const char *openssl;
+		const char *curl;
+		const char *uriparser;
+		const char *rabbitmq_c;
+	} version;
+
+	struct
+	{
+		const char *version;
+		const char *platform;
+		const char *description;
+		const char *user_agent;
+		const char *dev_null;
+	} agent;
 } compile_info_t;
 
 #ifdef __cplusplus

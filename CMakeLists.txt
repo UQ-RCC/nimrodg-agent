@@ -16,6 +16,16 @@ function(add_uriparser)
 	set(URIPARSER_BUILD_CHAR	ON CACHE BOOL "" FORCE)
 	set(URIPARSER_BUILD_WCHAR_T	OFF CACHE BOOL "" FORCE)
 	add_subdirectory(uriparser)
+
+
+	# Absolutely disgusting
+	set(XXXX ${CMAKE_CURRENT_SOURCE_DIR})
+	set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/uriparser)
+	git_describe(URIPARSER_VERSION_STRING)
+	string(REGEX REPLACE "^uriparser-([0-9]\\.[0-9]\\.[0-9])" "\\1" URIPARSER_VERSION_STRING ${URIPARSER_VERSION_STRING})
+	set(CMAKE_CURRENT_SOURCE_DIR ${XXXX})
+	unset(XXXX)
+	set_target_properties(uriparser PROPERTIES VERSION ${URIPARSER_VERSION_STRING})
 endfunction(add_uriparser)
 
 function(add_rabbitmqc)

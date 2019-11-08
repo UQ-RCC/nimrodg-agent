@@ -27,6 +27,7 @@
 #include <fstream>
 #include <optional>
 #include <iostream>
+#include <config.h>
 #include "json.hpp"
 #include "agent_common.hpp"
 #include "uuid.hpp"
@@ -390,6 +391,34 @@ static int load_config_file(tmpargs& s, const char *path, std::ostream& err)
 	return 0;
 }
 
+#include <curl/curl.h>
+static void dump_version(std::ostream& out)
+{
+	curl_version_info_data *d = curl_version_info(CURLVERSION_NOW);
+	out << "nimrodg-agent " << g_compile_info.version.agent << " (" << g_compile_info.agent.platform << ")";
+	/* curl does a better job of this than we do. */
+	out << " " << d->ssl_version;
+
+	out << " librabbitmq/" << g_compile_info.version.rabbitmq_c;
+	out << " libcurl/" << g_compile_info.version.curl;
+
+	if(d->libssh_version != nullptr)
+		out << " (+" << d->libssh_version << ")";
+
+	out << " uriparser/" << g_compile_info.version.uriparser;
+	out << std::endl;
+	out << "User-Agent: " << g_compile_info.agent.user_agent << std::endl;
+	out << "Commit: " << g_compile_info.git.sha1 << std::endl;
+
+	if(d->protocols != nullptr)
+	{
+		out << "Protocols:";
+		for(const char * const *p = d->protocols; *p; ++p)
+			out << " " << *p;
+		out << std::endl;
+	}
+}
+
 bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::ostream& out, std::ostream& err, settings& s)
 {
 	parg_state ps{};
@@ -401,17 +430,18 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		switch(c)
 		{
 			case ARGDEF_VERSION:
-				out << g_compile_info.description << std::endl;
+			{
+				dump_version(out);
 				status = 0;
 				return false;
-
+			}
 			case ARGDEF_PLATFORM:
-				out << g_compile_info.platform_string << std::endl;
+				out << g_compile_info.agent.platform << std::endl;
 				status = 0;
 				return false;
 
 			case ARGDEF_USERAGENT:
-				out << g_compile_info.user_agent << std::endl;
+				out << g_compile_info.agent.user_agent << std::endl;
 				status = 0;
 				return false;
 

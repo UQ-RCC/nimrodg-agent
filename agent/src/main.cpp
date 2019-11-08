@@ -27,6 +27,7 @@
 #include <uriparser/Uri.h>
 #include <amqp.h>
 #include <curl/curl.h>
+#include <config.h>
 
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
 		std::clog.rdbuf(rstream.rdbuf());
 	}
 
-	log::info("AGENT", "%s starting up...", g_compile_info.description);
+	log::info("AGENT", "%s starting up...", g_compile_info.agent.description);
 	log::info("AGENT", "UUID: %s", s.uuid);
 	log::info("AGENT", "Work Root %s...", workRoot);
 
@@ -288,7 +289,7 @@ int main(int argc, char **argv)
 	}
 
 dead:
-	log::info("AGENT", "%s signing off...", g_compile_info.description);
+	log::info("AGENT", "%s signing off...", g_compile_info.agent.description);
 	amqp_connection_close(conn.get(), AMQP_REPLY_SUCCESS);
 	return 0;
 }
