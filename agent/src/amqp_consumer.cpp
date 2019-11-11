@@ -200,7 +200,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 		.key = make_bytes("User-Agent"),
 		.value = {
 			.kind = AMQP_FIELD_KIND_UTF8,
-			.value = { .bytes = make_bytes(g_compile_info.user_agent) }
+			.value = { .bytes = make_bytes(g_compile_info.agent.user_agent) }
 		}
 	};
 
