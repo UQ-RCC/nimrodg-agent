@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	log::info("AGENT", "UUID: %s", s.uuid);
 	log::info("AGENT", "Work Root %s...", workRoot);
 
-	agent ag(s.uuid, workRoot);
+	agent ag(s.uuid, workRoot, s.environment);
 	ag.nohup(s.nohup);
 	if(!init_console_handlers(&ag))
 		return 1;

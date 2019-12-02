@@ -27,12 +27,13 @@
 
 using namespace nimrod;
 
-agent::agent(uuid uu, const filesystem::path& workRoot) :
+agent::agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env) :
 	m_state(state_t::waiting_for_init),
 	m_nohup(false),
 	m_amqp(nullptr),
 	m_work_root(workRoot),
 	m_uuid(uu),
+	m_environment(env),
 	m_termevent(std::bind(&agent::_rev_pred, this), std::bind(&agent::_rev_proc, this, std::placeholders::_1))
 {}
 
@@ -296,7 +297,7 @@ bool agent::operator()(const network_message& _msg)
 			auto& sub = msg.get<submit_message>();
 			try
 			{
-				m_procman = std::make_unique<procman>(m_uuid, sub.job(), m_work_root, m_tx);
+				m_procman = std::make_unique<procman>(m_uuid, sub.job(), m_work_root, m_environment, m_tx);
 			}
 			catch(std::exception& e)
 			{

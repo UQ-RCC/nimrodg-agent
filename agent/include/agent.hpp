@@ -23,6 +23,7 @@
 #include <utility>
 #include <variant>
 #include <fmt/printf.h>
+#include <unordered_map>
 #include "uuid.hpp"
 #include "event.hpp"
 #include "messages/netmsg.hpp"
@@ -51,7 +52,7 @@ class agent
 public:
 	enum class state_t { waiting_for_init, idle, in_job, stopped };
 
-	agent(uuid uu, const filesystem::path& workRoot);
+	agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env);
 
 	void submit_event(const event_union& evt);
 	void submit_event(event_union&& evt);
@@ -108,6 +109,8 @@ private:
 	const filesystem::path m_work_root;
 
 	uuid m_uuid;
+
+	string_map_t m_environment;
 
 	std::unique_ptr<procman> m_procman;
 	std::future<void> m_proctask;

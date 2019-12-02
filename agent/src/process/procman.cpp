@@ -18,12 +18,13 @@
  * limitations under the License.
  */
 #include <uriparser/Uri.h>
+#include <algorithm>
 #include "log.hpp"
 #include "process/procman.hpp"
 
 using namespace nimrod;
 
-procman::procman(const uuid& agent_uuid, const job_definition& j, const filesystem::path& work_root, txman *tx) :
+procman::procman(const uuid& agent_uuid, const job_definition& j, const filesystem::path& work_root, const string_map_t& environment, txman *tx) :
 	m_agent_uuid(agent_uuid),
 	m_job(j),
 	m_paths(),
@@ -56,7 +57,14 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 	filesystem::create_directories(m_paths.path_working);
 	filesystem::create_directories(m_paths.path_tmp);
 
-	m_environment = m_job.environment();
+
+	m_environment.reserve(environment.size() + m_job.environment().size() + 5);
+	for(const auto& it : environment)
+		m_environment.insert(it);
+
+	for(const auto& it : m_job.environment())
+		m_environment.insert(it);
+
 #if defined(NIMRODG_USE_POSIX)
 	m_environment["TMPDIR"] = m_paths.path_tmp;
 #elif defined(NIMRODG_USE_WIN32API)

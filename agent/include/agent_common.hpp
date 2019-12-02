@@ -43,6 +43,8 @@
 
 namespace nimrod {
 
+using string_map_t = std::unordered_map<std::string, std::string>;
+
 struct settings
 {
 	enum class amqp_scheme_t { amqp, amqps };
@@ -77,7 +79,7 @@ struct settings
 	output_t			output;
 	bool				nohup;
 
-	std::unordered_map<std::string, std::string> environment;
+	string_map_t		environment;
 };
 
 

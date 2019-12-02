@@ -44,7 +44,14 @@ public:
 		uri_ptr uri_base;
 	};
 
-	procman(const uuid& agent_uuid, const job_definition& j, const filesystem::path& work_root, txman *tx);
+	procman(
+		const uuid& agent_uuid,
+		const job_definition& j,
+		const filesystem::path& work_root,
+		const string_map_t& environment,
+		txman *tx
+	);
+
 	~procman();
 
 	const uuid job_uuid() const noexcept;
