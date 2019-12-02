@@ -184,13 +184,16 @@ target_include_directories(agent
 )
 
 target_link_libraries(agent
-	Threads::Threads
 	fmt-header-only
 	uuid
 	uriparser
 	rabbitmq-static
 	CURL::libcurl
 )
+
+if(NOT WIN32)
+	target_link_libraries(agent Threads::Threads)
+endif()
 
 #target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
 #target_link_libraries(agent ${OPENSSL_LIBRARIES})
