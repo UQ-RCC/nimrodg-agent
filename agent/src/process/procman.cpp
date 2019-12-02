@@ -58,7 +58,7 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 	filesystem::create_directories(m_paths.path_tmp);
 
 
-	m_environment.reserve(environment.size() + m_job.environment().size() + 5);
+	m_environment.reserve(environment.size() + m_job.environment().size() + 6);
 	for(const auto& it : environment)
 		m_environment.insert(it);
 
