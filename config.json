@@ -15,5 +15,9 @@
   },
   "batch": true,
   "output": "console",
-  "nohup": true
+  "nohup": true,
+  "environment": {
+    "X": "Y",
+    "Z": "W"
+  }
 }

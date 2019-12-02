@@ -279,6 +279,7 @@ struct tmpargs
 {
 	using sopt_t = std::optional<std::string>;
 	using bopt_t = std::optional<bool>;
+	using smap_t = std::unordered_map<std::string, std::string>;
 
 	sopt_t	uuid;
 	sopt_t work_root;
@@ -293,6 +294,7 @@ struct tmpargs
 	bopt_t	batch;
 	sopt_t	output;
 	bopt_t	nohup;
+	smap_t	environment;
 };
 
 template<typename T>
@@ -388,6 +390,20 @@ static int load_config_file(tmpargs& s, const char *path, std::ostream& err)
 	if(get_json_value(j, "nohup", jv_t::boolean, s.nohup) < 0)
 		return -1;
 
+	if(auto it = j.find("environment"); it != j.end())
+	{
+		if(!it->is_object())
+			return -1;
+
+		for(const auto& env : it->items())
+		{
+			if(!env.value().is_string())
+				return -1;
+
+			s.environment[env.key()] = env.value();
+		}
+	}
+
 	return 0;
 }
 
@@ -424,7 +440,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 	parg_state ps{};
 	parg_init(&ps);
 
-	tmpargs tmp;
+	tmpargs tmp{};
 	for(int c; (c = parg_getopt_long(&ps, argc, argv, "vpuhc:", argdefs, nullptr)) != -1; )
 	{
 		switch(c)
@@ -453,7 +469,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				if((status = load_config_file(tmp, ps.optarg, err)) != 0)
 				{
 					if(status < 0)
-						std::cerr << "Malformed configuration file." << std::endl;
+						err << "Malformed configuration file." << std::endl;
 					return false;
 				}
 				break;
@@ -599,6 +615,8 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		if(s.output == settings::output_t::console)
 			s.output = settings::output_t::workroot;
 	}
+
+	s.environment = std::move(tmp.environment);
 	return true;
 }
 

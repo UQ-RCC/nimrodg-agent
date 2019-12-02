@@ -34,6 +34,7 @@
 #include <iomanip>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 #include "config.h"
 #include "uuid.hpp"
@@ -75,6 +76,8 @@ struct settings
 	bool				batch;
 	output_t			output;
 	bool				nohup;
+
+	std::unordered_map<std::string, std::string> environment;
 };
 
 
