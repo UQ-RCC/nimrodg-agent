@@ -311,21 +311,12 @@ int get_json_value(const nlohmann::json& j, std::string_view key, nlohmann::json
 	return 0;
 }
 
-static int load_config_file(tmpargs& s, const char *path, std::ostream& err)
+static int load_config_file(tmpargs& s, std::istream& is, std::ostream& err)
 {
-	std::ifstream f;
-	f.open(path, std::ios::in | std::ios::binary);
-
-	if(!f)
-	{
-		err << "Unable to open configuration file." << std::endl;
-		return 1;
-	}
-
 	nlohmann::json j;
 	try
 	{
-		j = nlohmann::json::parse(f);
+		j = nlohmann::json::parse(is);
 	}
 	catch(const nlohmann::detail::exception& e)
 	{
@@ -466,14 +457,32 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				return false;
 
 			case ARGDEF_CONFIG:
-				if((status = load_config_file(tmp, ps.optarg, err)) != 0)
+			{
+				std::string_view sv = ps.optarg;
+				if(sv == "-")
+				{
+					status = load_config_file(tmp, std::cin, err);
+				}
+				else
+				{
+					std::ifstream f(ps.optarg, std::ios::in | std::ios::binary);
+					if(!f)
+					{
+						err << "Unable to open configuration file." << std::endl;
+						return false;
+					}
+
+					status = load_config_file(tmp, f, err);
+				}
+
+				if(status != 0)
 				{
 					if(status < 0)
 						err << "Malformed configuration file." << std::endl;
 					return false;
 				}
 				break;
-
+			}
 			case ARGDEF_UUID:
 				tmp.uuid = ps.optarg;
 				break;

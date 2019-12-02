@@ -288,4 +288,21 @@ std::string posix::search_path(const std::string& f)
 	throw make_errno_exception(ENOENT);
 }
 
+int fnullify(FILE *f)
+{
+	int fd = fileno(f);
+	/* Only if NULL, or fmemopen()'d */
+	if(fd < 0)
+		return -1;
+
+	fd_ptr devnull(open(NIMRODG_DEVNULL, O_RDWR));
+	if(!devnull)
+		return -1;
+
+	if(dup2(devnull.get(), fd) < 0)
+		return -1;
+
+	return fd;
+}
+
 #endif

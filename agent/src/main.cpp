@@ -136,6 +136,17 @@ int main(int argc, char **argv)
 		std::clog.rdbuf(rstream.rdbuf());
 	}
 
+	/* FIXME: I need to redo the platform code. */
+#if defined(NIMRODG_USE_POSIX)
+	int fnullify(FILE *f);
+	if(fnullify(stdin) < 0)
+	{
+		log::error("AGENT", "Unable to nullify stdin, please fix your system.");
+		log::error("AGENT", "%s", strerror(errno));
+		return 1;
+	}
+#endif
+
 	log::info("AGENT", "%s starting up...", g_compile_info.agent.description);
 	log::info("AGENT", "UUID: %s", s.uuid);
 	log::info("AGENT", "Work Root %s...", workRoot);
