@@ -143,10 +143,10 @@ FILE *nimrod::xfopen(const filesystem::path& path, const char *mode) noexcept
 
 std::string_view nimrod::make_view(const char *b, const char *e) noexcept
 {
-       if(b == nullptr || e == nullptr)
-               return "";
+	if(b == nullptr || e == nullptr)
+		return "";
 
-       return std::string_view(b, static_cast<size_t>(std::distance(b, e)));
+	return std::string_view(b, static_cast<size_t>(std::distance(b, e)));
 }
 
 
