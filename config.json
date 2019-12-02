@@ -4,7 +4,7 @@
   "amqp": {
     "uri": "amqp://guest:guest@127.0.0.1/nimrod",
     "routing_key": "iamthemaster",
-    "direct_exchange": "amqp.direct"
+    "direct_exchange": "amq.direct"
   },
   "no_verify_peer": true,
   "no_verify_host": true,
@@ -13,7 +13,7 @@
     "encoding": "plain",
     "no_delete": false
   },
-  "batch": true,
+  "batch": false,
   "output": "console",
   "nohup": true,
   "environment": {

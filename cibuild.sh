@@ -1,9 +1,8 @@
 #!/bin/sh
 set -e
 
-PLATFORMS="x86_64-pc-linux-musl i686-pc-linux-musl armv6-rpi-linux-gnueabi armv8-rpi3-linux-gnueabihf"
-#PLATFORMS=x86_64-pc-linux-musl
-#PLATFORMS=armv6-rpi-linux-gnueabi
+#PLATFORMS="x86_64-pc-linux-musl i686-pc-linux-musl armv6-rpi-linux-gnueabi armv8-rpi3-linux-gnueabihf"
+PLATFORMS="x86_64-pc-linux-musl i686-pc-linux-musl"
 
 STARTCWD=$PWD
 
