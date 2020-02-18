@@ -40,8 +40,6 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 	m_transfer_info(txman::default_future_pair())
 {
 	m_paths.path_job_root = work_root / j.get_uuid().str();
-	m_paths.path_stdout = m_paths.path_job_root / "stdout.txt";
-	m_paths.path_stderr = m_paths.path_job_root / "stderr.txt";
 	m_paths.path_working = m_paths.path_job_root / "working";
 	m_paths.path_tmp = m_paths.path_job_root / "tmp";
 	m_paths.path_default_intepreter = process::get_system_interpreter();

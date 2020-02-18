@@ -34,8 +34,6 @@ public:
 	struct path_info
 	{
 		filesystem::path path_job_root;
-		filesystem::path path_stdout;
-		filesystem::path path_stderr;
 		filesystem::path path_working;
 		filesystem::path path_tmp;
 		filesystem::path path_default_intepreter;
