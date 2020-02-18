@@ -399,6 +399,8 @@ command_result procman::run_command(const exec_command& cmd)
 
 		if(ret.second)
 			return command_result::make_system_error(m_command_index, timeDiff.count(), ret.second);
+		else if(ret.first != 0)
+			return command_result::make_failed(m_command_index, timeDiff.count(), ret.first);
 		else
 			return command_result::make_success(m_command_index, timeDiff.count(), ret.first);
 	}

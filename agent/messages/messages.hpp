@@ -352,6 +352,7 @@ constexpr std::string_view to_string(command_result::result_status s)
 		case command_result::result_status::system_error:			return "system_error";
 		case command_result::result_status::exception:				return "exception";
 		case command_result::result_status::aborted:				return "aborted";
+		case command_result::result_status::failed:					return "failed";
 		default: throw std::domain_error("command_result::result_status");
 	}
 }
@@ -364,6 +365,7 @@ constexpr std::optional<command_result::result_status> from_string<command_resul
 	if(s == "system_error")			return command_result::result_status::system_error;
 	if(s == "exception")			return command_result::result_status::exception;
 	if(s == "aborted")				return command_result::result_status::aborted;
+	if(s == "failed")				return command_result::result_status::failed;
 									return std::optional<command_result::result_status>();
 }
 

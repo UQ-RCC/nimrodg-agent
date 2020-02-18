@@ -105,6 +105,11 @@ command_result command_result::make_abort(size_t index, float time)
 	return command_result(result_status::aborted, index, 0.0f, -1, "Abortion requested", 0);
 }
 
+command_result command_result::make_failed(size_t index, float time, int retval)
+{
+	return command_result(result_status::failed, index, time, retval, "Command returned nonzero", 0);
+}
+
 #include <ostream>
 
 std::ostream& nimrod::operator<<(std::ostream& os, command_result::result_status s)
@@ -116,6 +121,7 @@ std::ostream& nimrod::operator<<(std::ostream& os, command_result::result_status
 		case command_result::result_status::exception: return os << "EXCEPTION";
 		case command_result::result_status::success: return os << "SUCCESS";
 		case command_result::result_status::aborted: return os << "ABORTED";
+		case command_result::result_status::failed: return os << "FAILED";
 	}
 
 	throw std::domain_error("Oops, you forgot a switch condition");

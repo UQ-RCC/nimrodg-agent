@@ -35,6 +35,7 @@ public:
 		system_error,
 		exception,
 		aborted,
+		failed,
 		success,
 	};
 
@@ -55,6 +56,7 @@ public:
 	static command_result make_exception(size_t index, float time, std::string_view msg, int retval);
 	static command_result make_success(size_t index, float time, int retval);
 	static command_result make_abort(size_t index, float time);
+	static command_result make_failed(size_t index, float time, int retval);
 
 	command_result(result_status status, size_t index, float time, int retval, std::string_view message, int error_code);
 private:
