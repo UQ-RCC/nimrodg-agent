@@ -29,6 +29,8 @@
 #include <curl/curl.h>
 #include <config.h>
 
+#include <nim1/time.hpp>
+
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
 #include "agent.hpp"
@@ -235,8 +237,8 @@ int main(int argc, char **argv)
 		});
 
 		/* Send the broker "hello" */
-		log::trace("AGENT", "Sending broker hello. Temporary UUID is %s", ag.get_uuid());
-		auto f = amqp.send_message(net::hello_message(ag.get_uuid(), amqp.queue_name()), true);
+		log::trace("AGENT", "Sending broker hello. UUID is %s", ag.get_uuid());
+		auto f = amqp.send_message(net::hello_message(ag.get_uuid(), nim1::current_time(), amqp.queue_name()), true);
 		f.wait();
 
 		auto res = f.get();

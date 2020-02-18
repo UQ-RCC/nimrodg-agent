@@ -26,7 +26,7 @@
  * with its corresponding version of Nimrod/G, include a
  * CLI change.
  */
-#define NIMRODG_VERSION_MAJOR  3
+#define NIMRODG_VERSION_MAJOR  4
 #define NIMRODG_VERSION_MINOR  0
 #define NIMRODG_VERSION_PATCH  0
 

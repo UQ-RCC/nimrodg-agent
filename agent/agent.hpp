@@ -24,6 +24,7 @@
 #include <variant>
 #include <fmt/printf.h>
 #include <unordered_map>
+#include <nim1/time.hpp>
 #include "uuid.hpp"
 #include "event.hpp"
 #include "blockingconcurrentqueue.h"
@@ -104,6 +105,7 @@ private:
 	amqp_consumer *m_amqp;
 	txman *m_tx;
 	queue m_queue;
+	nim1::nanotime_t m_current_time;
 	const filesystem::path m_work_root;
 
 	uuid m_uuid;

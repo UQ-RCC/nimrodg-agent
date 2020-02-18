@@ -23,6 +23,7 @@
 
 #include <string_view>
 #include <variant>
+#include <nim1/time.hpp>
 #include <job_definition.hpp>
 #include <process/command_result.hpp>
 #include "agent_common.hpp"
@@ -58,16 +59,19 @@ public:
 	nimrod::uuid				uuid() const noexcept { return m_uuid; }
 	constexpr uint32_t         	version() const noexcept { return PROTOCOL_VERSION; }
 	constexpr message_type_t	type() const noexcept { return T::type_value; }
+	nim1::nanotime_t			time() const noexcept { return m_time; }
 
 protected:
-	explicit base_message(nimrod::uuid uuid) noexcept :
-		m_uuid(uuid)
+	base_message(nimrod::uuid uuid, nim1::nanotime_t time) noexcept :
+		m_uuid(uuid),
+		m_time(time)
 	{}
 
 	friend class message_container;
 
 private:
 	nimrod::uuid m_uuid;
+	nim1::nanotime_t m_time;
 };
 
 
@@ -77,7 +81,7 @@ class hello_message : public base_message<hello_message>
 public:
 	constexpr static message_type_t type_value = message_type_t::agent_hello;
 
-	hello_message(nimrod::uuid uuid, std::string_view queue);
+	hello_message(nimrod::uuid uuid, nim1::nanotime_t time, std::string_view queue);
 
 	std::string_view queue() const noexcept;
 
@@ -91,7 +95,7 @@ public:
 	constexpr static message_type_t type_value = message_type_t::agent_init;
 
 	init_message() noexcept;
-	explicit init_message(nimrod::uuid uuid) noexcept;
+	explicit init_message(nimrod::uuid uuid, nim1::nanotime_t time) noexcept;
 };
 
 class lifecontrol_message : public base_message<lifecontrol_message>
@@ -100,7 +104,7 @@ public:
 	constexpr static message_type_t type_value = message_type_t::agent_lifecontrol;
 
 	enum class operation_t { terminate, cancel };
-	lifecontrol_message(nimrod::uuid uuid, operation_t op);
+	lifecontrol_message(nimrod::uuid uuid, nim1::nanotime_t time, operation_t op);
 
 	operation_t operation() const noexcept;
 private:
@@ -114,7 +118,7 @@ public:
 	constexpr static message_type_t type_value = message_type_t::agent_shutdown;
 
 	enum class reason_t { host_signal, requested };
-	shutdown_message(nimrod::uuid agent_uuid, reason_t reason, int signal) noexcept;
+	shutdown_message(nimrod::uuid uuid, nim1::nanotime_t time, reason_t reason, int signal) noexcept;
 
 	reason_t reason() const noexcept;
 	int signal() const noexcept;
@@ -130,8 +134,8 @@ class submit_message : public base_message<submit_message>
 public:
 	constexpr static message_type_t type_value = message_type_t::agent_submit;
 
-	submit_message(nimrod::uuid uuid, const job_definition& job);
-	submit_message(nimrod::uuid uuid, job_definition&& job);
+	submit_message(nimrod::uuid uuid, nim1::nanotime_t time, const job_definition& job);
+	submit_message(nimrod::uuid uuid, nim1::nanotime_t time, job_definition&& job);
 
 	const job_definition& job() const noexcept;
 
@@ -146,7 +150,7 @@ public:
 
 	enum class action_t { continue_, stop };
 
-	update_message(nimrod::uuid uuid, nimrod::uuid job_uuid, const command_result& result, action_t action);
+	update_message(nimrod::uuid uuid, nim1::nanotime_t time, nimrod::uuid job_uuid, const command_result& result, action_t action);
 
 	nimrod::uuid job_uuid() const noexcept;
 	const command_result& result() const noexcept;
@@ -163,7 +167,7 @@ class ping_message : public base_message<ping_message>
 public:
 	constexpr static message_type_t type_value = message_type_t::agent_ping;
 
-	explicit ping_message(nimrod::uuid uuid) noexcept;
+	explicit ping_message(nimrod::uuid uuid, nim1::nanotime_t time) noexcept;
 };
 
 class pong_message : public base_message<pong_message>
@@ -171,7 +175,11 @@ class pong_message : public base_message<pong_message>
 public:
 	constexpr static message_type_t type_value = message_type_t::agent_pong;
 
-	explicit pong_message(nimrod::uuid uuid, agent_state_t	state) noexcept;
+	explicit pong_message(
+		nimrod::uuid	uuid,
+		nim1::nanotime_t		time,
+		agent_state_t	state
+	) noexcept;
 
 	agent_state_t state() const noexcept;
 private:

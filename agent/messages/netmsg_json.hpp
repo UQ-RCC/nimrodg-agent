@@ -96,6 +96,13 @@ struct adl_serializer<nimrod::uuid>
 };
 
 template<>
+struct adl_serializer<nimrod::nim1::nanotime_t>
+{
+	static nimrod::nim1::nanotime_t from_json(const json& j);
+	static void to_json(json& j, const nimrod::nim1::nanotime_t& nt);
+};
+
+template<>
 struct adl_serializer<nimrod::onerror_command>
 {
 	static nimrod::onerror_command from_json(const json& j);

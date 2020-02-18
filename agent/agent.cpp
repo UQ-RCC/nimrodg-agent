@@ -34,6 +34,7 @@ agent::agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env)
 	m_nohup(false),
 	m_amqp(nullptr),
 	m_tx(nullptr),
+	m_current_time{0},
 	m_work_root(workRoot),
 	m_uuid(uu),
 	m_environment(env),
@@ -66,6 +67,7 @@ void agent::run()
 		size_t num = m_queue.wait_dequeue_bulk(events, event_cache_size);
 		for(size_t i = 0; i < num; ++i)
 		{
+			m_current_time = nim1::current_time();
 			bool exit = std::visit([this](auto&& evt) { return (*this)(evt); }, events[i]);
 			if(exit)
 				return;
@@ -469,22 +471,22 @@ agent::send_future agent::send_message(net::message_container&& msg, bool ack)
 
 agent::send_future agent::send_shutdown_requested(bool ack)
 {
-	return send_message(net::shutdown_message(this->m_uuid, net::shutdown_message::reason_t::requested, -1), ack);
+	return send_message(net::shutdown_message(this->m_uuid, this->m_current_time, net::shutdown_message::reason_t::requested, -1), ack);
 }
 
 agent::send_future agent::send_shutdown_signal(int signal, bool ack)
 {
-	return send_message(net::shutdown_message(this->m_uuid, net::shutdown_message::reason_t::host_signal, signal), ack);
+	return send_message(net::shutdown_message(this->m_uuid, this->m_current_time, net::shutdown_message::reason_t::host_signal, signal), ack);
 }
 
 agent::send_future agent::send_update(const uuid& job_uuid, const command_result& res, net::update_message::action_t action, bool ack)
 {
-	return send_message(net::update_message(this->m_uuid, job_uuid, res, action), ack);
+	return send_message(net::update_message(this->m_uuid, this->m_current_time, job_uuid, res, action), ack);
 }
 
 agent::send_future agent::send_pong()
 {
-	return send_message(net::pong_message(this->m_uuid, this->m_state));
+	return send_message(net::pong_message(this->m_uuid, this->m_current_time, this->m_state));
 }
 
 void agent::defer_event(const event_union& evt)

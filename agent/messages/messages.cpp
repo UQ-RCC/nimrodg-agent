@@ -23,8 +23,8 @@
 using namespace nimrod;
 using namespace nimrod::net;
 
-hello_message::hello_message(nimrod::uuid uuid, std::string_view queue) :
-	message_base_type(uuid),
+hello_message::hello_message(nimrod::uuid uuid, nim1::nanotime_t time, std::string_view queue) :
+	message_base_type(uuid, time),
 	m_queue(queue)
 {}
 
@@ -35,16 +35,16 @@ std::string_view hello_message::queue() const noexcept
 
 
 init_message::init_message() noexcept :
-	init_message(nimrod::uuid())
+	init_message(nimrod::uuid(), nim1::nanotime_t{0})
 {}
 
-init_message::init_message(nimrod::uuid uuid) noexcept :
-	message_base_type(uuid)
+init_message::init_message(nimrod::uuid uuid, nim1::nanotime_t time) noexcept :
+	message_base_type(uuid, time)
 {}
 
 
-lifecontrol_message::lifecontrol_message(nimrod::uuid uuid, operation_t op) :
-	message_base_type(uuid),
+lifecontrol_message::lifecontrol_message(nimrod::uuid uuid, nim1::nanotime_t time, operation_t op) :
+	message_base_type(uuid, time),
 	m_operation(op)
 {}
 
@@ -53,8 +53,8 @@ lifecontrol_message::operation_t lifecontrol_message::operation() const noexcept
 	return m_operation;
 }
 
-shutdown_message::shutdown_message(nimrod::uuid agent_uuid, reason_t reason, int signal) noexcept :
-	message_base_type(agent_uuid),
+shutdown_message::shutdown_message(nimrod::uuid uuid, nim1::nanotime_t time, reason_t reason, int signal) noexcept :
+	message_base_type(uuid, time),
 	m_reason(reason),
 	m_signal(signal)
 {}
@@ -70,13 +70,13 @@ int shutdown_message::signal() const noexcept
 }
 
 
-submit_message::submit_message(nimrod::uuid uuid, const job_definition& job) :
-	message_base_type(uuid),
+submit_message::submit_message(nimrod::uuid uuid, nim1::nanotime_t time, const job_definition& job) :
+	message_base_type(uuid, time),
 	m_job(job)
 {}
 
-submit_message::submit_message(nimrod::uuid uuid, job_definition&& job) :
-	message_base_type(uuid),
+submit_message::submit_message(nimrod::uuid uuid, nim1::nanotime_t time, job_definition&& job) :
+	message_base_type(uuid, time),
 	m_job(std::move(job))
 {}
 
@@ -88,8 +88,8 @@ const job_definition& submit_message::job() const noexcept
 
 
 
-update_message::update_message(nimrod::uuid uuid, nimrod::uuid job_uuid, const command_result& result, action_t action) :
-	message_base_type(uuid),
+update_message::update_message(nimrod::uuid uuid, nim1::nanotime_t time, nimrod::uuid job_uuid, const command_result& result, action_t action) :
+	message_base_type(uuid, time),
 	m_job_uuid(job_uuid),
 	m_result(result),
 	m_action(action)
@@ -110,12 +110,16 @@ update_message::action_t update_message::action() const noexcept
 	return m_action;
 }
 
-ping_message::ping_message(nimrod::uuid uuid) noexcept :
-	message_base_type(uuid)
+ping_message::ping_message(nimrod::uuid uuid, nim1::nanotime_t time) noexcept :
+	message_base_type(uuid, time)
 {}
 
-pong_message::pong_message(nimrod::uuid uuid, agent_state_t state) noexcept :
-	message_base_type(uuid),
+pong_message::pong_message(
+	nimrod::uuid uuid,
+	nim1::nanotime_t time,
+	agent_state_t state
+) noexcept :
+	message_base_type(uuid, time),
 	m_state(state)
 {}
 

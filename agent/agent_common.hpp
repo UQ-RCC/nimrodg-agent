@@ -83,7 +83,6 @@ struct settings
 	string_map_t		environment;
 };
 
-
 /* utils.cpp */
 
 /*
