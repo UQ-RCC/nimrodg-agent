@@ -26,7 +26,6 @@
 #include <unordered_map>
 #include "uuid.hpp"
 #include "event.hpp"
-#include "messages/netmsg.hpp"
 #include "blockingconcurrentqueue.h"
 #include "amqp_consumer.hpp"
 #include "process/procman.hpp"

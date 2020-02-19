@@ -34,34 +34,6 @@ void nlohmann::adl_serializer<uuid>::to_json(json& j, const uuid& u)
 	j = out;
 }
 
-command_type nlohmann::adl_serializer<command_type>::from_json(const json& j)
-{
-	std::string t = j.get<std::string>();
-
-	if(t == "onerror")
-		return command_type::onerror;
-	else if(t == "redirect")
-		return command_type::redirect;
-	else if(t == "copy")
-		return command_type::copy;
-	else if(t == "exec")
-		return command_type::exec;
-
-	throw std::domain_error("Invalid value for command_type");
-}
-
-void nlohmann::adl_serializer<command_type>::to_json(json& j, const command_type& t)
-{
-	switch(t)
-	{
-		case command_type::onerror: j = "onerror"; break;
-		case command_type::redirect: j = "redirect"; break;
-		case command_type::copy: j = "copy"; break;
-		case command_type::exec: j = "exec"; break;
-		default: throw std::domain_error("Invalid value for command_type");
-	}
-}
-
 command_union nlohmann::adl_serializer<command_union>::from_json(const json& j)
 {
 	command_type type = j.at("type").get<command_type>();
@@ -87,28 +59,6 @@ void nlohmann::adl_serializer<command_union>::to_json(json& j, const command_uni
 	}, static_cast<const _command_union&>(u));
 }
 
-onerror_command::action_t nlohmann::adl_serializer<onerror_command::action_t>::from_json(const json& j)
-{
-	std::string a = j.get<std::string>();
-
-	if(a == "fail")
-		return onerror_command::action_t::fail;
-	else if(a == "ignore")
-		return onerror_command::action_t::ignore;
-
-	throw std::domain_error("Invalid value for onerror_command::action_t");
-}
-
-void nlohmann::adl_serializer<onerror_command::action_t>::to_json(json& j, const onerror_command::action_t& a)
-{
-	switch(a)
-	{
-		case onerror_command::action_t::fail: j = "fail"; break;
-		case onerror_command::action_t::ignore: j = "ignore"; break;
-		default: throw std::domain_error("Invalid value for onerror_command::action_t");
-	}
-}
-
 onerror_command nlohmann::adl_serializer<onerror_command>::from_json(const json& j)
 {
 	return onerror_command(j.at("action").get<onerror_command::action_t>());
@@ -116,28 +66,10 @@ onerror_command nlohmann::adl_serializer<onerror_command>::from_json(const json&
 
 void nlohmann::adl_serializer<onerror_command>::to_json(json& j, const onerror_command& cmd)
 {
-	j = { {"type", cmd.type() },  { "action", cmd.action() } };
-}
-
-redirect_command::stream_t nlohmann::adl_serializer<redirect_command::stream_t>::from_json(const json& j)
-{
-	std::string s = j.get<std::string>();
-
-	if(s == "stdout")
-		return redirect_command::stream_t::stdout_;
-	else if(s == "stderr")
-		return redirect_command::stream_t::stderr_;
-
-	throw std::domain_error("Invalid value for redirect_command::stream_t");
-}
-
-void nlohmann::adl_serializer<redirect_command::stream_t>::to_json(json& j, const nimrod::redirect_command::stream_t& stream)
-{
-	switch(stream) {
-		case redirect_command::stream_t::stderr_: j = "stderr"; break;
-		case redirect_command::stream_t::stdout_: j = "stdout"; break;
-		default: throw std::domain_error("Invalid value for redirect_command::stream_t");
-	}
+	j = {
+		{"type", cmd.type()},
+		{"action", cmd.action()}
+	};
 }
 
 redirect_command nlohmann::adl_serializer<redirect_command>::from_json(const json& j)
@@ -151,31 +83,11 @@ redirect_command nlohmann::adl_serializer<redirect_command>::from_json(const jso
 
 void nlohmann::adl_serializer<redirect_command>::to_json(json& j, const redirect_command& cmd)
 {
-	j = { { "stream", cmd.stream() },{ "append", cmd.append() }, { "file", cmd.file() } };
-}
-
-
-
-copy_command::context_t nlohmann::adl_serializer<copy_command::context_t>::from_json(const json& j)
-{
-	std::string t = j.get<std::string>();
-
-	if(t == "node")
-		return copy_command::context_t::node;
-	else if(t == "root")
-		return copy_command::context_t::root;
-
-	throw std::domain_error("Invalid value for copy_command::context_t");
-}
-
-void nlohmann::adl_serializer<copy_command::context_t>::to_json(json& j, const copy_command::context_t& t)
-{
-	switch(t)
-	{
-		case copy_command::context_t::node: j = "node"; break;
-		case copy_command::context_t::root: j = "root"; break;
-		default: throw std::domain_error("Invalid value for copy_command::context_t");
-	}
+	j = {
+		{"stream", cmd.stream()},
+		{"append", cmd.append()},
+		{"file", cmd.file()}
+	};
 }
 
 copy_command nlohmann::adl_serializer<copy_command>::from_json(const json& j)
@@ -213,7 +125,12 @@ exec_command nlohmann::adl_serializer<exec_command>::from_json(const json& j)
 
 void nlohmann::adl_serializer<exec_command>::to_json(json& j, const exec_command& cmd)
 {
-	j = { { "type", cmd.type() }, {"search_path", cmd.search_path()}, { "program", cmd.program() },  { "arguments", cmd.arguments() } };
+	j = {
+		{"type", cmd.type()},
+		{"search_path", cmd.search_path()},
+		{"program", cmd.program()},
+		{"arguments", cmd.arguments()}
+	};
 }
 
 
@@ -231,41 +148,16 @@ job_definition nlohmann::adl_serializer<job_definition>::from_json(const json& j
 
 void nlohmann::adl_serializer<job_definition>::to_json(json& j, const job_definition& job)
 {
-	j = { { "uuid", job.get_uuid() }, { "index", job.index() }, { "txuri", job.txuri() }, { "token", job.token() }, { "environment", job.environment() }, {"commands", job.commands()} };
+	j = {
+		{"uuid", job.get_uuid()},
+		{"index", job.index()},
+		{"txuri", job.txuri()},
+		{"token", job.token()},
+		{"environment", job.environment()},
+		{"commands", job.commands()}
+	};
 }
 
-message_type nlohmann::adl_serializer<message_type>::from_json(const json& j)
-{
-	std::string t = j.get<std::string>();
-
-	if(t == "agent.init") return message_type::agent_init;
-	else if(t == "agent.lifecontrol") return message_type::agent_lifecontrol;
-	else if(t == "agent.submit") return message_type::agent_submit;
-	else if(t == "agent.hello") return message_type::agent_hello;
-	else if(t == "agent.shutdown") return message_type::agent_shutdown;
-	else if(t == "agent.update") return message_type::agent_update;
-	else if(t == "agent.ping") return message_type::agent_ping;
-	else if(t == "agent.pong") return message_type::agent_pong;
-
-	throw std::domain_error("Invalid value for message_type");
-}
-
-void nlohmann::adl_serializer<message_type>::to_json(json& j, const message_type& type)
-{
-	/* I'm deliberately not using net::get_message_type_string() here. */
-	switch(type)
-	{
-		case message_type::agent_init: j = "agent.init"; break;
-		case message_type::agent_lifecontrol: j = "agent.lifecontrol"; break;
-		case message_type::agent_submit: j = "agent.submit"; break;
-		case message_type::agent_hello: j = "agent.hello"; break;
-		case message_type::agent_shutdown: j = "agent.shutdown"; break;
-		case message_type::agent_update: j = "agent.update"; break;
-		case message_type::agent_ping: j = "agent.ping"; break;
-		case message_type::agent_pong: j = "agent.pong"; break;
-		default: throw std::domain_error("Invalid value for message_type");
-	}
-}
 
 hello_message nlohmann::adl_serializer<hello_message>::from_json(const json& j)
 {
@@ -291,36 +183,6 @@ void nlohmann::adl_serializer<init_message>::to_json(json& j, const init_message
 }
 
 
-
-
-
-shutdown_message::reason_t nlohmann::adl_serializer<shutdown_message::reason_t>::from_json(const json& j)
-{
-	std::string v = j.get<std::string>();
-
-	if(v == "hostsignal")
-		return shutdown_message::reason_t::host_signal;
-	else if(v == "requested")
-		return shutdown_message::reason_t::requested;
-
-	throw std::domain_error("Invalid value for shutdown_message::reason_t");
-}
-
-void nlohmann::adl_serializer<shutdown_message::reason_t>::to_json(json& j, const shutdown_message::reason_t& r)
-{
-	switch(r)
-	{
-		case shutdown_message::reason_t::host_signal:
-			j = "hostsignal";
-			break;
-		case shutdown_message::reason_t::requested:
-			j = "requested";
-			break;
-		default:
-			throw std::domain_error("Invalid value for shutdown_message::reason_t");
-	}
-}
-
 shutdown_message nlohmann::adl_serializer<shutdown_message>::from_json(const json& j)
 {
 	return nimrod::net::shutdown_message(
@@ -345,33 +207,6 @@ void nlohmann::adl_serializer<submit_message>::to_json(json& j, const submit_mes
 	j = json{ {"uuid", msg.uuid()}, { "type", msg.type() }, {"job", msg.job()} };
 }
 
-
-command_result::result_status nlohmann::adl_serializer<command_result::result_status>::from_json(const json& j)
-{
-	std::string s = j.get<std::string>();
-
-	if(s == "success") return command_result::result_status::success;
-	if(s == "precondition_failure") return command_result::result_status::precondition_failure;
-	if(s == "system_error") return command_result::result_status::system_error;
-	if(s == "exception") return command_result::result_status::exception;
-	if(s == "aborted") return command_result::result_status::aborted;
-
-	throw std::domain_error("Invalid value for command_result::result_status");
-}
-
-void nlohmann::adl_serializer<command_result::result_status>::to_json(json& j, command_result::result_status s)
-{
-	switch(s)
-	{
-		case command_result::result_status::success: j = "success"; break;
-		case command_result::result_status::precondition_failure: j = "precondition_failure"; break;
-		case command_result::result_status::system_error: j = "system_error"; break;
-		case command_result::result_status::exception: j = "exception"; break;
-		case command_result::result_status::aborted: j = "aborted"; break;
-		default: throw std::domain_error("Invalid value for command_result::result_status");
-	}
-}
-
 command_result nlohmann::adl_serializer<command_result>::from_json(const json& j)
 {
 	return command_result(
@@ -382,28 +217,6 @@ command_result nlohmann::adl_serializer<command_result>::from_json(const json& j
 		j.at("message").get<std::string_view>(),
 		j.at("error_code").get<int>()
 	);
-}
-
-
-
-update_message::action_t nlohmann::adl_serializer<update_message::action_t>::from_json(const json& j)
-{
-	std::string s = j.get<std::string>();
-
-	if(s == "continue") return update_message::action_t::continue_;
-	if(s == "stop") return update_message::action_t::stop;
-
-	throw std::domain_error("Invalid value for update_message::action_t");
-}
-
-void nlohmann::adl_serializer<update_message::action_t>::to_json(json& j, update_message::action_t s)
-{
-	switch(s)
-	{
-		case update_message::action_t::continue_: j = "continue"; break;
-		case update_message::action_t::stop: j = "stop"; break;
-		default: throw std::domain_error("Invalid value for update_message::action_t");
-	}
 }
 
 void nlohmann::adl_serializer<command_result>::to_json(json& j, const command_result& res)
@@ -438,27 +251,6 @@ void nlohmann::adl_serializer<update_message>::to_json(json& j, const update_mes
 		{ "action", msg.action() }
 	};
 }
-
-
-lifecontrol_message::operation_t nlohmann::adl_serializer<lifecontrol_message::operation_t>::from_json(const json& j)
-{
-	std::string v = j.get<std::string>();
-
-	if(v == "terminate") return lifecontrol_message::operation_t::terminate;
-	else if(v == "cancel") return lifecontrol_message::operation_t::cancel;
-	else throw std::domain_error("Invalid value for lifecontrol_message::operation_t");
-}
-
-void nlohmann::adl_serializer<lifecontrol_message::operation_t>::to_json(json& j, const lifecontrol_message::operation_t& op)
-{
-	switch(op)
-	{
-		case lifecontrol_message::operation_t::terminate: j = "terminate"; break;
-		case lifecontrol_message::operation_t::cancel: j = "cancel"; break;
-		default: throw std::domain_error("Invalid value for lifecontrol_message::operation_t");
-	}
-}
-
 
 lifecontrol_message nlohmann::adl_serializer<lifecontrol_message>::from_json(const json& j)
 {
@@ -495,18 +287,18 @@ void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message
 
 message_container nlohmann::adl_serializer<message_container>::from_json(const json& j)
 {
-	message_type t = j.at("type").get<message_type>();
+	message_type_t t = j.at("type").get<message_type_t>();
 
 	switch(t)
 	{
-		case message_type::agent_hello: return adl_serializer<hello_message>::from_json(j);
-		case message_type::agent_init: return adl_serializer<init_message>::from_json(j);
-		case message_type::agent_lifecontrol: return adl_serializer<lifecontrol_message>::from_json(j);
-		case message_type::agent_submit: return adl_serializer<submit_message>::from_json(j);
-		case message_type::agent_shutdown: return adl_serializer<shutdown_message>::from_json(j);
-		case message_type::agent_update: return adl_serializer<update_message>::from_json(j);
-		case message_type::agent_ping: return adl_serializer<ping_message>::from_json(j);
-		case message_type::agent_pong: return adl_serializer<pong_message>::from_json(j);
+		case message_type_t::agent_hello: return adl_serializer<hello_message>::from_json(j);
+		case message_type_t::agent_init: return adl_serializer<init_message>::from_json(j);
+		case message_type_t::agent_lifecontrol: return adl_serializer<lifecontrol_message>::from_json(j);
+		case message_type_t::agent_submit: return adl_serializer<submit_message>::from_json(j);
+		case message_type_t::agent_shutdown: return adl_serializer<shutdown_message>::from_json(j);
+		case message_type_t::agent_update: return adl_serializer<update_message>::from_json(j);
+		case message_type_t::agent_ping: return adl_serializer<ping_message>::from_json(j);
+		case message_type_t::agent_pong: return adl_serializer<pong_message>::from_json(j);
 	}
 
 	throw std::domain_error("Invalid value for message_type");

@@ -168,7 +168,7 @@ bool agent::operator()(const amqp_error_event& evt)
 	return true;
 }
 
-static bool is_valid_for_state(agent_state_t state, const net::message_type type)
+static bool is_valid_for_state(agent_state_t state, const net::message_type_t type)
 {
 	if(state == agent_state_t::stopped)
 		return false;
@@ -176,16 +176,16 @@ static bool is_valid_for_state(agent_state_t state, const net::message_type type
 	switch(type)
 	{
 		/* agent.hello, agent.shutdown, and agent.pong are outgoing messages */
-		case net::message_type::agent_hello:
-		case net::message_type::agent_shutdown:
-		case net::message_type::agent_pong:
+		case net::message_type_t::agent_hello:
+		case net::message_type_t::agent_shutdown:
+		case net::message_type_t::agent_pong:
 			return false;
 
 		/* agent.lifecontrol is always valid. */
-		case net::message_type::agent_lifecontrol:
+		case net::message_type_t::agent_lifecontrol:
 			return true;
 
-		case net::message_type::agent_ping:
+		case net::message_type_t::agent_ping:
 			return true;
 
 		default:
@@ -196,10 +196,10 @@ static bool is_valid_for_state(agent_state_t state, const net::message_type type
 	switch(state)
 	{
 		case agent_state_t::waiting_for_init:
-			return type == net::message_type::agent_init;
+			return type == net::message_type_t::agent_init;
 
 		case agent_state_t::idle:
-			return type == net::message_type::agent_submit;
+			return type == net::message_type_t::agent_submit;
 
 		case agent_state_t::in_job:
 			return false;
@@ -256,7 +256,7 @@ bool agent::operator()(const network_message& _msg)
 		return false;
 	}
 
-	if(msg.type() == message_type::agent_ping)
+	if(msg.type() == message_type_t::agent_ping)
 	{
 		this->send_pong();
 		return false;
@@ -264,14 +264,14 @@ bool agent::operator()(const network_message& _msg)
 
 	if(m_state == agent_state_t::waiting_for_init)
 	{
-		if(msg.type() == message_type::agent_init)
+		if(msg.type() == message_type_t::agent_init)
 		{
 			//auto& init = msg.get<init_message>();
 			/* For future reference, any initialisation should go here. */
 			this->state(agent_state_t::idle);
 			return false;
 		}
-		else if(msg.type() == message_type::agent_lifecontrol)
+		else if(msg.type() == message_type_t::agent_lifecontrol)
 		{
 			/* This MUST be a termination, so just die. */
 			return true;
@@ -283,7 +283,7 @@ bool agent::operator()(const network_message& _msg)
 	}
 	else if(m_state == agent_state_t::idle)
 	{
-		if(msg.type() == message_type::agent_lifecontrol)
+		if(msg.type() == message_type_t::agent_lifecontrol)
 		{
 			if(const lifecontrol_message& lf = msg.get<lifecontrol_message>(); lf.operation() == lifecontrol_message::operation_t::terminate)
 			{
@@ -292,7 +292,7 @@ bool agent::operator()(const network_message& _msg)
 				return true;
 			}
 		}
-		else if(msg.type() == message_type::agent_submit)
+		else if(msg.type() == message_type_t::agent_submit)
 		{
 			assert(m_state == agent_state_t::idle);
 
@@ -314,7 +314,7 @@ bool agent::operator()(const network_message& _msg)
 	}
 	else if(m_state == agent_state_t::in_job)
 	{
-		if(msg.type() == message_type::agent_lifecontrol)
+		if(msg.type() == message_type_t::agent_lifecontrol)
 		{
 			/*
 			** If we've received a lifecontrol when we're in a job, defer the event

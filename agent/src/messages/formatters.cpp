@@ -30,9 +30,8 @@ using namespace nimrod::net;
 
 std::ostream& nimrod::net::operator<<(std::ostream& os, const message_container& msg)
 {
-
 	return std::visit([&os](auto&& m) -> std::ostream& {
-		return os << fmt::format("{}({})", m.type_string(), nlohmann::json(m).dump());
+		return os << fmt::format("{}({})", net::to_string(m.type()), nlohmann::json(m).dump());
 	}, static_cast<const msg_union&>(msg));
 }
 

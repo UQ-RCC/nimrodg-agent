@@ -23,27 +23,72 @@
 #include "../json.hpp"
 #include "netmsg.hpp"
 
+namespace nimrod::net {
+
+template<typename T>
+struct enum_serialiser
+{
+	static T from_json(const nlohmann::json& j)
+	{
+		std::optional<T> t = nimrod::net::from_string<T>(j.get<std::string_view>());
+		if(!t.has_value())
+			throw std::domain_error("");
+
+		return t.value();
+	}
+
+	static void to_json(nlohmann::json& j, const T& t)
+	{
+		j = nimrod::net::to_string(t);
+	}
+};
+
+}
+
 namespace nlohmann {
+
+template<>
+struct adl_serializer<nimrod::command_type> :
+	nimrod::net::enum_serialiser<nimrod::command_type>{};
+
+template<>
+struct adl_serializer<nimrod::onerror_command::action_t> :
+	nimrod::net::enum_serialiser<nimrod::onerror_command::action_t>{};
+
+template<>
+struct adl_serializer<nimrod::copy_command::context_t> :
+	nimrod::net::enum_serialiser<nimrod::copy_command::context_t>{};
+
+template<>
+struct adl_serializer<nimrod::redirect_command::stream_t> :
+	nimrod::net::enum_serialiser<nimrod::redirect_command::stream_t>{};
+
+template<>
+struct adl_serializer<nimrod::net::message_type_t> :
+	nimrod::net::enum_serialiser<nimrod::net::message_type_t>{};
+
+template<>
+struct adl_serializer<nimrod::net::lifecontrol_message::operation_t> :
+	nimrod::net::enum_serialiser<nimrod::net::lifecontrol_message::operation_t>{};
+
+template<>
+struct adl_serializer<nimrod::net::shutdown_message::reason_t> :
+	nimrod::net::enum_serialiser<nimrod::net::shutdown_message::reason_t>{};
+
+template<>
+struct adl_serializer<nimrod::command_result::result_status> :
+	nimrod::net::enum_serialiser<nimrod::command_result::result_status>{};
+
+template<>
+struct adl_serializer<nimrod::net::update_message::action_t> :
+	nimrod::net::enum_serialiser<nimrod::net::update_message::action_t>{};
+
 
 template<>
 struct adl_serializer<nimrod::uuid>
 {
 	static nimrod::uuid from_json(const json& j);
 	static void to_json(json& j, const nimrod::uuid& msg);
-};
-
-template<>
-struct adl_serializer<nimrod::command_type>
-{
-	static nimrod::command_type from_json(const json& j);
-	static void to_json(json& j, const nimrod::command_type& t);
-};
-
-template<>
-struct adl_serializer<nimrod::onerror_command::action_t>
-{
-	static nimrod::onerror_command::action_t from_json(const json& j);
-	static void to_json(json& j, const nimrod::onerror_command::action_t& cmd);
 };
 
 template<>
@@ -54,24 +99,10 @@ struct adl_serializer<nimrod::onerror_command>
 };
 
 template<>
-struct adl_serializer<nimrod::redirect_command::stream_t>
-{
-	static nimrod::redirect_command::stream_t from_json(const json& j);
-	static void to_json(json& j, const nimrod::redirect_command::stream_t& msg);
-};
-
-template<>
 struct adl_serializer<nimrod::redirect_command>
 {
 	static nimrod::redirect_command from_json(const json& j);
 	static void to_json(json& j, const nimrod::redirect_command& msg);
-};
-
-template<>
-struct adl_serializer<nimrod::copy_command::context_t>
-{
-	static nimrod::copy_command::context_t from_json(const json& j);
-	static void to_json(json& j, const nimrod::copy_command::context_t& msg);
 };
 
 template<>
@@ -95,19 +126,11 @@ struct adl_serializer<nimrod::command_union>
 	static void to_json(json& j, const nimrod::command_union& msg);
 };
 
-
 template<>
 struct adl_serializer<nimrod::job_definition>
 {
 	static nimrod::job_definition from_json(const json& j);
 	static void to_json(json& j, const nimrod::job_definition& msg);
-};
-
-template<>
-struct adl_serializer<nimrod::net::message_type>
-{
-	static nimrod::net::message_type from_json(const json& j);
-	static void to_json(json& j, const nimrod::net::message_type& msg);
 };
 
 template<>
@@ -124,12 +147,6 @@ struct adl_serializer<nimrod::net::init_message>
 	static void to_json(json& j, const nimrod::net::init_message& msg);
 };
 
-template<>
-struct adl_serializer<nimrod::net::lifecontrol_message::operation_t>
-{
-	static nimrod::net::lifecontrol_message::operation_t from_json(const json& j);
-	static void to_json(json& j, const nimrod::net::lifecontrol_message::operation_t& msg);
-};
 
 template<>
 struct adl_serializer<nimrod::net::lifecontrol_message>
@@ -146,14 +163,6 @@ struct adl_serializer<nimrod::net::shutdown_message>
 };
 
 template<>
-struct adl_serializer<nimrod::net::shutdown_message::reason_t>
-{
-	static nimrod::net::shutdown_message::reason_t from_json(const json& j);
-	static void to_json(json& j, const nimrod::net::shutdown_message::reason_t& msg);
-};
-
-
-template<>
 struct adl_serializer<nimrod::net::submit_message>
 {
 	static nimrod::net::submit_message from_json(const json& j);
@@ -166,21 +175,6 @@ struct adl_serializer<nimrod::command_result>
 {
 	static nimrod::command_result from_json(const json& j);
 	static void to_json(json& j, const nimrod::command_result& res);
-};
-
-template<>
-struct adl_serializer<nimrod::command_result::result_status>
-{
-	static nimrod::command_result::result_status from_json(const json& j);
-	static void to_json(json& j, nimrod::command_result::result_status s);
-};
-
-
-template<>
-struct adl_serializer<nimrod::net::update_message::action_t>
-{
-	static nimrod::net::update_message::action_t from_json(const json& j);
-	static void to_json(json& j, nimrod::net::update_message::action_t msg);
 };
 
 template<>

@@ -182,7 +182,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.delivery_mode		= 2;
 	props.content_type		= make_bytes(net::message_content_type()); /* Same as HTTP "Content-Type" */
 	props.content_encoding	= make_bytes("identity"); /* Same as HTTP "Content-Encoding" */
-	props.type				= make_bytes(net::get_message_type_string(msg.type()));
+	props.type				= make_bytes(net::to_string(msg.type()));
 	props.timestamp			= static_cast<uint64_t>(time(nullptr)); /* AMQP assumes this is in seconds. */
 	props.user_id			= make_bytes(m_user);
 	props.app_id			= make_bytes("nimrod");

@@ -58,8 +58,6 @@ configure_file("${PROJECT_SOURCE_DIR}/include/config.h.in" "${AGENT_GENERATED_IN
 configure_file("${PROJECT_SOURCE_DIR}/src/config.cpp.in" "${AGENT_GENERATED_SRC_DIR}/config.cpp")
 
 set(MESSAGE_FILES
-	./include/messages/base_message.hpp
-
 	./include/messages/netmsg.hpp
 	./src/messages/netmsg.cpp
 

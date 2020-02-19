@@ -24,24 +24,7 @@
 using namespace nimrod;
 using namespace nimrod::net;
 
-const char *net::get_message_type_string(message_type type) noexcept
-{
-	switch(type)
-	{
-		case message_type::agent_init: return "agent.init";
-		case message_type::agent_lifecontrol: return "agent.lifecontrol";
-		case message_type::agent_submit: return "agent.submit";
-		case message_type::agent_hello: return "agent.hello";
-		case message_type::agent_shutdown: return "agent.shutdown";
-		case message_type::agent_update: return "agent.update";
-		case message_type::agent_ping: return "agent.ping";
-		case message_type::agent_pong: return "agent.pong";
-	}
-
-	return nullptr;
-}
-
-message_type message_container::type() const noexcept
+message_type_t message_container::type() const noexcept
 {
 	return std::visit([](auto&& m) { return m.type(); }, static_cast<const msg_union&>(*this));
 }
