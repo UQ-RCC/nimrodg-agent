@@ -21,7 +21,7 @@
 
 using namespace nimrod;
 
-command_result::command_result(result_status status, size_t index, float time, int retval, std::string_view message, const std::error_code& error_code) :
+command_result::command_result(result_status status, size_t index, float time, int retval, std::string_view message, int error_code) :
 	m_status(status),
 	m_index(index),
 	m_time(time),
@@ -55,29 +55,34 @@ const std::string& command_result::message() const noexcept
 	return m_message;
 }
 
-const std::error_code& command_result::error_code() const noexcept
+int command_result::error_code() const noexcept
 {
 	return m_error_code;
 }
 
 command_result command_result::make_precondition_failure(size_t index, float time, std::string_view msg)
 {
-	return command_result(result_status::precondition_failure, index, time, -1, msg, std::error_code());
+	return command_result(result_status::precondition_failure, index, time, -1, msg, 0);
 }
 
 command_result command_result::make_system_error(size_t index, float time, const std::system_error &err)
 {
-	return command_result(result_status::system_error, index, time, -1, err.what(), err.code());
+	return make_system_error(index, time, err.what(), err.code().value());
 }
 
 command_result command_result::make_system_error(size_t index, float time, const std::error_code& err)
 {
-	return command_result(result_status::system_error, index, time, -1, err.message(), err);
+	return make_system_error(index, time, err.message(), err.value());
+}
+
+command_result command_result::make_system_error(size_t index, float time, std::string_view msg, int err)
+{
+	return command_result(result_status::system_error, index, time, -1, msg, err);
 }
 
 command_result command_result::make_exception(size_t index, float time, const std::exception& e)
 {
-	return command_result(result_status::exception, index, time, -1, e.what(), std::error_code());
+	return command_result(result_status::exception, index, time, -1, e.what(), 0);
 }
 
 command_result command_result::make_exception(size_t index, float time, std::string_view msg)
@@ -87,17 +92,17 @@ command_result command_result::make_exception(size_t index, float time, std::str
 
 command_result command_result::make_exception(size_t index, float time, std::string_view msg, int retval)
 {
-	return command_result(result_status::exception, index, time, retval, msg, std::error_code());
+	return command_result(result_status::exception, index, time, retval, msg, 0);
 }
 
 command_result command_result::make_success(size_t index, float time, int retval)
 {
-	return command_result(result_status::success, index, time, retval, "Success", std::error_code());
+	return command_result(result_status::success, index, time, retval, "Success", 0);
 }
 
 command_result command_result::make_abort(size_t index, float time)
 {
-	return command_result(result_status::aborted, index, 0.0f, -1, "Abortion requested", std::error_code());
+	return command_result(result_status::aborted, index, 0.0f, -1, "Abortion requested", 0);
 }
 
 #include <ostream>
@@ -123,7 +128,7 @@ std::ostream& nimrod::operator<<(std::ostream& os, const command_result& res)
 	if(res.status() == command_result::result_status::success)
 		os << "(" << res.retval() << ")";
 	else if(res.status() == command_result::result_status::system_error)
-		os << "(" << res.error_code().value() << ")";
+		os << "(" << res.error_code() << ")";
 
 	return os << ": " << res.message();
 }

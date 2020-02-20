@@ -82,8 +82,9 @@ command_union nlohmann::adl_serializer<command_union>::from_json(const json& j)
 
 void nlohmann::adl_serializer<command_union>::to_json(json& j, const command_union& u)
 {
-	/* This is absolutely disgusting. I love it! */
-	std::visit([&j](auto&& cmd) { nlohmann::adl_serializer<typename std::decay<decltype(cmd)>::type>::to_json(j, cmd); }, static_cast<const _command_union&>(u));
+	std::visit([&j](auto&& cmd) {
+		nlohmann::adl_serializer<std::decay_t<decltype(cmd)>>::to_json(j, cmd);
+	}, static_cast<const _command_union&>(u));
 }
 
 onerror_command::action_t nlohmann::adl_serializer<onerror_command::action_t>::from_json(const json& j)
@@ -379,7 +380,7 @@ command_result nlohmann::adl_serializer<command_result>::from_json(const json& j
 		j.at("time").get<float>(),
 		j.at("retval").get<int>(),
 		j.at("message").get<std::string_view>(),
-		std::error_code(j.at("error_code").get<int>(), std::system_category())
+		j.at("error_code").get<int>()
 	);
 }
 
@@ -412,7 +413,7 @@ void nlohmann::adl_serializer<command_result>::to_json(json& j, const command_re
 		{ "index", res.index() },
 		{ "message", res.message() },
 		{ "retval", res.retval() },
-		{ "error_code", res.error_code().value() },
+		{ "error_code", res.error_code() },
 		{ "time", res.time() }
 	};
 }
