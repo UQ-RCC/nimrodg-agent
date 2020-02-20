@@ -30,19 +30,20 @@ namespace nimrod {
 
 enum class command_type { onerror, redirect, copy, exec };
 
+template <typename T>
 class command
 {
 protected:
-	explicit command(command_type type) noexcept;
+	command() = default;
 public:
-	command_type type() const noexcept;
-private:
-	command_type m_type;
+	constexpr command_type type() const noexcept { return T::type_value; }
 };
 
-class onerror_command : public command
+class onerror_command : public command<onerror_command>
 {
 public:
+	constexpr static command_type type_value = command_type::onerror;
+
 	enum class action_t { fail, ignore };
 
 	explicit onerror_command(action_t action) noexcept;
@@ -53,9 +54,11 @@ private:
 	action_t m_action;
 };
 
-class redirect_command : public command
+class redirect_command : public command<redirect_command>
 {
 public:
+	constexpr static command_type type_value = command_type::redirect;
+
 	enum class stream_t { stdout_, stderr_ };
 
 	redirect_command(stream_t stream, bool append, std::string_view file);
@@ -71,9 +74,11 @@ private:
 	std::string m_file;
 };
 
-class copy_command : public command
+class copy_command : public command<copy_command>
 {
 public:
+	constexpr static command_type type_value = command_type::copy;
+
 	enum class context_t { node, root };
 
 	copy_command(context_t src_ctx, std::string_view src_path, context_t dst_ctx, std::string_view dst_path);
@@ -92,10 +97,12 @@ private:
 	std::string m_dest_path;
 };
 
-class exec_command : public command
+class exec_command : public command<exec_command>
 {
 public:
 	using argument_list = std::vector<std::string>;
+
+	constexpr static command_type type_value = command_type::exec;
 
 	exec_command(std::string_view program, const argument_list& args, bool search_path);
 

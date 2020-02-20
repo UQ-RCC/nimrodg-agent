@@ -41,17 +41,7 @@ const job_definition::command_vector& job_definition::commands() const noexcept 
 const job_definition::env_map& job_definition::environment() const noexcept { return m_environment; }
 
 
-command::command(command_type type) noexcept :
-	m_type(type)
-{}
-
-command_type command::type() const noexcept
-{
-	return m_type;
-}
-
 onerror_command::onerror_command(action_t action) noexcept :
-	command(command_type::onerror),
 	m_action(action)
 {}
 
@@ -61,7 +51,6 @@ onerror_command::action_t onerror_command::action() const noexcept
 }
 
 redirect_command::redirect_command(stream_t stream, bool append, std::string_view file) :
-	command(command_type::redirect),
 	m_stream(stream),
 	m_append(append),
 	m_file(file)
@@ -73,7 +62,6 @@ const std::string& redirect_command::file() const noexcept { return m_file; }
 
 
 copy_command::copy_command(context_t src_ctx, std::string_view src_path, context_t dst_ctx, std::string_view dst_path) :
-	command(command_type::copy),
 	m_source_context(src_ctx),
 	m_source_path(src_path),
 	m_dest_context(dst_ctx),
@@ -102,7 +90,6 @@ const std::string& copy_command::dest_path() const noexcept
 
 
 exec_command::exec_command(std::string_view program, const argument_list& comps, bool search_path) :
-	command(command_type::exec),
 	m_program(program),
 	m_arguments(comps),
 	m_search_path(search_path)
