@@ -35,9 +35,17 @@ uuid::uuid(uuid_t u) noexcept
 	uuid_copy(m_uuid, u);
 }
 
-uuid::uuid(const std::string& s)
+uuid::uuid(std::string_view s)
 {
-	if(uuid_parse(s.c_str(), m_uuid) < 0)
+	if(s.size() != string_length)
+		throw std::runtime_error("malformed uuid");
+
+	/* FIXME: Use uuid_parse_range() when (if) it's merged. */
+	uuid_string_type buf;
+	strncpy(buf, s.data(), std::min(s.size(), string_length));
+	buf[string_length] = '\0';
+
+	if(uuid_parse(buf, m_uuid) < 0)
 		throw std::runtime_error("malformed uuid");
 }
 
@@ -47,7 +55,7 @@ uuid& uuid::operator=(uuid_t u) noexcept
 	return *this;
 }
 
-uuid& uuid::operator=(const std::string& s)
+uuid& uuid::operator=(std::string_view s)
 {
 	this->operator=(uuid(s));
 	return *this;

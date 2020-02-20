@@ -24,7 +24,7 @@ using namespace nimrod::net;
 
 uuid nlohmann::adl_serializer<uuid>::from_json(const json& j)
 {
-	return uuid(j.get<std::string>());
+	return uuid(j.get<std::string_view>());
 }
 
 void nlohmann::adl_serializer<uuid>::to_json(json& j, const uuid& u)
@@ -144,7 +144,7 @@ redirect_command nlohmann::adl_serializer<redirect_command>::from_json(const jso
 	return redirect_command(
 		j.at("stream").get<redirect_command::stream_t>(),
 		j.at("append").get<bool>(),
-		j.at("file").get<std::string>()
+		j.at("file").get<std::string_view>()
 	);
 }
 
@@ -181,9 +181,9 @@ copy_command nlohmann::adl_serializer<copy_command>::from_json(const json& j)
 {
 	return copy_command(
 		j.at("source_context").get<copy_command::context_t>(),
-		j.at("source_path").get<std::string>(),
+		j.at("source_path").get<std::string_view>(),
 		j.at("destination_context").get<copy_command::context_t>(),
-		j.at("destination_path").get<std::string>()
+		j.at("destination_path").get<std::string_view>()
 	);
 }
 
@@ -204,7 +204,7 @@ void nlohmann::adl_serializer<copy_command>::to_json(json& j, const copy_command
 exec_command nlohmann::adl_serializer<exec_command>::from_json(const json& j)
 {
 	return exec_command(
-		j.at("program").get<std::string>(),
+		j.at("program").get<std::string_view>(),
 		j.at("arguments").get<exec_command::argument_list>(),
 		j.at("search_path").get<bool>()
 	);
@@ -221,8 +221,8 @@ job_definition nlohmann::adl_serializer<job_definition>::from_json(const json& j
 	return job_definition(
 		j.at("uuid").get<nimrod::uuid>(),
 		j.at("index").get<uint64_t>(),
-		j.at("txuri").get<std::string>(),
-		j.at("token").get<std::string>(),
+		j.at("txuri").get<std::string_view>(),
+		j.at("token").get<std::string_view>(),
 		j.at("commands").get<job_definition::command_vector>(),
 		j.at("environment").get<job_definition::env_map>()
 	);
@@ -268,7 +268,10 @@ void nlohmann::adl_serializer<message_type>::to_json(json& j, const message_type
 
 hello_message nlohmann::adl_serializer<hello_message>::from_json(const json& j)
 {
-	return nimrod::net::hello_message(j.at("uuid").get<uuid>(), j.at("queue").get<std::string>());
+	return nimrod::net::hello_message(
+		j.at("uuid").get<uuid>(),
+		j.at("queue").get<std::string_view>()
+	);
 }
 
 void nlohmann::adl_serializer<hello_message>::to_json(json& j, const hello_message& msg)
@@ -319,7 +322,11 @@ void nlohmann::adl_serializer<shutdown_message::reason_t>::to_json(json& j, cons
 
 shutdown_message nlohmann::adl_serializer<shutdown_message>::from_json(const json& j)
 {
-	return nimrod::net::shutdown_message(j.at("uuid").get<uuid>(), j.at("reason").get<shutdown_message::reason_t>(), j.at("signal").get<int>());
+	return nimrod::net::shutdown_message(
+		j.at("uuid").get<uuid>(),
+		j.at("reason").get<shutdown_message::reason_t>(),
+		j.at("signal").get<int>()
+	);
 }
 
 void nlohmann::adl_serializer<shutdown_message>::to_json(json& j, const shutdown_message& msg)
@@ -371,7 +378,7 @@ command_result nlohmann::adl_serializer<command_result>::from_json(const json& j
 		j.at("index").get<size_t>(),
 		j.at("time").get<float>(),
 		j.at("retval").get<int>(),
-		j.at("message").get<std::string>(),
+		j.at("message").get<std::string_view>(),
 		std::error_code(j.at("error_code").get<int>(), std::system_category())
 	);
 }
@@ -454,7 +461,10 @@ void nlohmann::adl_serializer<lifecontrol_message::operation_t>::to_json(json& j
 
 lifecontrol_message nlohmann::adl_serializer<lifecontrol_message>::from_json(const json& j)
 {
-	return nimrod::net::lifecontrol_message(j.at("uuid").get<uuid>(), j.at("operation").get<lifecontrol_message::operation_t>());
+	return nimrod::net::lifecontrol_message(
+		j.at("uuid").get<uuid>(),
+		j.at("operation").get<lifecontrol_message::operation_t>()
+	);
 }
 
 void nlohmann::adl_serializer<lifecontrol_message>::to_json(json& j, const lifecontrol_message& msg)

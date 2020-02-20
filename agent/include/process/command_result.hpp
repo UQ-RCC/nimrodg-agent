@@ -46,16 +46,16 @@ public:
 	const std::error_code& error_code() const noexcept;
 
 
-	static command_result make_precondition_failure(size_t index, float time, const std::string &msg);
+	static command_result make_precondition_failure(size_t index, float time, std::string_view msg);
 	static command_result make_system_error(size_t index, float time, const std::system_error &err);
 	static command_result make_system_error(size_t index, float time, const std::error_code& err);
 	static command_result make_exception(size_t index, float time, const std::exception& e);
-	static command_result make_exception(size_t index, float time, const std::string& msg);
-	static command_result make_exception(size_t index, float time, const std::string& msg, int retval);
+	static command_result make_exception(size_t index, float time, std::string_view msg);
+	static command_result make_exception(size_t index, float time, std::string_view msg, int retval);
 	static command_result make_success(size_t index, float time, int retval);
 	static command_result make_abort(size_t index, float time);
 
-	command_result(result_status status, size_t index, float time, int retval, const std::string& message, const std::error_code& error_code);
+	command_result(result_status status, size_t index, float time, int retval, std::string_view message, const std::error_code& error_code);
 private:
 	result_status m_status;
 	size_t m_index;

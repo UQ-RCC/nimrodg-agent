@@ -58,7 +58,7 @@ class redirect_command : public command
 public:
 	enum class stream_t { stdout_, stderr_ };
 
-	redirect_command(stream_t stream, bool append, const std::string& file);
+	redirect_command(stream_t stream, bool append, std::string_view file);
 
 	stream_t stream() const noexcept;
 	bool append() const noexcept;
@@ -76,7 +76,7 @@ class copy_command : public command
 public:
 	enum class context_t { node, root };
 
-	copy_command(context_t src_ctx, const std::string& src_path, context_t dst_ctx, const std::string& dst_path);
+	copy_command(context_t src_ctx, std::string_view src_path, context_t dst_ctx, std::string_view dst_path);
 
 	context_t source_context() const noexcept;
 	const std::string& source_path() const noexcept;
@@ -97,7 +97,7 @@ class exec_command : public command
 public:
 	using argument_list = std::vector<std::string>;
 
-	exec_command(const std::string& program, const argument_list& args, bool search_path);
+	exec_command(std::string_view program, const argument_list& args, bool search_path);
 
 	const std::string& program() const noexcept;
 	const argument_list& arguments() const noexcept;
@@ -135,7 +135,7 @@ public:
 	job_definition();
 	job_definition(const job_definition&) = default;
 	job_definition(job_definition&&) = default;
-	job_definition(uuid u, size_t index, const std::string& txuri, const std::string& token, const command_vector& commands, const env_map& environment);
+	job_definition(uuid u, size_t index, std::string_view txuri, std::string_view token, const command_vector& commands, const env_map& environment);
 
 	job_definition& operator=(const job_definition&) = default;
 	job_definition& operator=(job_definition&&) = default;

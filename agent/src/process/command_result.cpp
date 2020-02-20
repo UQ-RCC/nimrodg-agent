@@ -21,7 +21,7 @@
 
 using namespace nimrod;
 
-command_result::command_result(result_status status, size_t index, float time, int retval, const std::string& message, const std::error_code& error_code) :
+command_result::command_result(result_status status, size_t index, float time, int retval, std::string_view message, const std::error_code& error_code) :
 	m_status(status),
 	m_index(index),
 	m_time(time),
@@ -60,7 +60,7 @@ const std::error_code& command_result::error_code() const noexcept
 	return m_error_code;
 }
 
-command_result command_result::make_precondition_failure(size_t index, float time, const std::string &msg)
+command_result command_result::make_precondition_failure(size_t index, float time, std::string_view msg)
 {
 	return command_result(result_status::precondition_failure, index, time, -1, msg, std::error_code());
 }
@@ -80,12 +80,12 @@ command_result command_result::make_exception(size_t index, float time, const st
 	return command_result(result_status::exception, index, time, -1, e.what(), std::error_code());
 }
 
-command_result command_result::make_exception(size_t index, float time, const std::string& msg)
+command_result command_result::make_exception(size_t index, float time, std::string_view msg)
 {
 	return make_exception(index, time, msg, -1);
 }
 
-command_result command_result::make_exception(size_t index, float time, const std::string& msg, int retval)
+command_result command_result::make_exception(size_t index, float time, std::string_view msg, int retval)
 {
 	return command_result(result_status::exception, index, time, retval, msg, std::error_code());
 }

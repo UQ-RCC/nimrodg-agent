@@ -34,12 +34,12 @@ struct uuid
 	explicit uuid(uuid_t u) noexcept;
 	uuid(const uuid&) noexcept = default;
 	uuid(uuid&&) noexcept = default;
-	explicit uuid(const std::string& s);
+	explicit uuid(std::string_view s);
 
 	uuid& operator=(uuid_t u) noexcept;
 	uuid& operator=(const uuid&) noexcept = default;
 	uuid& operator=(uuid&&) noexcept = default;
-	uuid& operator=(const std::string& s);
+	uuid& operator=(std::string_view s);
 
 	std::string str() const;
 	size_t str(char *buf, size_t size) const;

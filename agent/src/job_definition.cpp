@@ -24,7 +24,7 @@ using namespace nimrod;
 
 job_definition::job_definition() : job_definition(uuid(), 0, "", "", command_vector(), env_map()) {}
 
-job_definition::job_definition(uuid u, size_t index, const std::string& txuri, const std::string& token, const command_vector& commands, const env_map& environment) :
+job_definition::job_definition(uuid u, size_t index, std::string_view txuri, std::string_view token, const command_vector& commands, const env_map& environment) :
 	m_uuid(u),
 	m_index(index),
 	m_txuri(txuri),
@@ -60,7 +60,7 @@ onerror_command::action_t onerror_command::action() const noexcept
 	return m_action;
 }
 
-redirect_command::redirect_command(stream_t stream, bool append, const std::string& file) :
+redirect_command::redirect_command(stream_t stream, bool append, std::string_view file) :
 	command(command_type::redirect),
 	m_stream(stream),
 	m_append(append),
@@ -72,7 +72,7 @@ bool redirect_command::append() const noexcept { return m_append; }
 const std::string& redirect_command::file() const noexcept { return m_file; }
 
 
-copy_command::copy_command(context_t src_ctx, const std::string& src_path, context_t dst_ctx, const std::string& dst_path) :
+copy_command::copy_command(context_t src_ctx, std::string_view src_path, context_t dst_ctx, std::string_view dst_path) :
 	command(command_type::copy),
 	m_source_context(src_ctx),
 	m_source_path(src_path),
@@ -101,7 +101,7 @@ const std::string& copy_command::dest_path() const noexcept
 }
 
 
-exec_command::exec_command(const std::string& program, const argument_list& comps, bool search_path) :
+exec_command::exec_command(std::string_view program, const argument_list& comps, bool search_path) :
 	command(command_type::exec),
 	m_program(program),
 	m_arguments(comps),
