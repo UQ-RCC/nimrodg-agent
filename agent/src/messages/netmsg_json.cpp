@@ -66,10 +66,10 @@ onerror_command nlohmann::adl_serializer<onerror_command>::from_json(const json&
 
 void nlohmann::adl_serializer<onerror_command>::to_json(json& j, const onerror_command& cmd)
 {
-	j = {
-		{"type", cmd.type()},
-		{"action", cmd.action()}
-	};
+    j = {
+        {"type",   cmd.type()},
+        {"action", cmd.action()}
+    };
 }
 
 redirect_command nlohmann::adl_serializer<redirect_command>::from_json(const json& j)
@@ -83,32 +83,32 @@ redirect_command nlohmann::adl_serializer<redirect_command>::from_json(const jso
 
 void nlohmann::adl_serializer<redirect_command>::to_json(json& j, const redirect_command& cmd)
 {
-	j = {
-		{"stream", cmd.stream()},
-		{"append", cmd.append()},
-		{"file", cmd.file()}
-	};
+    j = {
+        {"stream", cmd.stream()},
+        {"append", cmd.append()},
+        {"file",   cmd.file()}
+    };
 }
 
 copy_command nlohmann::adl_serializer<copy_command>::from_json(const json& j)
 {
-	return copy_command(
-		j.at("source_context").get<copy_command::context_t>(),
-		j.at("source_path").get<std::string_view>(),
-		j.at("destination_context").get<copy_command::context_t>(),
-		j.at("destination_path").get<std::string_view>()
-	);
+    return copy_command(
+        j.at("source_context").get<copy_command::context_t>(),
+        j.at("source_path").get<std::string_view>(),
+        j.at("destination_context").get<copy_command::context_t>(),
+        j.at("destination_path").get<std::string_view>()
+    );
 }
 
 void nlohmann::adl_serializer<copy_command>::to_json(json& j, const copy_command& cmd)
 {
-	j = {
-		{"type", cmd.type()},
-		{"source_context", cmd.source_context()},
-		{"source_path", cmd.source_path()},
-		{"destination_context", cmd.dest_context()},
-		{"destination_path", cmd.dest_path()}
-	};
+    j = {
+        {"type",                cmd.type()},
+        {"source_context",      cmd.source_context()},
+        {"source_path",         cmd.source_path()},
+        {"destination_context", cmd.dest_context()},
+        {"destination_path",    cmd.dest_path()}
+    };
 }
 
 
@@ -125,12 +125,12 @@ exec_command nlohmann::adl_serializer<exec_command>::from_json(const json& j)
 
 void nlohmann::adl_serializer<exec_command>::to_json(json& j, const exec_command& cmd)
 {
-	j = {
-		{"type", cmd.type()},
-		{"search_path", cmd.search_path()},
-		{"program", cmd.program()},
-		{"arguments", cmd.arguments()}
-	};
+    j = {
+        {"type",        cmd.type()},
+        {"search_path", cmd.search_path()},
+        {"program",     cmd.program()},
+        {"arguments",   cmd.arguments()}
+    };
 }
 
 
@@ -148,14 +148,14 @@ job_definition nlohmann::adl_serializer<job_definition>::from_json(const json& j
 
 void nlohmann::adl_serializer<job_definition>::to_json(json& j, const job_definition& job)
 {
-	j = {
-		{"uuid", job.get_uuid()},
-		{"index", job.index()},
-		{"txuri", job.txuri()},
-		{"token", job.token()},
-		{"environment", job.environment()},
-		{"commands", job.commands()}
-	};
+    j = {
+        {"uuid",        job.get_uuid()},
+        {"index",       job.index()},
+        {"txuri",       job.txuri()},
+        {"token",       job.token()},
+        {"environment", job.environment()},
+        {"commands",    job.commands()}
+    };
 }
 
 
@@ -169,7 +169,11 @@ hello_message nlohmann::adl_serializer<hello_message>::from_json(const json& j)
 
 void nlohmann::adl_serializer<hello_message>::to_json(json& j, const hello_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() },{ "type", msg.type() },{ "queue", msg.queue() } };
+    j = {
+        {"uuid",  msg.uuid()},
+        {"type",  msg.type()},
+        {"queue", msg.queue()}
+    };
 }
 
 init_message nlohmann::adl_serializer<init_message>::from_json(const json& j)
@@ -179,7 +183,10 @@ init_message nlohmann::adl_serializer<init_message>::from_json(const json& j)
 
 void nlohmann::adl_serializer<init_message>::to_json(json& j, const init_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() },{ "type", msg.type() } };
+    j = {
+        {"uuid", msg.uuid()},
+        {"type", msg.type()}
+    };
 }
 
 
@@ -194,7 +201,12 @@ shutdown_message nlohmann::adl_serializer<shutdown_message>::from_json(const jso
 
 void nlohmann::adl_serializer<shutdown_message>::to_json(json& j, const shutdown_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() },{ "type", msg.type() },{ "reason", msg.reason() },{ "signal", msg.signal() } };
+    j = {
+        {"uuid",   msg.uuid()},
+        {"type",   msg.type()},
+        {"reason", msg.reason()},
+        {"signal", msg.signal()}
+    };
 }
 
 submit_message nlohmann::adl_serializer<submit_message>::from_json(const json& j)
@@ -204,7 +216,11 @@ submit_message nlohmann::adl_serializer<submit_message>::from_json(const json& j
 
 void nlohmann::adl_serializer<submit_message>::to_json(json& j, const submit_message& msg)
 {
-	j = json{ {"uuid", msg.uuid()}, { "type", msg.type() }, {"job", msg.job()} };
+    j = {
+        {"uuid", msg.uuid()},
+        {"type", msg.type()},
+        {"job",  msg.job()}
+    };
 }
 
 command_result nlohmann::adl_serializer<command_result>::from_json(const json& j)
@@ -221,13 +237,13 @@ command_result nlohmann::adl_serializer<command_result>::from_json(const json& j
 
 void nlohmann::adl_serializer<command_result>::to_json(json& j, const command_result& res)
 {
-	j = json{
-		{ "status", res.status() },
-		{ "index", res.index() },
-		{ "message", res.message() },
-		{ "retval", res.retval() },
-		{ "error_code", res.error_code() },
-		{ "time", res.time() }
+    j = {
+        {"status",     res.status()},
+        {"index",      res.index()},
+        {"message",    res.message()},
+        {"retval",     res.retval()},
+        {"error_code", res.error_code()},
+        {"time",       res.time()}
 	};
 }
 
@@ -243,13 +259,13 @@ update_message nlohmann::adl_serializer<update_message>::from_json(const json& j
 
 void nlohmann::adl_serializer<update_message>::to_json(json& j, const update_message& msg)
 {
-	j = json{
-		{ "uuid", msg.uuid() },
-		{ "type", msg.type() },
-		{ "job_uuid", msg.job_uuid() },
-		{ "command_result", msg.result() },
-		{ "action", msg.action() }
-	};
+    j = {
+        {"uuid",           msg.uuid()},
+        {"type",           msg.type()},
+        {"job_uuid",       msg.job_uuid()},
+        {"command_result", msg.result()},
+        {"action",         msg.action()}
+    };
 }
 
 lifecontrol_message nlohmann::adl_serializer<lifecontrol_message>::from_json(const json& j)
@@ -262,7 +278,11 @@ lifecontrol_message nlohmann::adl_serializer<lifecontrol_message>::from_json(con
 
 void nlohmann::adl_serializer<lifecontrol_message>::to_json(json& j, const lifecontrol_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() },{ "type", msg.type() },{ "operation", msg.operation() } };
+    j = {
+        {"uuid",      msg.uuid()},
+        {"type",      msg.type()},
+        {"operation", msg.operation()}
+    };
 }
 
 ping_message nlohmann::adl_serializer<ping_message>::from_json(const json& j)
@@ -272,7 +292,10 @@ ping_message nlohmann::adl_serializer<ping_message>::from_json(const json& j)
 
 void nlohmann::adl_serializer<ping_message>::to_json(json& j, const ping_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() }, { "type", msg.type() } };
+    j = {
+        {"uuid", msg.uuid()},
+        {"type", msg.type()}
+    };
 }
 
 pong_message nlohmann::adl_serializer<pong_message>::from_json(const json& j)
@@ -282,7 +305,11 @@ pong_message nlohmann::adl_serializer<pong_message>::from_json(const json& j)
 
 void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message& msg)
 {
-	j = json{ { "uuid", msg.uuid() }, { "type", msg.type() }, { "stats", json::object() } };
+    j = {
+        {"uuid",  msg.uuid()},
+        {"type",  msg.type()},
+        {"stats", json::object()}
+    };
 }
 
 message_container nlohmann::adl_serializer<message_container>::from_json(const json& j)
