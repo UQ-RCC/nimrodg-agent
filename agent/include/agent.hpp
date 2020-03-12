@@ -50,7 +50,6 @@ using event_union = event_variant;
 class agent
 {
 public:
-	enum class state_t { waiting_for_init, idle, in_job, stopped };
 
 	agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env);
 
@@ -73,7 +72,7 @@ public:
 
 	nimrod::uuid get_uuid() const noexcept;
 
-	state_t state() const noexcept;
+	agent_state_t state() const noexcept;
 
 	bool nohup() const noexcept;
 	void nohup(bool b) noexcept;
@@ -88,7 +87,7 @@ private:
 	send_future send_update(const uuid& job_uuid, const command_result& res, net::update_message::action_t action, bool ack = false);
 	send_future send_pong();
 
-	void state(state_t s) noexcept;
+	void state(agent_state_t s) noexcept;
 
 	bool operator()(const interrupt_event& evt);
 	bool operator()(const amqp_error_event& evt);
@@ -101,7 +100,7 @@ private:
 
 	void _enqueue(event_union&& evt);
 
-	state_t m_state;
+	agent_state_t m_state;
 	bool m_nohup;
 	amqp_consumer *m_amqp;
 	txman *m_tx;
@@ -129,7 +128,7 @@ private:
 	friend class visitor;
 };
 
-std::ostream& operator<<(std::ostream& os, agent::state_t s);
+std::ostream& operator<<(std::ostream& os, agent_state_t s);
 
 }
 

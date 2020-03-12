@@ -83,6 +83,8 @@ using file_ptr = cstdio_ptr;
 struct deleter_curl_multi { void operator()(CURLM *m) const noexcept; };
 using curl_multi_ptr = std::unique_ptr<CURLM, deleter_curl_multi>;
 
+enum class agent_state_t { waiting_for_init, idle, in_job, stopped };
+
 class agent;
 }
 

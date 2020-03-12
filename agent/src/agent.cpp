@@ -30,7 +30,7 @@
 using namespace nimrod;
 
 agent::agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env) :
-	m_state(state_t::waiting_for_init),
+	m_state(agent_state_t::waiting_for_init),
 	m_nohup(false),
 	m_amqp(nullptr),
 	m_work_root(workRoot),
@@ -83,7 +83,7 @@ nimrod::uuid agent::get_uuid() const noexcept
 	return m_uuid;
 }
 
-agent::state_t agent::state() const noexcept
+agent_state_t agent::state() const noexcept
 {
 	return m_state;
 }
@@ -115,7 +115,7 @@ bool agent::operator()(const interrupt_event& evt)
 #endif
 	if(evt.signal() == SIGCHLD)
 	{
-		if(m_state != state_t::in_job)
+		if(m_state != agent_state_t::in_job)
 		{
 			log::warn("AGENT", "Received child interrupt outside of job. Wut?");
 		}
@@ -131,7 +131,7 @@ bool agent::operator()(const interrupt_event& evt)
 
 	switch(m_state)
 	{
-		case state_t::in_job:
+		case agent_state_t::in_job:
 			if(!std::get_if<std::monostate>(&m_deferred_event))
 			{
 				/* Already have an interrupt, ignore. */
@@ -141,22 +141,22 @@ bool agent::operator()(const interrupt_event& evt)
 			m_procman->ask_meanly_to_exit();
 			/* The child update processor will re-raise us once the process has been terminated. */
 			return false;
-		case state_t::idle:
-		case state_t::waiting_for_init:
+		case agent_state_t::idle:
+		case agent_state_t::waiting_for_init:
 			send_shutdown_signal(evt.signal()).wait();
 			break;
-		case state_t::stopped:
+		case agent_state_t::stopped:
 			return true; /* Should never happen, but whatever. */
 	}
 
-	this->state(state_t::stopped);
+	this->state(agent_state_t::stopped);
 	return true;
 }
 
 bool agent::operator()(const amqp_error_event& evt)
 {
 	/* Fatal network error, attempt cleanup. */
-	if(m_state == state_t::in_job)
+	if(m_state == agent_state_t::in_job)
 	{
 		this->defer_event(evt);
 		m_procman->ask_meanly_to_exit();
@@ -164,13 +164,13 @@ bool agent::operator()(const amqp_error_event& evt)
 		return false;
 	}
 
-	this->state(state_t::stopped);
+	this->state(agent_state_t::stopped);
 	return true;
 }
 
-static bool is_valid_for_state(agent::state_t state, const net::message_type type)
+static bool is_valid_for_state(agent_state_t state, const net::message_type type)
 {
-	if(state == agent::state_t::stopped)
+	if(state == agent_state_t::stopped)
 		return false;
 
 	switch(type)
@@ -195,13 +195,13 @@ static bool is_valid_for_state(agent::state_t state, const net::message_type typ
 	/* Now do state-specific checks */
 	switch(state)
 	{
-		case agent::state_t::waiting_for_init:
+		case agent_state_t::waiting_for_init:
 			return type == net::message_type::agent_init;
 
-		case agent::state_t::idle:
+		case agent_state_t::idle:
 			return type == net::message_type::agent_submit;
 
-		case agent::state_t::in_job:
+		case agent_state_t::in_job:
 			return false;
 
 		default:
@@ -211,27 +211,27 @@ static bool is_valid_for_state(agent::state_t state, const net::message_type typ
 	return false;
 }
 
-static const char *state_to_string(agent::state_t s)
+static const char *state_to_string(agent_state_t s)
 {
 	switch(s)
 	{
-		case agent::state_t::waiting_for_init: return "WAITING_FOR_INIT";
-		case agent::state_t::idle: return "IDLE";
-		case agent::state_t::in_job: return "IN_JOB";
-		case agent::state_t::stopped: return "STOPPED";
+		case agent_state_t::waiting_for_init: return "WAITING_FOR_INIT";
+		case agent_state_t::idle: return "IDLE";
+		case agent_state_t::in_job: return "IN_JOB";
+		case agent_state_t::stopped: return "STOPPED";
 	}
 
 	return "UNKNOWN";
 }
 
-std::ostream& nimrod::operator<<(std::ostream& os, agent::state_t s)
+std::ostream& nimrod::operator<<(std::ostream& os, agent_state_t s)
 {
 	return os << state_to_string(s);
 }
 
-void agent::state(state_t s) noexcept
+void agent::state(agent_state_t s) noexcept
 {
-	state_t old = m_state;
+	agent_state_t old = m_state;
 	m_state = s;
 
 	log::trace("AGENT", "State change from %s -> %s.", old, s);
@@ -262,13 +262,13 @@ bool agent::operator()(const network_message& _msg)
 		return false;
 	}
 
-	if(m_state == state_t::waiting_for_init)
+	if(m_state == agent_state_t::waiting_for_init)
 	{
 		if(msg.type() == message_type::agent_init)
 		{
 			//auto& init = msg.get<init_message>();
 			/* For future reference, any initialisation should go here. */
-			this->state(state_t::idle);
+			this->state(agent_state_t::idle);
 			return false;
 		}
 		else if(msg.type() == message_type::agent_lifecontrol)
@@ -281,20 +281,20 @@ bool agent::operator()(const network_message& _msg)
 			throw std::logic_error("Bad state");
 		}
 	}
-	else if(m_state == state_t::idle)
+	else if(m_state == agent_state_t::idle)
 	{
 		if(msg.type() == message_type::agent_lifecontrol)
 		{
 			if(const lifecontrol_message& lf = msg.get<lifecontrol_message>(); lf.operation() == lifecontrol_message::operation_t::terminate)
 			{
 				send_shutdown_requested().wait();
-				this->state(state_t::stopped);
+				this->state(agent_state_t::stopped);
 				return true;
 			}
 		}
 		else if(msg.type() == message_type::agent_submit)
 		{
-			assert(m_state == state_t::idle);
+			assert(m_state == agent_state_t::idle);
 
 			auto& sub = msg.get<submit_message>();
 			try
@@ -305,14 +305,14 @@ bool agent::operator()(const network_message& _msg)
 			{
 				log::error("AGENT", "Interpreter initialisation failed: %s", e.what());
 				this->send_update(sub.job().get_uuid(), command_result::make_precondition_failure(0, 0.0f, e.what()), update_message::action_t::stop);
-				this->state(state_t::idle);
+				this->state(agent_state_t::idle);
 				return false;
 			}
 
 			run_next_job();
 		}
 	}
-	else if(m_state == state_t::in_job)
+	else if(m_state == agent_state_t::in_job)
 	{
 		if(msg.type() == message_type::agent_lifecontrol)
 		{
@@ -379,12 +379,12 @@ void agent::run_next_job()
 	if(m_procman->command_index() < m_procman->num_commands())
 	{
 		m_proctask = std::async(std::launch::async, [this]() { this->submit_event(child_event(m_procman->run())); });
-		this->state(state_t::in_job);
+		this->state(agent_state_t::in_job);
 	}
 	else
 	{
 		m_procman = nullptr;
-		this->state(state_t::idle);
+		this->state(agent_state_t::idle);
 	}
 }
 
@@ -409,14 +409,14 @@ bool agent::operator()(const child_event& evt)
 
 		/* Reset to idle and re-raise the event. */
 		m_procman = nullptr;
-		this->state(state_t::idle);
+		this->state(agent_state_t::idle);
 		std::visit([this](const auto& e) { this->submit_event(e); }, *p);
 		m_deferred_event = std::monostate();
 		return false;
 	}
 
 	/* This should never happen, but handle it just in case. */
-	if(m_state != state_t::in_job)
+	if(m_state != agent_state_t::in_job)
 	{
 		log::error("AGENT", "Invalid state for child update. Attempting to recover...");
 		log::error("AGENT", "  If this happens often, please report this to the developers.");
@@ -433,7 +433,7 @@ bool agent::operator()(const child_event& evt)
 		log::error("AGENT", "[%u] Precondition failure, aborting job...", result.index());
 		this->send_update(m_procman->job_uuid(), result, action_t::stop).get();
 		m_procman = nullptr;
-		this->state(state_t::idle);
+		this->state(agent_state_t::idle);
 		return false;
 	}
 
@@ -461,7 +461,7 @@ bool agent::operator()(const child_event& evt)
 	/* Here we can abort the job if there's an error. */
 	this->send_update(m_procman->job_uuid(), result, action_t::stop).get();
 	m_procman = nullptr;
-	this->state(state_t::idle);
+	this->state(agent_state_t::idle);
 	return false;
 }
 
