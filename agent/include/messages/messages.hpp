@@ -367,6 +367,30 @@ constexpr std::optional<command_result::result_status> from_string<command_resul
 									return std::optional<command_result::result_status>();
 }
 
+
+constexpr std::string_view to_string(agent_state_t s)
+{
+	switch(s)
+	{
+		case agent_state_t::waiting_for_init:	return "WAITING_FOR_INIT";
+		case agent_state_t::idle:				return "IDLE";
+		case agent_state_t::in_job:				return "IN_JOB";
+		case agent_state_t::stopped:			return "STOPPED";
+		default: throw std::domain_error("agent_state_t");
+	}
+}
+
+template<>
+constexpr std::optional<agent_state_t> from_string<agent_state_t>(std::string_view s) noexcept
+{
+	if(s == "WAITING_FOR_INIT")	return agent_state_t::waiting_for_init;
+	if(s == "IDLE")				return agent_state_t::idle;
+	if(s == "IN_JOB")			return agent_state_t::in_job;
+	if(s == "STOPPED")			return agent_state_t::stopped;
+								return std::optional<agent_state_t>();
+}
+
+
 }
 
 #endif /* _NIMROD_MESSAGES_MESSAGES_HPP */

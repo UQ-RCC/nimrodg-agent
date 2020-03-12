@@ -211,30 +211,12 @@ static bool is_valid_for_state(agent_state_t state, const net::message_type_t ty
 	return false;
 }
 
-static const char *state_to_string(agent_state_t s)
-{
-	switch(s)
-	{
-		case agent_state_t::waiting_for_init: return "WAITING_FOR_INIT";
-		case agent_state_t::idle: return "IDLE";
-		case agent_state_t::in_job: return "IN_JOB";
-		case agent_state_t::stopped: return "STOPPED";
-	}
-
-	return "UNKNOWN";
-}
-
-std::ostream& nimrod::operator<<(std::ostream& os, agent_state_t s)
-{
-	return os << state_to_string(s);
-}
-
 void agent::state(agent_state_t s) noexcept
 {
 	agent_state_t old = m_state;
 	m_state = s;
 
-	log::trace("AGENT", "State change from %s -> %s.", old, s);
+	log::trace("AGENT", "State change from %s -> %s.", net::to_string(old), net::to_string(s));
 }
 
 bool agent::operator()(const network_message& _msg)
