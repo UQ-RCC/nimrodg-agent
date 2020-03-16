@@ -339,7 +339,6 @@ void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message
         {"uuid",    msg.uuid()},
         {"version", msg.version()},
         {"type",    msg.type()},
-        {"stats",   json::object()}
     };
 }
 
