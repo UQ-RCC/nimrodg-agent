@@ -171,7 +171,11 @@ class pong_message : public base_message<pong_message>
 public:
 	constexpr static message_type_t type_value = message_type_t::agent_pong;
 
-	explicit pong_message(nimrod::uuid uuid) noexcept;
+	explicit pong_message(nimrod::uuid uuid, agent_state_t	state) noexcept;
+
+	agent_state_t state() const noexcept;
+private:
+	agent_state_t m_state;
 };
 
 template <typename T>

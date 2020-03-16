@@ -48,6 +48,10 @@ struct enum_serialiser
 namespace nlohmann {
 
 template<>
+struct adl_serializer<nimrod::agent_state_t> :
+	nimrod::net::enum_serialiser<nimrod::agent_state_t>{};
+
+template<>
 struct adl_serializer<nimrod::command_type> :
 	nimrod::net::enum_serialiser<nimrod::command_type>{};
 

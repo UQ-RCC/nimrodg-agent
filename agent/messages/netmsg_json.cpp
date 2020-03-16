@@ -330,7 +330,7 @@ void nlohmann::adl_serializer<ping_message>::to_json(json& j, const ping_message
 pong_message nlohmann::adl_serializer<pong_message>::from_json(const json& j)
 {
 	ensure_version(j);
-	return nimrod::net::pong_message(j.at("uuid").get<uuid>());
+	return nimrod::net::pong_message(j.at("uuid").get<uuid>(), j.at("state").get<agent_state_t>());
 }
 
 void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message& msg)
@@ -339,6 +339,7 @@ void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message
         {"uuid",    msg.uuid()},
         {"version", msg.version()},
         {"type",    msg.type()},
+        {"state",   msg.state()},
     };
 }
 

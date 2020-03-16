@@ -484,7 +484,7 @@ agent::send_future agent::send_update(const uuid& job_uuid, const command_result
 
 agent::send_future agent::send_pong()
 {
-	return send_message(net::pong_message(this->m_uuid));
+	return send_message(net::pong_message(this->m_uuid, this->m_state));
 }
 
 void agent::defer_event(const event_union& evt)

@@ -114,6 +114,12 @@ ping_message::ping_message(nimrod::uuid uuid) noexcept :
 	message_base_type(uuid)
 {}
 
-pong_message::pong_message(nimrod::uuid uuid) noexcept :
-	message_base_type(uuid)
+pong_message::pong_message(nimrod::uuid uuid, agent_state_t state) noexcept :
+	message_base_type(uuid),
+	m_state(state)
 {}
+
+agent_state_t pong_message::state() const noexcept
+{
+	return m_state;
+}
