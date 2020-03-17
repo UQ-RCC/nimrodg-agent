@@ -27,7 +27,7 @@
 #include <queue>
 #include <future>
 #include <string_view>
-#include "threading.hpp"
+#include <mutex>
 #include <amqp.h>
 #include "amqp_exception.hpp"
 #include "messages/netmsg.hpp"

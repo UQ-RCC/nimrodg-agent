@@ -20,9 +20,9 @@
 #define __STDC_FORMAT_MACROS
 #include <cinttypes>
 #include <iostream>
+#include <mutex>
 
 #include <fmt/ostream.h>
-#include "threading.hpp"
 #include "log.hpp"
 
 using namespace nimrod;
