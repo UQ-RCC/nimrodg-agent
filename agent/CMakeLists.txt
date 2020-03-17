@@ -51,116 +51,113 @@ if(NOT NIMRODG_PLATFORM_STRING)
 	message(FATAL_ERROR "No platform string provided")
 endif()
 
-set(AGENT_GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
-set(AGENT_GENERATED_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/src")
-
-configure_file("${PROJECT_SOURCE_DIR}/include/config.h.in" "${AGENT_GENERATED_INCLUDE_DIR}/config.h")
-configure_file("${PROJECT_SOURCE_DIR}/src/config.cpp.in" "${AGENT_GENERATED_SRC_DIR}/config.cpp")
+configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
+configure_file("${PROJECT_SOURCE_DIR}/config.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/config.cpp")
 
 set(MESSAGE_FILES
-	./include/messages/netmsg.hpp
-	./src/messages/netmsg.cpp
+	./messages/netmsg.hpp
+	./messages/netmsg.cpp
 
-	./src/messages/formatters.cpp
+	./messages/formatters.cpp
 
-	./include/messages/messages.hpp
-	./src/messages/messages.cpp
+	./messages/messages.hpp
+	./messages/messages.cpp
 
-	./include/messages/netmsg_json.hpp
-	./src/messages/netmsg_json.cpp
+	./messages/netmsg_json.hpp
+	./messages/netmsg_json.cpp
 )
 source_group("Network Messages" FILES ${MESSAGE_FILES})
 
 set(PROCESS_FILES
-	./include/process/command_result.hpp
-	./src/process/command_result.cpp
+	./process/command_result.hpp
+	./process/command_result.cpp
 
-	./include/process/procman.hpp
-	./src/process/procman.cpp
+	./process/procman.hpp
+	./process/procman.cpp
 
-	./include/process/process.hpp
-	./src/process/process.cpp
+	./process/process.hpp
+	./process/process.cpp
 
-	./src/process/process_win32.cpp
-	./src/process/process_win32.hpp
+	./process/process_win32.cpp
+	./process/process_win32.hpp
 
-	./src/process/process_posix.cpp
-	./src/process/process_posix.hpp
+	./process/process_posix.cpp
+	./process/process_posix.hpp
 )
 source_group("Process" FILES ${PROCESS_FILES})
 
 set(PARG_FILES
-	./src/parg/parg.c
-	./src/parg/parg.h
+	./parg/parg.c
+	./parg/parg.h
 )
 source_group("parg" FILES ${PARG_FILES})
 
 set(TRANSFER_FILES
-	./include/transfer.hpp
+	./transfer.hpp
 
-	./src/transfer/transfer_backend.hpp
-	./src/transfer/transfer_backend.cpp
+	./transfer/transfer_backend.hpp
+	./transfer/transfer_backend.cpp
 
-	./src/transfer/curl_backend.hpp
-	./src/transfer/curl_backend.cpp
+	./transfer/curl_backend.hpp
+	./transfer/curl_backend.cpp
 
-	./src/transfer/win32_backend.hpp
-	./src/transfer/win32_backend.cpp
+	./transfer/win32_backend.hpp
+	./transfer/win32_backend.cpp
 
-	./src/transfer/posix_backend.hpp
-	./src/transfer/posix_backend.cpp
+	./transfer/posix_backend.hpp
+	./transfer/posix_backend.cpp
 )
 source_group("Transfer" FILES ${TRANSFER_FILES})
 
 set(AGENT_FILES
-	./include/config.h.in
-	${AGENT_GENERATED_INCLUDE_DIR}/config.h
-	./src/config.cpp.in
-	${AGENT_GENERATED_SRC_DIR}/config.cpp
+	./config.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/config.h
+	./config.cpp.in
+	${CMAKE_CURRENT_BINARY_DIR}/config.cpp
 
 	../concurrentqueue/concurrentqueue.h
 	../concurrentqueue/blockingconcurrentqueue.h
 
-	./include/json.hpp
+	./json.hpp
 
-	./include/agent_common.hpp
-	./include/agent_fwd.hpp
+	./agent_common.hpp
+	./agent_fwd.hpp
 
-	./include/amqp_exception.hpp
-	./src/amqp_exception.cpp
+	./amqp_exception.hpp
+	./amqp_exception.cpp
 
-	./include/log.hpp
-	./src/log.cpp
+	./log.hpp
+	./log.cpp
 
-	./include/amqp_consumer.hpp
-	./src/amqp_consumer.cpp
+	./amqp_consumer.hpp
+	./amqp_consumer.cpp
 
-	./include/event.hpp
-	./src/event.cpp
+	./event.hpp
+	./event.cpp
 
-	./include/rearmable_event.hpp
+	./rearmable_event.hpp
 
-	./src/main.cpp
-	./src/settings.cpp
-	./src/utils.cpp
-	./src/ssl.cpp
-	./src/console.cpp
-	./src/netthread.cpp
+	./main.cpp
+	./settings.cpp
+	./utils.cpp
+	./ssl.cpp
+	./console.cpp
+	./netthread.cpp
 
-	./include/agent.hpp
-	./src/agent.cpp
+	./agent.hpp
+	./agent.cpp
 
-	./include/uuid.hpp
-	./src/uuid.cpp
+	./uuid.hpp
+	./uuid.cpp
 
-	./include/job_definition.hpp
-	./src/job_definition.cpp
+	./job_definition.hpp
+	./job_definition.cpp
 
-	./include/utils_win32.hpp
-	./src/utils_win32.cpp
+	./utils_win32.hpp
+	./utils_win32.cpp
 
-	./include/utils_posix.hpp
-	./src/utils_posix.cpp
+	./utils_posix.hpp
+	./utils_posix.cpp
 )
 
 add_executable(agent
@@ -178,8 +175,8 @@ set_target_properties(agent PROPERTIES
 )
 
 target_include_directories(agent
-	PRIVATE "include" "../concurrentqueue"
-	PUBLIC ${AGENT_GENERATED_INCLUDE_DIR}
+	PRIVATE "." "../concurrentqueue"
+	PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_libraries(agent
