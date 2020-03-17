@@ -114,7 +114,7 @@ x509_store_ptr nimrod::load_ca_store_mem(const char *data, size_t size)
 	return store;
 }
 
-void nimrod::set_ssl_store(SSL_CTX *ctx, X509_STORE *st)
+void nimrod::set_ssl_store(SSL_CTX *ctx, X509_STORE *st) noexcept
 {
 	SSL_CTX_set_cert_store(ctx, st);
 
@@ -122,7 +122,7 @@ void nimrod::set_ssl_store(SSL_CTX *ctx, X509_STORE *st)
 	CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_X509_STORE);
 }
 
-static size_t base64_get_decoded_length(const char *data, size_t size)
+static size_t base64_get_decoded_length(const char *data, size_t size) noexcept
 {
 	if((size % 4) != 0)
 		return 0;

@@ -132,7 +132,7 @@ void init_openssl();
 x509_store_ptr new_ca_store();
 x509_store_ptr load_ca_store_mem(const char *data, size_t size);
 void dump_ca_store(const x509_store_ptr& castore);
-void set_ssl_store(SSL_CTX *ctx, X509_STORE *st);
+void set_ssl_store(SSL_CTX *ctx, X509_STORE *st) noexcept;
 std::unique_ptr<char[]> base64_decode(const char *data, size_t inSize, size_t& outSize);
 
 /* console.cpp */
