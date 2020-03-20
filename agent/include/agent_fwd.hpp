@@ -39,6 +39,8 @@ namespace nimrod { namespace filesystem = std::experimental::filesystem; }
 #	endif
 #endif
 
+#include "config.h"
+
 #include <openssl/ossl_typ.h>
 
 /* <uriparser/Uri.h> */

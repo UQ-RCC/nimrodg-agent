@@ -20,6 +20,8 @@
 #ifndef _NIMROD_UUID_HPP
 #define _NIMROD_UUID_HPP
 
+#include "config.h"
+
 #include <iosfwd>
 #include <uuid/uuid.h>
 

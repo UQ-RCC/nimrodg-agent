@@ -66,8 +66,7 @@ procman::procman(const uuid& agent_uuid, const job_definition& j, const filesyst
 #if defined(NIMRODG_USE_POSIX)
 	m_environment["TMPDIR"] = m_paths.path_tmp;
 #elif defined(NIMRODG_USE_WIN32API)
-	m_environment["TEMP"] = m_paths.path_tmp;
-	m_environment["TMP"] = m_paths.path_tmp;
+	m_environment["TEMP"] = m_environment["TMP"] = m_paths.path_tmp.u8string();
 #endif
 	m_environment["NIMROD_AGENT_UUID"] = m_agent_uuid.str();
 	m_environment["NIMROD_AGENT_VERSION"] = g_compile_info.agent.version;

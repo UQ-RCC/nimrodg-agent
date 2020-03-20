@@ -62,6 +62,15 @@ extern const compile_info_t g_compile_info;
 }
 #endif
 
+#if defined(_WIN32)
+#	if !defined(NOMINMAX)
+#		define NOMINMAX
+#	endif
+#	if !defined(WIN32_LEAN_AND_MEAN)
+#		define WIN32_LEAN_AND_MEAN
+#	endif
+#endif
+
 /** @endcond */
 
 #endif /* NIMRODG_AGENT_CONFIG_H_ */

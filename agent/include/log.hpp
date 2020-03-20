@@ -20,12 +20,12 @@
 #ifndef _NIMROD_LOG_HPP
 #define _NIMROD_LOG_HPP
 
+#include "config.h"
+
 #if defined(_WIN32)
-#	define WIN32_LEAN_AND_MEAN
-#	if !defined(NOMINMAX)
-#		define NOMINMAX
+#	ifndef FMT_USE_WINDOWS_H
+#		define FMT_USE_WINDOWS_H 0
 #	endif
-#	define FMT_USE_WINDOWS_H 0
 #endif
 
 #include <fmt/printf.h>

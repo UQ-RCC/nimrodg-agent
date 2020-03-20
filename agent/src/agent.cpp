@@ -18,6 +18,8 @@
  * limitations under the License.
  */
 
+#include "config.h"
+
 #include <vector>
 #include <unordered_map>
 #include <csignal>

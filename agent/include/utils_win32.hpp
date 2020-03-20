@@ -27,9 +27,14 @@
 #include <map>
 #include <vector>
 #include <type_traits>
+#include <memory>
+#include <system_error>
 
 #define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
+
+#ifndef NOMINMAX
+#	define NOMINMAX
+#endif
 #include <windows.h>
 
 namespace nimrod {

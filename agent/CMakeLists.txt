@@ -195,12 +195,15 @@ if(NOT WIN32)
 	target_link_libraries(agent Threads::Threads)
 endif()
 
-#target_include_directories(agent PRIVATE ${OPENSSL_INCLUDE_DIR})
-#target_link_libraries(agent ${OPENSSL_LIBRARIES})
-#
-#target_link_libraries(agent ${LIBSSH2_LIBRARY})
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+# Mainly for Windows, but doesn't hurt on others
+target_compile_definitions(agent PRIVATE
+		-DCURL_STATICLIB
+		-DAMQP_STATIC
+)
+
+# Add -lstdc++fs on GCC/Clang
+if(NOT MINGW AND (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
 	target_link_libraries(agent stdc++fs)
 endif()
 
