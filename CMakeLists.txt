@@ -69,7 +69,7 @@ endif()
 
 option(NIMRODG_PLATFORM_STRING "Agent Platform String" "")
 
-if(NOT ${NIMRODG_PLATFORM_STRING})
+if(NOT NIMRODG_PLATFORM_STRING)
 	if(MSVC)
 		if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
 			set(NIMRODG_PLATFORM_STRING "i686-pc-windows-msvc")
