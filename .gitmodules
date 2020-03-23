@@ -12,3 +12,6 @@
 [submodule "concurrentqueue"]
 	path = concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue
+[submodule "util-linux"]
+	path = util-linux
+	url = https://github.com/karelzak/util-linux

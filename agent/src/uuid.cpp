@@ -21,13 +21,16 @@
 #include <stdexcept>
 #include <ostream>
 #include <string.h>
+#include <openssl/rand.h>
 #include "uuid.hpp"
 
 using namespace nimrod;
 
 uuid::uuid() noexcept
 {
-	uuid_generate(m_uuid);
+	int rc = RAND_bytes(m_uuid, sizeof(m_uuid));
+	if(rc != 1)
+		RAND_pseudo_bytes(m_uuid, sizeof(m_uuid));
 }
 
 uuid::uuid(uuid_t u) noexcept
@@ -37,15 +40,7 @@ uuid::uuid(uuid_t u) noexcept
 
 uuid::uuid(std::string_view s)
 {
-	if(s.size() != string_length)
-		throw std::runtime_error("malformed uuid");
-
-	/* FIXME: Use uuid_parse_range() when (if) it's merged. */
-	uuid_string_type buf;
-	strncpy(buf, s.data(), std::min(s.size(), string_length));
-	buf[string_length] = '\0';
-
-	if(uuid_parse(buf, m_uuid) < 0)
+	if(uuid_parse_range(s.begin(), s.end(), m_uuid) < 0)
 		throw std::runtime_error("malformed uuid");
 }
 
