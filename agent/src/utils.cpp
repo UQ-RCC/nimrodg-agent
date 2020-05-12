@@ -46,9 +46,6 @@ void nimrod::deleter_cstdio::operator()(FILE *f) const noexcept
 
 uri_ptr nimrod::parse_uri(std::string_view uri)
 {
-	if(uri == nullptr)
-		return nullptr;
-
 	UriUriA rawUri;
 	memset(&rawUri, 0, sizeof(rawUri));
 
