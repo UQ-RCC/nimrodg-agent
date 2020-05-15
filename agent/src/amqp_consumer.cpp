@@ -126,12 +126,10 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 
 std::future<amqp_consumer::send_result_t> amqp_consumer::send_message(const net::message_container& msg, bool ack)
 {
-	msgstate state = {
-		.message = msg,
-		.need_ack = ack,
-		.promise = std::promise<send_result_t>(),
-	    .state = send_result_t::none
-	};
+    msgstate state;
+    state.message  = msg;
+    state.need_ack = ack;
+    state.state    = send_result_t::none;
 
 	/* Keep this lock outside, we don't want the message begin sent until we've retrieved the future. */
 	std::lock_guard<std::mutex> lock(m_map_mutex);
