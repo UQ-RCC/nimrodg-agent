@@ -16,6 +16,7 @@
   "batch": false,
   "output": "console",
   "nohup": true,
+  "secret_key": "abc123",
   "environment": {
     "X": "Y",
     "Z": "W"

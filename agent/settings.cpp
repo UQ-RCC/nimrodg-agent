@@ -54,6 +54,7 @@ enum
 	ARGDEF_BATCH,
 	ARGDEF_OUTPUT,
 	ARGDEF_NOHUP,
+	ARGDEF_SECRET_KEY,
 };
 
 static struct parg_option argdefs[] = {
@@ -75,6 +76,7 @@ static struct parg_option argdefs[] = {
 	{ "batch",					PARG_NOARG,		nullptr, ARGDEF_BATCH },
 	{ "output",					PARG_REQARG,	nullptr, ARGDEF_OUTPUT },
 	{ "nohup",					PARG_NOARG,		nullptr, ARGDEF_NOHUP },
+	{ "secret-key",				PARG_REQARG,	nullptr, ARGDEF_SECRET_KEY },
 	{ nullptr, 0, nullptr, 0 }
 };
 
@@ -128,6 +130,8 @@ static const char *USAGE_OPTIONS =
 "                          - workroot = Redirect everything to a file called output.txt in the work root\n"
 "  --nohup\n"
 "                          Ignore SIGHUP. Ignored on non-POSIX systems.\n"
+"  --secret-key\n"
+"                          Secret Key.\n"
 ;
 
 using namespace nimrod;
@@ -288,6 +292,7 @@ struct tmpargs
 	bopt_t	batch;
 	sopt_t	output;
 	bopt_t	nohup;
+	sopt_t	secret_key;
 	smap_t	environment;
 };
 
@@ -373,6 +378,9 @@ static int load_config_file(tmpargs& s, std::istream& is, std::ostream& err)
 		return -1;
 
 	if(get_json_value(j, "nohup", jv_t::boolean, s.nohup) < 0)
+		return -1;
+
+	if(get_json_value(j, "secret_key", jv_t::string, s.secret_key) < 0)
 		return -1;
 
 	if(auto it = j.find("environment"); it != j.end())
@@ -539,6 +547,10 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				tmp.nohup = true;
 				break;
 
+			case ARGDEF_SECRET_KEY:
+				tmp.secret_key = ps.optarg;
+				break;
+
 			case '?':
 			default:
 				status = usage(2, out, argv[0]);
@@ -623,6 +635,8 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 
 	s.nohup = tmp.nohup.value_or(false);
 
+	s.secret_key = std::move(tmp.secret_key.value_or(""));
+
 	if(s.batch)
 	{
 		s.nohup = true;
@@ -656,5 +670,6 @@ settings::settings() :
 	ca_no_delete(false),
 	batch(false),
 	output(output_t::console),
-	nohup(false)
+	nohup(false),
+	secret_key("")
 {}
