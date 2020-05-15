@@ -34,6 +34,9 @@ static interrupt_event _terminate(interrupt_event::interrupt_t::terminate, SIGIN
 
 static BOOL WINAPI win32_console_handler(DWORD dwCtrlType)
 {
+    if(s_pAgent == nullptr)
+        return;
+
 	/* This is executed in a different thread, so be careful. */
 	switch(dwCtrlType)
 	{
@@ -63,7 +66,6 @@ bool nimrod::init_console_handlers(agent *a)
 	*/
 
 	s_pAgent = a; /* Eww */
-	log::info("AGENT", "Registering Win32 console handler...");
 	if(SetConsoleCtrlHandler(win32_console_handler, TRUE) == FALSE)
 	{
 		DWORD dwError = GetLastError();
@@ -80,6 +82,25 @@ bool nimrod::init_console_handlers(agent *a)
 #include <string.h>
 static agent *s_pAgent;
 
+static void sighandler(int signum)
+{
+    if(s_pAgent == nullptr)
+        return;
+
+    s_pAgent->log_message(log::level_t::info, "CONSOLE", "Caught %s", posix::get_signal_string(signum));
+    switch(signum)
+    {
+        case SIGHUP:
+        case SIGINT:
+        case SIGTERM:
+        case SIGCHLD:
+            s_pAgent->submit_event(interrupt_event(interrupt_event::interrupt_t::interrupt, signum));
+            break;
+        default:
+            std::terminate();
+            break;
+    }
+}
 
 bool nimrod::init_console_handlers(agent *a)
 {
@@ -89,57 +110,20 @@ bool nimrod::init_console_handlers(agent *a)
 	memset(&new_action, 0, sizeof(new_action));
 
 	/* Can't use sa_sigaction here, we may not always be on Linux */
-	new_action.sa_handler = [](int signum)
-	{
-		s_pAgent->log_message(log::level_t::info, "CONSOLE", "Caught %s", posix::get_signal_string(signum));
-		switch(signum)
-		{
-			case SIGHUP:
-			case SIGINT:
-			case SIGTERM:
-			case SIGCHLD:
-				s_pAgent->submit_event(interrupt_event(interrupt_event::interrupt_t::interrupt, signum));
-				break;
-			default:
-				std::terminate();
-				break;
-		}
-	};
-
-	new_action.sa_flags = 0;
+	new_action.sa_handler  = sighandler;
+	new_action.sa_flags    = 0;
+	new_action.sa_restorer = nullptr;
 	sigemptyset(&new_action.sa_mask);
 	sigaddset(&new_action.sa_mask, SIGTERM);
 	sigaddset(&new_action.sa_mask, SIGINT);
 	sigaddset(&new_action.sa_mask, SIGCHLD);
 	sigaddset(&new_action.sa_mask, SIGHUP);
-	new_action.sa_restorer = nullptr;
 
-	auto sigaction_verbose = [](int s, struct sigaction *sa){
-		log::info("AGENT", "  %s...", posix::get_signal_string(s));
-		if(sigaction(s, sa, nullptr) < 0)
-		{
-			log::error("AGENT", "Error registering console handler for %s.", posix::get_signal_string(s));
-			log::debug("AGENT", "  sigaction() returned < 0, errno = %d", errno);
-			log::error("AGENT", "  %s.", strerror(errno));
-			return false;
-		}
-		return true;
-	};
-
-	log::info("AGENT", "Registering POSIX signal handlers...");
-
-	if(!sigaction_verbose(SIGINT, &new_action))
-		return false;
-
-	if(!sigaction_verbose(SIGTERM, &new_action))
-		return false;
-
-	if(!sigaction_verbose(SIGCHLD, &new_action))
-		return false;
-
-	if(!sigaction_verbose(SIGHUP, &new_action))
-		return false;
-
+	/* According to the man page, these will never fail with valid arguments. */
+	sigaction(SIGINT,  &new_action, nullptr);
+	sigaction(SIGTERM, &new_action, nullptr);
+	sigaction(SIGCHLD, &new_action, nullptr);
+	sigaction(SIGHUP,  &new_action, nullptr);
 	return true;
 }
 #else
