@@ -218,27 +218,6 @@ int main(int argc, char **argv)
 	if(socket == nullptr)
 		return 1;
 
-	log::info("AGENT", "Connecting to '%s://%s:%hu'...", s.amqp_sscheme, s.amqp_host, s.amqp_port);
-	amqp_status_enum status;
-	if((status = static_cast<amqp_status_enum>(amqp_socket_open(socket, s.amqp_host.c_str(), s.amqp_port))) != AMQP_STATUS_OK)
-	{
-		log::error("AGENT", "Connection failed: %s", amqp_error_string2(status));
-		log::debug("AGENT", "  amqp_socket_open() returned %d", status);
-		return 1;
-	}
-
-	log::info("AGENT", "Connection established. Authenticating...");
-
-	amqp_rpc_reply_t rr = amqp_login(conn.get(), s.amqp_vhost.c_str(), 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, s.amqp_user.c_str(), s.amqp_pass.c_str());
-
-	if(rr.reply_type != AMQP_RESPONSE_NORMAL)
-	{
-		log::error("AGENT", "%s", amqp_exception::from_rpc_reply(rr));
-		return 1;
-	}
-
-	log::info("AGENT", "Authentication successful!");
-
 	/* If we've reached here, start doing agenty things. */
 	std::atomic_bool exit_amqp(false);
 	try

@@ -186,16 +186,34 @@ amqp_socket_t *nimrod::create_socket(settings& s, amqp_connection_state_t conn, 
 			amqp_ssl_socket_set_verify_hostname(socket, static_cast<amqp_boolean_t>(!s.ssl_no_verify_hostname));
 		}
 	}
-	else
+	else if(!(socket = amqp_tcp_socket_new(conn)))
 	{
-		if(!(socket = amqp_tcp_socket_new(conn)))
-		{
-			log::error("AGENT", "Error creating TCP socket.");
-			log::debug("AGENT", "  amqp_tcp_socket_new() returned NULL.");
-			return nullptr;
-		}
+		log::error("AGENT", "Error creating TCP socket.");
+		log::debug("AGENT", "  amqp_tcp_socket_new() returned NULL.");
+		return nullptr;
 	}
 
+	log::info("AGENT", "Connecting to '%s://%s:%hu'...", s.amqp_sscheme, s.amqp_host, s.amqp_port);
+	if(int status = amqp_socket_open(socket, s.amqp_host.c_str(), s.amqp_port); status != AMQP_STATUS_OK)
+	{
+		log::error("AGENT", "Connection failed: %s", amqp_error_string2(status));
+		log::debug("AGENT", "  amqp_socket_open() returned %d", status);
+		return nullptr;
+	}
+
+	log::info("AGENT", "Connection established. Authenticating...");
+	amqp_rpc_reply_t rr = amqp_login(conn, s.amqp_vhost.c_str(),
+		0, 131072, 0, AMQP_SASL_METHOD_PLAIN,
+		s.amqp_user.c_str(), s.amqp_pass.c_str()
+	);
+
+	if(rr.reply_type != AMQP_RESPONSE_NORMAL)
+	{
+		log::error("AGENT", "%s", amqp_exception::from_rpc_reply(rr));
+		return nullptr;
+	}
+
+	log::info("AGENT", "Authentication successful!");
 	return socket;
 }
 
