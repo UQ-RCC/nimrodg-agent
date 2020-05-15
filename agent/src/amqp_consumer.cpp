@@ -124,10 +124,10 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 	}
 }
 
-std::future<amqp_consumer::send_result_t> amqp_consumer::send_message(const net::message_container& msg, bool ack)
+std::future<amqp_consumer::send_result_t> amqp_consumer::send_message(net::message_container&& msg, bool ack)
 {
     msgstate state;
-    state.message  = msg;
+    state.message  = std::move(msg);
     state.need_ack = ack;
     state.state    = send_result_t::none;
 

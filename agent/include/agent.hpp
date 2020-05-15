@@ -82,7 +82,7 @@ private:
 	using queue = moodycamel::BlockingConcurrentQueue<event_union>;
 	using send_future = std::future<amqp_consumer::send_result_t>;
 
-	send_future send_message(const net::message_container& msg, bool ack = false);
+	send_future send_message(net::message_container&& msg, bool ack = false);
 	send_future send_shutdown_requested(bool ack = false);
 	send_future send_shutdown_signal(int signal, bool ack = false);
 	send_future send_update(const uuid& job_uuid, const command_result& res, net::update_message::action_t action, bool ack = false);

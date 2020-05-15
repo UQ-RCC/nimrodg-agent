@@ -479,10 +479,10 @@ bool agent::operator()(const message_event& evt)
 	return false;
 }
 
-agent::send_future agent::send_message(const net::message_container& msg, bool ack)
+agent::send_future agent::send_message(net::message_container&& msg, bool ack)
 {
 	assert(m_amqp);
-	return m_amqp->send_message(msg, ack);
+	return m_amqp->send_message(std::move(msg), ack);
 }
 
 agent::send_future agent::send_shutdown_requested(bool ack)

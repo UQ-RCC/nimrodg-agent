@@ -52,7 +52,7 @@ public:
 	amqp_consumer& operator=(const amqp_consumer&) = delete;
 	amqp_consumer& operator=(amqp_consumer&&) noexcept = delete;
 
-	std::future<send_result_t> send_message(const net::message_container& msg, bool ack = false);
+	std::future<send_result_t> send_message(net::message_container&& msg, bool ack = false);
 	std::future<net::message_container> get_message();
 
 	std::string_view queue_name() const noexcept;
