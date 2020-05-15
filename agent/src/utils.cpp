@@ -269,14 +269,10 @@ x509_store_ptr nimrod::load_ca_store(const std::string& castore, settings::encod
 	if(castore.empty())
 		return new_ca_store();
 
-	log::info("AGENT", "Loading CA Certificates (%s)...", encoding);
-
 	size_t size;
 	std::unique_ptr<char[]> raw = load_entire_file(castore, size);
 	if(!raw)
-	{
 		return nullptr;
-	}
 
 	if(encoding == settings::encoding_t::base64)
 	{

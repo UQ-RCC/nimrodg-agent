@@ -59,7 +59,7 @@ static T report_openssl_error()
 
 void nimrod::init_openssl()
 {
-	log::info("AGENT", "Initialising " OPENSSL_VERSION_TEXT "...");
+	/* https://wiki.openssl.org/index.php/Library_Initialization */
 	SSL_library_init();
 	OpenSSL_add_ssl_algorithms();
 	OpenSSL_add_all_algorithms();

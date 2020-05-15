@@ -156,27 +156,13 @@ int main(int argc, char **argv)
 	if(!init_console_handlers(&ag))
 		return 1;
 
-	/* OpenSSL/LibreSSL init */
 	init_openssl();
 
+	/* Initialise cURL. Don't use CURL_GLOBAL_ALL, we're already initialising OpenSSL. */
+	if(CURLcode err = curl_global_init(CURL_GLOBAL_WIN32))
 	{
-		/* Initialise cURL. Don't use CURL_GLOBAL_ALL, we're already initialising OpenSSL. */
-		curl_version_info_data *d = curl_version_info(CURLVERSION_NOW);
-		log::info("AGENT", "Initialising cURL %s", d->version);
-		{
-			size_t nproto = 0;
-			for(const char * const *p = d->protocols; *p; ++p, ++nproto)
-				;
-
-			log::trace("AGENT", "  Supported protocols: %s", nimrod::join(d->protocols, d->protocols + nproto, false));
-		}
-
-		CURLcode err = curl_global_init(CURL_GLOBAL_WIN32);
-		if(err)
-		{
-			log::error("AGENT", "curl_global_init() failed with error %d: %s", static_cast<int>(err), curl_easy_strerror(err));
-			return 1;
-		}
+		log::error("AGENT", "curl_global_init() failed with error %d: %s", static_cast<int>(err), curl_easy_strerror(err));
+		return 1;
 	}
 
 	auto curl_deinit = make_protector(curl_global_cleanup);
