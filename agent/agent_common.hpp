@@ -48,8 +48,8 @@ using string_map_t = std::unordered_map<std::string, std::string>;
 struct settings
 {
 	enum class amqp_scheme_t { amqp, amqps };
-	enum class encoding_t { plain, base64 };
-	enum class output_t { console, off, workroot };
+	enum class encoding_t    { plain, base64 };
+	enum class output_t      { console, off, workroot };
 
 	settings();
 

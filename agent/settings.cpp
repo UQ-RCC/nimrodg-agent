@@ -275,25 +275,24 @@ static bool parse_output(std::string_view s, settings::output_t& out)
 
 struct tmpargs
 {
-	using sopt_t = std::optional<std::string>;
-	using bopt_t = std::optional<bool>;
-	using smap_t = std::unordered_map<std::string, std::string>;
+	using string_opt_t = std::optional<std::string>;
+	using bool_opt_t   = std::optional<bool>;
 
-	sopt_t	uuid;
-	sopt_t  work_root;
-	sopt_t	amqp_uri;
-	sopt_t	amqp_routing_key;
-	sopt_t	amqp_direct_exchange;
-	bopt_t	no_verify_peer;
-	bopt_t	no_verify_host;
-	sopt_t	ca_cert;
-	sopt_t	ca_encoding;
-	bopt_t	ca_no_delete;
-	bopt_t	batch;
-	sopt_t	output;
-	bopt_t	nohup;
-	sopt_t	secret_key;
-	smap_t	environment;
+	string_opt_t uuid;
+	string_opt_t work_root;
+	string_opt_t amqp_uri;
+	string_opt_t amqp_routing_key;
+	string_opt_t amqp_direct_exchange;
+	bool_opt_t   no_verify_peer;
+	bool_opt_t   no_verify_host;
+	string_opt_t ca_cert;
+	string_opt_t ca_encoding;
+	bool_opt_t   ca_no_delete;
+	bool_opt_t   batch;
+	string_opt_t output;
+	bool_opt_t   nohup;
+	string_opt_t secret_key;
+	string_map_t environment;
 };
 
 template<typename T>
