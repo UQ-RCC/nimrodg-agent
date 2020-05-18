@@ -23,20 +23,6 @@
 
 using namespace nimrod;
 
-const char *amqp_exception::what() const noexcept { return m_reply.c_str(); }
-
-const std::string& amqp_exception::reply() const noexcept { return m_reply; }
-
-int amqp_exception::code() const noexcept { return m_code; }
-
-amqp_exception::error_type_t amqp_exception::error_type() const noexcept { return m_error_type; }
-
-uint16_t amqp_exception::class_id() const noexcept { return m_class_id; }
-
-uint16_t amqp_exception::method_id() const noexcept { return m_method_id; }
-
-bool amqp_exception::is_timeout() const noexcept { return m_error_type == error_type_t::library && m_code == AMQP_STATUS_TIMEOUT; }
-
 amqp_exception amqp_exception::from_rpc_reply(const amqp_rpc_reply_t& r)
 {
 	/* Ref: https://github.com/akalend/amqpcpp/blob/master/src/AMQPException.cpp */

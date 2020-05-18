@@ -46,15 +46,13 @@ public:
 	amqp_exception& operator=(const amqp_exception&) = default;
 	amqp_exception& operator=(amqp_exception&&) = default;
 
-	const std::string& reply() const noexcept;
-	int code() const noexcept;
-	error_type_t error_type() const noexcept;
-	uint16_t class_id() const noexcept;
-	uint16_t method_id() const noexcept;
+	const std::string& reply() const noexcept { return m_reply; }
+	int code() const noexcept { return m_code; }
+	error_type_t error_type() const noexcept { return m_error_type; }
+	uint16_t class_id() const noexcept { return m_class_id; }
+	uint16_t method_id() const noexcept { return m_method_id; }
 
-	bool is_timeout() const noexcept;
-
-	const char *what() const noexcept override;
+	const char *what() const noexcept override { return m_reply.c_str(); }
 
 	static amqp_exception from_rpc_reply(const amqp_rpc_reply_t& r);
 	static amqp_exception from_channel_close(const amqp_channel_close_t& c);
