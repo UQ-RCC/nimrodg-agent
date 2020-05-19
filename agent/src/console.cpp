@@ -98,7 +98,6 @@ static void sighandler(int signum)
             break;
         default:
             std::terminate();
-            break;
     }
 }
 
@@ -106,7 +105,7 @@ bool nimrod::init_console_handlers(agent *a)
 {
 	s_pAgent = a;
 
-	struct sigaction new_action;
+	struct sigaction new_action{};
 	memset(&new_action, 0, sizeof(new_action));
 
 	/* Can't use sa_sigaction here, we may not always be on Linux */
