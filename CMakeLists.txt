@@ -130,6 +130,7 @@ add_uriparser()
 add_rabbitmqc()
 add_libuuid()
 add_subdirectory(fmt)
+add_subdirectory(nim1)
 add_subdirectory(agent)
 
 
