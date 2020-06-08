@@ -120,8 +120,6 @@ command_result procman::run()
 
 	command_union cmd = m_job.commands()[m_command_index];
 
-	log::info("JOB", "[%u] Executing command %s", m_command_index, cmd);
-
 	try
 	{
 		command_result res = std::visit([this](auto&& c) -> command_result { return this->run_command(c); }, static_cast<const _command_union&>(cmd));

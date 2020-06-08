@@ -224,7 +224,6 @@ bool agent::operator()(const network_message& _msg)
 	using namespace nimrod::net;
 
 	const message_container& msg = _msg.message();
-	log::trace("AGENT", "Processing message: %s", msg);
 
 	if(msg.uuid() != this->get_uuid())
 	{

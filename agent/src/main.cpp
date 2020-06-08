@@ -248,7 +248,6 @@ int main(int argc, char **argv)
 			goto dead;
 		}
 
-		log::trace("AGENT", "Broker ack'd hello.");
 		assert(res == amqp_consumer::send_result_t::ack);
 
 		std::thread dd([&amqp, &exit_amqp, &ag]() { dispatchProc(amqp, exit_amqp, ag); });
