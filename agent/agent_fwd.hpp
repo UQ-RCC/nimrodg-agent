@@ -65,8 +65,11 @@ typedef struct amqp_bytes_t_ amqp_bytes_t;
 struct amqp_connection_state_t_;
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
+#include <nim1/nim1fwd.hpp>
+
 namespace nimrod
 {
+
 struct deleter_uri { void operator()(UriUriA *uri) const noexcept; };
 using uri_ptr = std::unique_ptr<UriUriA, deleter_uri>;
 

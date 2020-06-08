@@ -20,6 +20,7 @@
 #include "agent_common.hpp"
 #include "amqp_exception.hpp"
 #include <amqp.h>
+#include <nim1/make_view.hpp>
 
 using namespace nimrod;
 
@@ -51,7 +52,7 @@ amqp_exception amqp_exception::from_rpc_reply(const amqp_rpc_reply_t& r)
 amqp_exception amqp_exception::from_channel_close(const amqp_channel_close_t& info)
 {
 	return amqp_exception(
-		amqp_bytes_to_string(info.reply_text),
+		nim1::make_view(info.reply_text),
 		info.reply_code,
 		error_type_t::channel,
 		info.class_id,
@@ -62,7 +63,7 @@ amqp_exception amqp_exception::from_channel_close(const amqp_channel_close_t& in
 amqp_exception amqp_exception::from_connection_close(const amqp_connection_close_t& info)
 {
 	return amqp_exception(
-		amqp_bytes_to_string(info.reply_text),
+		nim1::make_view(info.reply_text),
 		info.reply_code,
 		error_type_t::connection,
 		info.class_id,
@@ -76,8 +77,8 @@ void amqp_exception::throw_if_bad(const amqp_rpc_reply_t& r)
 		throw from_rpc_reply(r);
 }
 
-amqp_exception::amqp_exception(std::string&& reply, int code, error_type_t type, uint16_t c, uint16_t m) :
-	m_reply(std::move(reply)),
+amqp_exception::amqp_exception(std::string_view reply, int code, error_type_t type, uint16_t c, uint16_t m) :
+	m_reply(reply),
 	m_code(code),
 	m_error_type(type),
 	m_class_id(c),

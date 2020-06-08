@@ -138,20 +138,6 @@ FILE *nimrod::xfopen(const filesystem::path& path, const char *mode) noexcept
 #endif
 }
 
-std::string_view nimrod::make_view(const char *b, const char *e) noexcept
-{
-	if(b == nullptr || e == nullptr)
-		return "";
-
-	return std::string_view(b, static_cast<size_t>(std::distance(b, e)));
-}
-
-
-std::string nimrod::amqp_bytes_to_string(const amqp_bytes_t& b)
-{
-	return std::string(reinterpret_cast<const char*>(b.bytes), reinterpret_cast<const char*>(b.bytes) + b.len);
-}
-
 amqp_socket_t *nimrod::create_socket(settings& s, amqp_connection_state_t conn, X509_STORE *castore)
 {
 	amqp_socket_t *socket;

@@ -192,6 +192,7 @@ target_link_libraries(agent
 	uriparser
 	rabbitmq-c2
 	CURL::libcurl
+	nim1
 )
 
 if(NOT WIN32)

@@ -61,7 +61,7 @@ public:
 	static void throw_if_bad(const amqp_rpc_reply_t& r);
 
 private:
-	amqp_exception(std::string&& reply, int code, error_type_t type, uint16_t c, uint16_t m);
+	amqp_exception(std::string_view reply, int code, error_type_t type, uint16_t c, uint16_t m);
 
 	std::string m_reply;
 	int m_code;

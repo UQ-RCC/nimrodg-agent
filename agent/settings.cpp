@@ -28,6 +28,7 @@
 #include <optional>
 #include <iostream>
 #include <config.h>
+#include <nim1/make_view.hpp>
 #include "json.hpp"
 #include "agent_common.hpp"
 #include "uuid.hpp"
@@ -158,7 +159,7 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 	uri_ptr& uri = s.amqp_uri;
 
 	{ /* Scheme */
-		s.amqp_sscheme = make_view(uri->scheme.first, uri->scheme.afterLast);
+		s.amqp_sscheme = nim1::make_view(uri->scheme.first, uri->scheme.afterLast);
 		if(s.amqp_sscheme.empty())
 			   return out << "URI Scheme cannot be empty. Must be one of [amqp, amqps]." << std::endl, false;
 
@@ -178,7 +179,7 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 	}
 
 	{ /* Port */
-		std::string_view sport = make_view(uri->portText.first, uri->portText.afterLast);
+		std::string_view sport = nim1::make_view(uri->portText.first, uri->portText.afterLast);
 
 		/* No port specified? Use defaults. */
 		if(sport.empty())
@@ -200,7 +201,7 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 
 	{ /* User/Pass */
 		/* Don't do NULL checks here, allow it. */
-		std::string_view user = make_view(uri->userInfo.first, uri->userInfo.afterLast);
+		std::string_view user = nim1::make_view(uri->userInfo.first, uri->userInfo.afterLast);
 
 		size_t colonPos = user.find(':', 0);
 

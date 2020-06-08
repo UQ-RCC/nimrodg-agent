@@ -100,13 +100,6 @@ int c_strnicmp(const char *_l, const char *_r, size_t n);
 
 FILE *xfopen(const filesystem::path& path, const char *mode) noexcept;
 
-std::string_view make_view(const char *b, const char *e) noexcept;
-
-/*
-** Convert an amqp_bytes_t structure to a C++ string.
-*/
-std::string amqp_bytes_to_string(const amqp_bytes_t& b);
-
 amqp_socket_t *create_socket(settings& s, amqp_connection_state_t conn, X509_STORE *castore);
 void debug_break();
 void report_filesystem_error(const char *component, const filesystem::path& path, const std::error_code& code);

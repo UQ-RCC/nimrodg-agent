@@ -19,6 +19,7 @@
  */
 
 #include <cinttypes>
+#include <nim1/make_view.hpp>
 #include "log.hpp"
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
@@ -86,7 +87,7 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 		);
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
-		m_queue_name = amqp_bytes_to_string(declare_ok->queue);
+		m_queue_name = nim1::make_view(declare_ok->queue);
 		amqp_bytes_t queue_bytes = make_bytes(m_queue_name);
 
 		log::trace("AMQPC", "  Got queue '%s'", m_queue_name);
@@ -205,11 +206,6 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.headers.num_entries = 1;
 	props.headers.entries = { &ua };
 
-	amqp_bytes_t bytes{
-		.len = s.size(),
-		.bytes = s.data()
-	};
-
 	int ret = amqp_basic_publish(
 		m_connection,
 		m_channel,
@@ -218,7 +214,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 		1,	/* Mandatory */
 		0,	/* Not immediate */
 		&props,
-		bytes
+		make_bytes(s)
 	);
 
 	assert(ret == 0);
