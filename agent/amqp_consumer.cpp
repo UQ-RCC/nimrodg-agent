@@ -82,7 +82,8 @@ amqp_consumer::amqp_consumer(
 	m_access_key(access_key),
 	m_secret_key(secret_key),
 	m_signing_algorithm(signing_algorithm),
-	m_last_delivery_tag(0)
+	m_last_delivery_tag(0),
+	m_next_nonce(0)
 {
 	try
 	{
@@ -239,7 +240,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	nim1::auth_header_t authhdr = nim1::build_auth_header(
 		m_authhdr,
 		m_signing_algorithm,
-		m_access_key, m_secret_key, static_cast<time_t>(msgtime), 0, appid, &props, s
+		m_access_key, m_secret_key, static_cast<time_t>(msgtime), m_next_nonce++, appid, &props, s
 	);
 
 	headers[props.headers.num_entries++] = make_te("Authorization", m_authhdr);

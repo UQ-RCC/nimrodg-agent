@@ -113,6 +113,7 @@ private:
 	std::list<std::promise<net::message_container>> m_recv_empty;
 
 	uint64_t m_last_delivery_tag;
+	uint64_t m_next_nonce;
 };
 
 }
