@@ -186,7 +186,7 @@ target_link_libraries(agent
 	fmt-header-only
 	uuid
 	uriparser
-	rabbitmq-static
+	rabbitmq-c2
 	CURL::libcurl
 )
 
