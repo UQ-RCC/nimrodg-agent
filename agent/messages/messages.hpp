@@ -229,7 +229,7 @@ constexpr std::string_view to_string(shutdown_message::reason_t r)
 {
 	switch(r)
 	{
-		case shutdown_message::reason_t::host_signal:	return "host_signal";
+		case shutdown_message::reason_t::host_signal:	return "hostsignal";
 		case shutdown_message::reason_t::requested:		return "requested";
 		default: throw std::domain_error("shutdown_message::reason_t");
 	}
