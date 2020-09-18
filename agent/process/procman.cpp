@@ -226,8 +226,6 @@ command_result procman::run_command(const copy_command& cmd)
 
 	std::unique_lock lock(m_mutex);
 
-	const char *token = m_job.token().c_str();
-
 	if(cmd.dest_context() == context_t::node && cmd.source_context() == context_t::node)
 	{
 		filesystem::path srcPath = resolve_path(m_paths.path_working, cmd.source_path());
@@ -244,7 +242,7 @@ command_result procman::run_command(const copy_command& cmd)
 				return command_result::make_precondition_failure(m_command_index, 0.0f, "parse_uri() failed on uristring.");
 
 			print_copy(m_command_index, "LOCAL COPY", srcUri.get(), dstPath);
-			m_transfer_info = m_tx->do_transfer(tx::operation_t::get, srcUri.get(), dstPath, token);
+			m_transfer_info = m_tx->do_transfer(tx::operation_t::get, srcUri.get(), dstPath);
 		}
 	}
 	else if(cmd.dest_context() == context_t::node && cmd.source_context() == context_t::root)
@@ -255,8 +253,8 @@ command_result procman::run_command(const copy_command& cmd)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed source URI.");
 
 		print_copy(m_command_index, "REMOTE GET", uri.get(), path);
-		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
-			return m_tx->do_transfer(tx::operation_t::get, uri, path, token);
+		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path](const UriUriA *uri){
+			return m_tx->do_transfer(tx::operation_t::get, uri, path);
 		});
 	}
 	else if(cmd.dest_context() == context_t::root && cmd.source_context() == context_t::node)
@@ -267,8 +265,8 @@ command_result procman::run_command(const copy_command& cmd)
 			return command_result::make_exception(m_command_index, 0.0f, "Malformed destination URI.");
 
 		print_copy(m_command_index, "REMOTE PUT", uri.get(), path);
-		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path, &token](const UriUriA *uri){
-			return m_tx->do_transfer(tx::operation_t::put, uri, path, token);
+		m_transfer_info = run_with_injected_uri(m_paths.uri_base.get(), uri.get(), [this, &path](const UriUriA *uri){
+			return m_tx->do_transfer(tx::operation_t::put, uri, path);
 		});
 	}
 	else

@@ -41,7 +41,7 @@ public:
 	transfer_backend& operator=(const transfer_backend&) = delete;
 	transfer_backend& operator=(transfer_backend&&) = delete;
 
-	virtual void do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token) = 0;
+	virtual void do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path) = 0;
 	virtual void cancel() = 0;
 
 protected:

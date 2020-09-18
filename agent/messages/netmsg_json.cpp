@@ -157,7 +157,6 @@ job_definition nlohmann::adl_serializer<job_definition>::from_json(const json& j
 		j.at("uuid").get<nimrod::uuid>(),
 		j.at("index").get<uint64_t>(),
 		j.at("txuri").get<std::string_view>(),
-		j.at("token").get<std::string_view>(),
 		j.at("commands").get<job_definition::command_vector>(),
 		j.at("environment").get<job_definition::env_map>()
 	);
@@ -169,7 +168,6 @@ void nlohmann::adl_serializer<job_definition>::to_json(json& j, const job_defini
         {"uuid",        job.get_uuid()},
         {"index",       job.index()},
         {"txuri",       job.txuri()},
-        {"token",       job.token()},
         {"environment", job.environment()},
         {"commands",    job.commands()}
     };

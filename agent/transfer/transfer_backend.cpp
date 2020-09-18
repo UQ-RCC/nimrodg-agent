@@ -116,7 +116,7 @@ nimrod::uuid txman::uuid() const noexcept
 	return m_uuid;
 }
 
-txman::future_pair txman::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
+txman::future_pair txman::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path)
 {
 	if(!uri || !uri->scheme.first || !uri->scheme.afterLast || uri->scheme.first > uri->scheme.afterLast)
 		return make_error(0, tx::error_type::argument, -1, "Invalid or NULL URI");
@@ -153,7 +153,7 @@ txman::future_pair txman::do_transfer(tx::operation_t op, const UriUriA *uri, co
 	txman::future_pair ret = std::make_pair(id, it2->second.promise.get_future());
 
 	/* Do this last, as it may fail immediately and undo what we've just done. */
-	b->do_transfer(op, uri, path, token);
+	b->do_transfer(op, uri, path);
 	return ret;
 }
 

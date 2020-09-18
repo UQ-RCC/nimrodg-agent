@@ -40,7 +40,7 @@ private:
 public:
 	posix_backend(txman& tx, tx::result_proc proc);
 
-	void do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token) override;
+	void do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path) override;
 	void cancel() override;
 
 private:

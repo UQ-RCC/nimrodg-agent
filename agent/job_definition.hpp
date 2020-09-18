@@ -142,7 +142,7 @@ public:
 	job_definition();
 	job_definition(const job_definition&) = default;
 	job_definition(job_definition&&) = default;
-	job_definition(uuid u, size_t index, std::string_view txuri, std::string_view token, const command_vector& commands, const env_map& environment);
+	job_definition(uuid u, size_t index, std::string_view txuri, const command_vector& commands, const env_map& environment);
 
 	job_definition& operator=(const job_definition&) = default;
 	job_definition& operator=(job_definition&&) = default;
@@ -150,7 +150,6 @@ public:
 	uuid get_uuid() const noexcept;
 	uint64_t index() const noexcept;
 	const std::string& txuri() const noexcept;
-	const std::string& token() const noexcept;
 	const command_vector& commands() const noexcept;
 	const env_map& environment() const noexcept;
 
@@ -158,7 +157,6 @@ private:
 	uuid m_uuid;
 	uint64_t m_index;
 	std::string m_txuri;
-	std::string m_token;
 	command_vector m_commands;
 	env_map m_environment;
 };

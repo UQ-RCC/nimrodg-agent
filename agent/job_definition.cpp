@@ -22,13 +22,12 @@
 
 using namespace nimrod;
 
-job_definition::job_definition() : job_definition(uuid(), 0, "", "", command_vector(), env_map()) {}
+job_definition::job_definition() : job_definition(uuid(), 0, "", command_vector(), env_map()) {}
 
-job_definition::job_definition(uuid u, size_t index, std::string_view txuri, std::string_view token, const command_vector& commands, const env_map& environment) :
+job_definition::job_definition(uuid u, size_t index, std::string_view txuri, const command_vector& commands, const env_map& environment) :
 	m_uuid(u),
 	m_index(index),
 	m_txuri(txuri),
-	m_token(token),
 	m_commands(commands),
 	m_environment(environment)
 {}
@@ -36,7 +35,6 @@ job_definition::job_definition(uuid u, size_t index, std::string_view txuri, std
 uuid job_definition::get_uuid() const noexcept { return m_uuid; }
 uint64_t job_definition::index() const noexcept { return m_index; }
 const std::string& job_definition::txuri() const noexcept { return m_txuri; }
-const std::string& job_definition::token() const noexcept { return m_token; }
 const job_definition::command_vector& job_definition::commands() const noexcept { return m_commands; }
 const job_definition::env_map& job_definition::environment() const noexcept { return m_environment; }
 

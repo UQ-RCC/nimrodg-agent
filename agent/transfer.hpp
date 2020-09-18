@@ -72,7 +72,7 @@ public:
 
 	static future_pair default_future_pair() { return std::make_pair(0, tx::future_type()); }
 
-	future_pair do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token);
+	future_pair do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path);
 
 	void cancel(size_t id);
 	void cancel(const future_pair& fp);

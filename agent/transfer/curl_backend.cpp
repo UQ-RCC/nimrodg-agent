@@ -355,7 +355,7 @@ static CURLcode apply_curl_options(CURL *ctx, const UriUriA *uri)
 #define TEMPLATE_UUID_HEADER NIMRODG_HTTP_HEADER_UUID ": " TEMPLATE_UUID
 static_assert(sizeof(TEMPLATE_UUID) == nimrod::uuid::string_length + 1);
 
-static CURLcode apply_curl_http(CURL *ctx, const char *token, curl_slist_ptr& headers, const nimrod::uuid& uuid)
+static CURLcode apply_curl_http(CURL *ctx, curl_slist_ptr& headers, const nimrod::uuid& uuid)
 {
 	CURLcode cerr;
 
@@ -365,19 +365,6 @@ static CURLcode apply_curl_http(CURL *ctx, const char *token, curl_slist_ptr& he
 
 	/* For HTTP, create our identification headers. */
 	headers.reset();
-
-	if(token != nullptr)
-	{
-		char buf[4096];
-		if(snprintf(buf, 4096, NIMRODG_HTTP_HEADER_TOKEN ": %s", token) >= 4096)
-			throw std::range_error("Token too long");
-
-		curl_slist *list = curl_slist_append(nullptr, buf);
-		if(list == nullptr)
-			return CURLE_OUT_OF_MEMORY;
-
-		headers.reset(list);
-	}
 
 	{
 		char buf[] = TEMPLATE_UUID_HEADER;
@@ -418,7 +405,7 @@ static CURLcode apply_curl_stat(CURL *ctx, struct stat *stat)
 	return CURLE_OK;
 }
 
-void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state)
+void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, state_t state)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
@@ -438,7 +425,7 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 		return this->set_curl_error(cerr);
 
 	/* Apply HTTP options. These can be done independently. */
-	if((cerr = apply_curl_http(m_context.get(), token, m_headers, this->uuid())))
+	if((cerr = apply_curl_http(m_context.get(), m_headers, this->uuid())))
 		return this->set_curl_error(cerr);
 
 	m_file.reset(xfopen(path, state == state_t::in_get ? "wb" : "rb"));
@@ -462,9 +449,9 @@ void curl_backend::doit(const UriUriA *uri, const filesystem::path& path, const 
 	m_state = state;
 }
 
-void curl_backend::do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
+void curl_backend::do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path)
 {
-	return doit(uri, path, token, op == operation_t::get ? state_t::in_get : state_t::in_put);
+	return doit(uri, path, op == operation_t::get ? state_t::in_get : state_t::in_put);
 }
 
 size_t curl_backend::write_proc(char *ptr, size_t size, size_t nmemb) noexcept

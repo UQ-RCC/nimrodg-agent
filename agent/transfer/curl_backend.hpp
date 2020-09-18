@@ -41,14 +41,14 @@ public:
 	enum class state_t { ready, in_get, in_put };
 	curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x509, bool verifyPeer, bool verifyHost);
 
-	void do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token) override;
+	void do_transfer(operation_t op, const UriUriA *uri, const filesystem::path& path) override;
 	void cancel() override;
 
 	void _handle_message(CURLMsg *msg);
 private:
 	void set_curl_error(CURLcode cerr);
 
-	void doit(const UriUriA *uri, const filesystem::path& path, const char *token, state_t state);
+	void doit(const UriUriA *uri, const filesystem::path& path, state_t state);
 
 	size_t write_proc(char *ptr, size_t size, size_t nmemb) noexcept;
 	size_t read_proc(char *ptr, size_t size, size_t nmemb) noexcept;

@@ -94,7 +94,7 @@ posix_backend::posix_backend(txman& tx, result_proc proc) :
 	m_stopflag(false)
 {}
 
-void posix_backend::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path, const char *token)
+void posix_backend::do_transfer(tx::operation_t op, const UriUriA *uri, const filesystem::path& path)
 {
 	if(m_state != state_t::ready)
 		throw std::logic_error("Invalid state transition");
