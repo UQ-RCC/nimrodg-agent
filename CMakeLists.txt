@@ -67,8 +67,6 @@ if(MSVC)
 	endforeach()
 endif()
 
-option(NIMRODG_PLATFORM_STRING "Agent Platform String" "")
-
 if(NOT NIMRODG_PLATFORM_STRING)
 	if(MSVC)
 		if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
@@ -79,8 +77,21 @@ if(NOT NIMRODG_PLATFORM_STRING)
 	endif()
 endif()
 
+if(NOT NIMRODG_OUTPUT_DIRECTORY)
+    set(NIMRODG_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+endif()
+
+# Persist everything to the cache
+set(NIMRODG_PLATFORM_STRING  ${NIMRODG_PLATFORM_STRING}  CACHE STRING "Agent Platform String"   FORCE)
+set(NIMRODG_OUTPUT_DIRECTORY ${NIMRODG_OUTPUT_DIRECTORY} CACHE STRING "Agent Install Directory" FORCE)
+
 add_uriparser()
 add_rabbitmqc()
 add_subdirectory(uuid)
 add_subdirectory(fmt)
 add_subdirectory(agent)
+
+set_target_properties(agent PROPERTIES
+    OUTPUT_NAME                 agent-${NIMRODG_PLATFORM_STRING}
+    RUNTIME_OUTPUT_DIRECTORY    ${NIMRODG_OUTPUT_DIRECTORY}
+)
