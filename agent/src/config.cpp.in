@@ -20,6 +20,7 @@ const compile_info_t g_compile_info = {
 		.curl			= LIBCURL_VERSION,
 		.uriparser		= "@URIPARSER_VERSION_STRING@",
 		.rabbitmq_c		= AMQ_VERSION_STRING,
+		.libuuid		= "@UUID_VERSION_STRING@",
 	},
 	.agent = {
 		.version		= "@GIT_DESCRIBE@",

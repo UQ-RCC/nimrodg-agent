@@ -413,6 +413,7 @@ static void dump_version(std::ostream& out)
 		out << " (+" << d->libssh_version << ")";
 
 	out << " uriparser/" << g_compile_info.version.uriparser;
+	out << " libuuid/" << g_compile_info.version.libuuid;
 	out << std::endl;
 	out << "User-Agent: " << g_compile_info.agent.user_agent << std::endl;
 	out << "Commit: " << g_compile_info.git.sha1 << std::endl;

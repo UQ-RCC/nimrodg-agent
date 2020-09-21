@@ -42,6 +42,7 @@ typedef struct
 		const char *curl;
 		const char *uriparser;
 		const char *rabbitmq_c;
+		const char *libuuid;
 	} version;
 
 	struct

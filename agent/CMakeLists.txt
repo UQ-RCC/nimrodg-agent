@@ -45,6 +45,7 @@ else()
 endif()
 
 get_target_property(URIPARSER_VERSION_STRING uriparser VERSION)
+get_target_property(UUID_VERSION_STRING      uuid      VERSION)
 
 if(NOT NIMRODG_PLATFORM_STRING)
 	message(FATAL_ERROR "No platform string provided")
