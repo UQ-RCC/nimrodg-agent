@@ -54,6 +54,7 @@ struct settings
 	settings();
 
 	nimrod::uuid		uuid;
+	std::string			uuid_string;
 	std::string			work_root;
 
 	std::string			amqp_raw_uri;

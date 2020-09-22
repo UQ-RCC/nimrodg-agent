@@ -236,13 +236,6 @@ static bool validate_uri(std::ostream& out, std::ostream& err, settings& s)
 	return true;
 }
 
-static filesystem::path build_default_workdir(uuid& uu)
-{
-	uuid::uuid_string_type us;
-	uu.str(us, sizeof(us));
-	return filesystem::temp_directory_path() / "nimrodg-agent" / us;
-}
-
 static bool parse_encoding(std::string_view s, settings::encoding_t& enc)
 {
 	if(s == "plain")
@@ -282,7 +275,7 @@ struct tmpargs
 	using smap_t = std::unordered_map<std::string, std::string>;
 
 	sopt_t	uuid;
-	sopt_t work_root;
+	sopt_t  work_root;
 	sopt_t	amqp_uri;
 	sopt_t	amqp_routing_key;
 	sopt_t	amqp_direct_exchange;
@@ -564,10 +557,11 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 		}
 
 		s.uuid = _uuid;
+		s.uuid_string = std::move(tmp.uuid.value());
 	}
 
 	if(!tmp.work_root)
-		s.work_root = build_default_workdir(s.uuid).string();
+		s.work_root = filesystem::temp_directory_path() / "nimrodg-agent" / s.uuid_string;
 	else
 		s.work_root = tmp.work_root.value();
 
@@ -632,6 +626,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 
 settings::settings() :
 	uuid(),
+	uuid_string(uuid.str()),
 	work_root(""),
 	amqp_raw_uri(""),
 	amqp_uri(nullptr),
