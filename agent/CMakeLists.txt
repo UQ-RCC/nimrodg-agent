@@ -8,11 +8,18 @@ if(NOT WIN32)
 endif()
 
 find_package(OpenSSL 2.0.0 REQUIRED)
-find_package(LibSSH2 1.8.0 REQUIRED)
 
-find_package(CURL 7.64.0 REQUIRED REQUIRED COMPONENTS HTTP HTTPS SSL FTPS GOPHER SCP SFTP TFTP)
-target_link_libraries(CURL::libcurl INTERFACE ${LIBSSH2_LIBRARY})
+# cURL's find_package() doesn't pull in the required libraries for linking statically
+pkg_check_modules(CURL REQUIRED libcurl>=7.64.0)
 
+add_library(CURL::libcurl STATIC IMPORTED)
+set_target_properties(CURL::libcurl PROPERTIES
+	INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CURL_STATIC_INCLUDE_DIRS}"
+	INTERFACE_COMPILE_DEFINITIONS        CURL_STATICLIB
+	INTERFACE_LINK_LIBRARIES             "${CURL_STATIC_LIBRARIES}"
+	IMPORTED_LINK_INTERFACE_LANGUAGES    C
+	IMPORTED_LOCATION                    "${CURL_LINK_LIBRARIES}"
+)
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
