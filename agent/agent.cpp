@@ -33,6 +33,7 @@ agent::agent(uuid uu, const filesystem::path& workRoot, const string_map_t& env)
 	m_state(agent_state_t::waiting_for_init),
 	m_nohup(false),
 	m_amqp(nullptr),
+	m_tx(nullptr),
 	m_work_root(workRoot),
 	m_uuid(uu),
 	m_environment(env),
