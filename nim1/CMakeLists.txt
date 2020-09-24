@@ -8,6 +8,9 @@ add_library(nim1 STATIC
 
 		./make_view.cpp
 		./include/nim1/make_view.hpp
+
+		./time.cpp
+		./include/nim1/time.hpp
 )
 
 set_target_properties(nim1 PROPERTIES

@@ -23,5 +23,6 @@
 #include "nim1fwd.hpp"
 
 #include "make_view.hpp"
+#include "time.hpp"
 
 #endif /* _NIM1_HPP */
