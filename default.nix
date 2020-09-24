@@ -67,6 +67,8 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = [
     "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"
+    "-DUSE_LTO=ON"
+    "-DCMAKE_BUILD_TYPE=MinSizeRel"
   ];
 
   enableParallelBuilding = true;

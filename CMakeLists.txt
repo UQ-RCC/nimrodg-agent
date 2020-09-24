@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.13)
 project(nimrodg-agent)
 
 enable_language(C CXX)
+
+include(CheckIPOSupported)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(GetGitRevisionDescription)
@@ -130,7 +132,23 @@ add_libuuid()
 add_subdirectory(fmt)
 add_subdirectory(agent)
 
+
+option(USE_LTO "Use LTO" OFF)
+if(USE_LTO)
+	check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX)
+	if(NOT IPO_SUPPORTED)
+		message(STATUS "LTO not supported, disabling...")
+		set(USE_LTO OFF)
+	endif()
+endif()
+
+message(STATUS "LTO Active: ${USE_LTO}")
+
 set_target_properties(agent PROPERTIES
     OUTPUT_NAME                 agent-${NIMRODG_PLATFORM_STRING}
     RUNTIME_OUTPUT_DIRECTORY    ${NIMRODG_OUTPUT_DIRECTORY}
 )
+
+if(NOT CMAKE_BUILD_TYPE MATCHES Debug AND USE_LTO)
+	set_target_properties(agent PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
