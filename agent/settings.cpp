@@ -404,7 +404,16 @@ static void dump_version(std::ostream& out)
 	out << " libcurl/" << g_compile_info.version.curl;
 
 	if(d->libssh_version != nullptr)
-		out << " (+" << d->libssh_version << ")";
+		out << " " << d->libssh_version;
+
+	if(d->nghttp2_version != nullptr)
+		out << " nghttp2/" << d->nghttp2_version;
+
+	if(d->libz_version != nullptr)
+		out << " zlib/" << d->libz_version;
+
+	if(d->ares != nullptr)
+		out << " c-ares/" << d->ares;
 
 	out << " uriparser/" << g_compile_info.version.uriparser;
 	out << " libuuid/" << g_compile_info.version.libuuid;
