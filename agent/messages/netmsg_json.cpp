@@ -186,10 +186,10 @@ hello_message nlohmann::adl_serializer<hello_message>::from_json(const json& j)
 void nlohmann::adl_serializer<hello_message>::to_json(json& j, const hello_message& msg)
 {
     j = {
-        {"uuid",  msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type",  msg.type()},
-        {"queue", msg.queue()}
+        {"type",    msg.type()},
+        {"queue",   msg.queue()}
     };
 }
 
@@ -202,9 +202,9 @@ init_message nlohmann::adl_serializer<init_message>::from_json(const json& j)
 void nlohmann::adl_serializer<init_message>::to_json(json& j, const init_message& msg)
 {
     j = {
-        {"uuid", msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type", msg.type()}
+        {"type",    msg.type()}
     };
 }
 
@@ -222,11 +222,11 @@ shutdown_message nlohmann::adl_serializer<shutdown_message>::from_json(const jso
 void nlohmann::adl_serializer<shutdown_message>::to_json(json& j, const shutdown_message& msg)
 {
     j = {
-        {"uuid",   msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type",   msg.type()},
-        {"reason", msg.reason()},
-        {"signal", msg.signal()}
+        {"type",    msg.type()},
+        {"reason",  msg.reason()},
+        {"signal",  msg.signal()}
     };
 }
 
@@ -239,10 +239,10 @@ submit_message nlohmann::adl_serializer<submit_message>::from_json(const json& j
 void nlohmann::adl_serializer<submit_message>::to_json(json& j, const submit_message& msg)
 {
     j = {
-        {"uuid", msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type", msg.type()},
-        {"job",  msg.job()}
+        {"type",    msg.type()},
+        {"job",     msg.job()}
     };
 }
 
@@ -321,9 +321,9 @@ ping_message nlohmann::adl_serializer<ping_message>::from_json(const json& j)
 void nlohmann::adl_serializer<ping_message>::to_json(json& j, const ping_message& msg)
 {
     j = {
-        {"uuid", msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type", msg.type()}
+        {"type",    msg.type()}
     };
 }
 
@@ -336,10 +336,10 @@ pong_message nlohmann::adl_serializer<pong_message>::from_json(const json& j)
 void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message& msg)
 {
     j = {
-        {"uuid",  msg.uuid()},
+        {"uuid",    msg.uuid()},
         {"version", msg.version()},
-        {"type",  msg.type()},
-        {"stats", json::object()}
+        {"type",    msg.type()},
+        {"stats",   json::object()}
     };
 }
 
