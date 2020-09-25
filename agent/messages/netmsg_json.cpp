@@ -159,8 +159,24 @@ void nlohmann::adl_serializer<job_definition>::to_json(json& j, const job_defini
 }
 
 
+static uint32_t ensure_version(const nlohmann::json& j)
+{
+	uint32_t version = 1;
+
+	/* Version 1 had no version field. */
+	if(auto it = j.find("version"); it != j.end())
+		version = it->get<uint32_t>();
+
+	if(version != net::PROTOCOL_VERSION)
+		throw std::runtime_error("mismatched protocol version");
+
+	return version;
+}
+
+
 hello_message nlohmann::adl_serializer<hello_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::hello_message(
 		j.at("uuid").get<uuid>(),
 		j.at("queue").get<std::string_view>()
@@ -171,6 +187,7 @@ void nlohmann::adl_serializer<hello_message>::to_json(json& j, const hello_messa
 {
     j = {
         {"uuid",  msg.uuid()},
+        {"version", msg.version()},
         {"type",  msg.type()},
         {"queue", msg.queue()}
     };
@@ -178,6 +195,7 @@ void nlohmann::adl_serializer<hello_message>::to_json(json& j, const hello_messa
 
 init_message nlohmann::adl_serializer<init_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::init_message(j.at("uuid").get<nimrod::uuid>());
 }
 
@@ -185,6 +203,7 @@ void nlohmann::adl_serializer<init_message>::to_json(json& j, const init_message
 {
     j = {
         {"uuid", msg.uuid()},
+        {"version", msg.version()},
         {"type", msg.type()}
     };
 }
@@ -192,6 +211,7 @@ void nlohmann::adl_serializer<init_message>::to_json(json& j, const init_message
 
 shutdown_message nlohmann::adl_serializer<shutdown_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::shutdown_message(
 		j.at("uuid").get<uuid>(),
 		j.at("reason").get<shutdown_message::reason_t>(),
@@ -203,6 +223,7 @@ void nlohmann::adl_serializer<shutdown_message>::to_json(json& j, const shutdown
 {
     j = {
         {"uuid",   msg.uuid()},
+        {"version", msg.version()},
         {"type",   msg.type()},
         {"reason", msg.reason()},
         {"signal", msg.signal()}
@@ -211,6 +232,7 @@ void nlohmann::adl_serializer<shutdown_message>::to_json(json& j, const shutdown
 
 submit_message nlohmann::adl_serializer<submit_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::submit_message(j.at("uuid").get<uuid>(), j.at("job").get<job_definition>());
 }
 
@@ -218,6 +240,7 @@ void nlohmann::adl_serializer<submit_message>::to_json(json& j, const submit_mes
 {
     j = {
         {"uuid", msg.uuid()},
+        {"version", msg.version()},
         {"type", msg.type()},
         {"job",  msg.job()}
     };
@@ -249,6 +272,7 @@ void nlohmann::adl_serializer<command_result>::to_json(json& j, const command_re
 
 update_message nlohmann::adl_serializer<update_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::update_message(
 		j.at("uuid").get<uuid>(),
 		j.at("job_uuid").get<uuid>(),
@@ -261,6 +285,7 @@ void nlohmann::adl_serializer<update_message>::to_json(json& j, const update_mes
 {
     j = {
         {"uuid",           msg.uuid()},
+        {"version",        msg.version()},
         {"type",           msg.type()},
         {"job_uuid",       msg.job_uuid()},
         {"command_result", msg.result()},
@@ -270,6 +295,7 @@ void nlohmann::adl_serializer<update_message>::to_json(json& j, const update_mes
 
 lifecontrol_message nlohmann::adl_serializer<lifecontrol_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::lifecontrol_message(
 		j.at("uuid").get<uuid>(),
 		j.at("operation").get<lifecontrol_message::operation_t>()
@@ -280,6 +306,7 @@ void nlohmann::adl_serializer<lifecontrol_message>::to_json(json& j, const lifec
 {
     j = {
         {"uuid",      msg.uuid()},
+        {"version",   msg.version()},
         {"type",      msg.type()},
         {"operation", msg.operation()}
     };
@@ -287,6 +314,7 @@ void nlohmann::adl_serializer<lifecontrol_message>::to_json(json& j, const lifec
 
 ping_message nlohmann::adl_serializer<ping_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::ping_message(j.at("uuid").get<uuid>());
 }
 
@@ -294,12 +322,14 @@ void nlohmann::adl_serializer<ping_message>::to_json(json& j, const ping_message
 {
     j = {
         {"uuid", msg.uuid()},
+        {"version", msg.version()},
         {"type", msg.type()}
     };
 }
 
 pong_message nlohmann::adl_serializer<pong_message>::from_json(const json& j)
 {
+	ensure_version(j);
 	return nimrod::net::pong_message(j.at("uuid").get<uuid>());
 }
 
@@ -307,6 +337,7 @@ void nlohmann::adl_serializer<pong_message>::to_json(json& j, const pong_message
 {
     j = {
         {"uuid",  msg.uuid()},
+        {"version", msg.version()},
         {"type",  msg.type()},
         {"stats", json::object()}
     };

@@ -30,6 +30,10 @@
 
 namespace nimrod::net {
 
+enum {
+    PROTOCOL_VERSION = NIMRODG_VERSION_MAJOR
+};
+
 enum class message_type_t
 {
 	agent_init,
@@ -52,6 +56,7 @@ public:
 	using message_base_type = base_message<T>;
 
 	nimrod::uuid				uuid() const noexcept { return m_uuid; }
+	constexpr uint32_t         	version() const noexcept { return PROTOCOL_VERSION; }
 	constexpr message_type_t	type() const noexcept { return T::type_value; }
 
 protected:
