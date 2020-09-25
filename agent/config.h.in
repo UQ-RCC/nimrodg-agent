@@ -66,6 +66,7 @@ typedef struct
 	struct
 	{
 		const char *version;
+		const char *protocol;
 		const char *platform;
 		const char *description;
 		const char *user_agent;

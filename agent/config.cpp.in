@@ -15,7 +15,7 @@ const compile_info_t g_compile_info = {
 		.dirty			= @GIT_DIRTY@,
 	},
 	.version = {
-		.agent			= "@GIT_DESCRIBE@",
+		.agent			= NIMRODG_VERSION_STRING,
 		.openssl		= "@OPENSSL_VERSION@",
 		.curl			= LIBCURL_VERSION,
 		.uriparser		= "@URIPARSER_VERSION_STRING@",
@@ -23,10 +23,11 @@ const compile_info_t g_compile_info = {
 		.libuuid		= "@UUID_VERSION_STRING@",
 	},
 	.agent = {
-		.version		= "@GIT_DESCRIBE@",
+		.version		= NIMRODG_VERSION_STRING,
+		.protocol		= NIMRODG_XSTR(NIMRODG_VERSION_MAJOR),
 		.platform		= "@NIMRODG_PLATFORM_STRING@",
-		.description	= "Nimrod/G Agent, version @GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
-		.user_agent		= "NimrodG/@GIT_DESCRIBE@ (@NIMRODG_PLATFORM_STRING@)",
+		.description	= "Nimrod/G Agent, version " NIMRODG_VERSION_STRING " (@NIMRODG_PLATFORM_STRING@)",
+		.user_agent		= "NimrodG/" NIMRODG_VERSION_STRING " (@NIMRODG_PLATFORM_STRING@; git:@GIT_DESCRIBE@)",
 		.dev_null		= NIMRODG_DEVNULL,
 	}
 };
