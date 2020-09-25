@@ -119,7 +119,7 @@ void nimrod::set_ssl_store(SSL_CTX *ctx, X509_STORE *st) noexcept
 	SSL_CTX_set_cert_store(ctx, st);
 
 	/* SSL_CTX_set_cert_store() doesn't add a reference, so do it here. */
-	CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_X509_STORE);
+	CRYPTO_add_lock(&ctx->references, 1, CRYPTO_LOCK_X509_STORE, "ssl.cpp", __LINE__);
 }
 
 static size_t base64_get_decoded_length(const char *data, size_t size) noexcept
