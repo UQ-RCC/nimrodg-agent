@@ -17,6 +17,24 @@
 #define NIMRODG_HTTP_HEADER_UUID        "X-NimrodG-Agent-UUID"
 #define NIMRODG_HTTP_HEADER_TOKEN       "X-NimrodG-File-Auth-Token"
 
+#define NIMRODG_XSTR(s)                 NIMRODG_STR(s)
+#define NIMRODG_STR(s)                  #s
+
+/*
+ * Major version is also the protocol version.
+ * Bump this if for ANY reason the agent can't be used
+ * with its corresponding version of Nimrod/G, include a
+ * CLI change.
+ */
+#define NIMRODG_VERSION_MAJOR  1
+#define NIMRODG_VERSION_MINOR  4
+#define NIMRODG_VERSION_PATCH  0
+
+#define NIMRODG_VERSION_STRING \
+	NIMRODG_XSTR(NIMRODG_VERSION_MAJOR) "." \
+	NIMRODG_XSTR(NIMRODG_VERSION_MINOR) "." \
+	NIMRODG_XSTR(NIMRODG_VERSION_PATCH)
+
 #cmakedefine NIMRODG_USE_WIN32API
 #cmakedefine NIMRODG_USE_POSIX
 
