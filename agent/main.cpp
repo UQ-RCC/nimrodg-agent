@@ -29,7 +29,7 @@
 #include <curl/curl.h>
 #include <config.h>
 
-#include <nim1/time.hpp>
+#include <nim1/nim1.hpp>
 
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
@@ -77,6 +77,8 @@ int main(int argc, char **argv)
 {
 	int argStatus;
 	settings s;
+
+	nim1::init();
 
 	if(!parse_program_arguments(argc, argv, argStatus, std::cout, std::cerr, s))
 		return argStatus;
