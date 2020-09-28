@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 
+#include <cassert>
 #include <system_error>
 
 #include <nim1/lc.hpp>
@@ -46,4 +47,29 @@ void nim1::lc_init()
 locale_t lc::locale() noexcept
 {
 	return _posix_locale.get();
+}
+
+int lc::tolower(int c) noexcept
+{
+	assert(_posix_locale);
+	return ::tolower_l(c, _posix_locale.get());
+}
+
+int lc::stricmp(const char *_l, const char *_r) noexcept
+{
+	const unsigned char *l = reinterpret_cast<const unsigned char *>(_l);
+	const unsigned char *r = reinterpret_cast<const unsigned char *>(_r);
+	for(; *l && *r && (*l == *r || tolower(*l) == tolower(*r)); l++, r++);
+	return tolower(*l) - tolower(*r);
+}
+
+
+/* From https://git.musl-libc.org/cgit/musl/tree/src/string/strncmp.c */
+int lc::strnicmp(const char *_l, const char *_r, size_t n) noexcept
+{
+	const unsigned char *l = reinterpret_cast<const unsigned char *>(_l);
+	const unsigned char *r = reinterpret_cast<const unsigned char *>(_r);
+	if(!n--) return 0;
+	for(; *l && *r && n && tolower(*l) == tolower(*r); l++, r++, n--);
+	return *l - *r;
 }

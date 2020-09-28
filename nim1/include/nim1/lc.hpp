@@ -31,6 +31,9 @@ struct locale_deleter { void operator()(locale_t l) const noexcept; };
 using locale_ptr = std::unique_ptr<std::remove_pointer_t<locale_t>, locale_deleter>;
 
 locale_t locale() noexcept;
+int      tolower(int c) noexcept;
+int      stricmp(const char *_l, const char *_r) noexcept;
+int      strnicmp(const char *_l, const char *_r, size_t n) noexcept;
 
 }
 
