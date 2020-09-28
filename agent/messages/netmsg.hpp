@@ -41,8 +41,8 @@ public:
 	using msg_union::msg_union;
 	using msg_union::operator=;
 
-	message_type_t	type() const noexcept;
-	nimrod::uuid	uuid() const noexcept;
+	message_type_t   type() const noexcept;
+	nimrod::uuid     uuid() const noexcept;
 	nim1::nanotime_t time() const noexcept;
 
 	template <typename T, typename = std::enable_if_t<std::is_base_of_v<base_message<T>, T>>>
