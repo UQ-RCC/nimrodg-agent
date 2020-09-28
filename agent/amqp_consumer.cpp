@@ -29,7 +29,7 @@ using namespace nimrod;
 
 static constexpr amqp_bytes_t make_bytes(std::string_view s) noexcept
 {
-	return { .len = s.size(), .bytes = const_cast<char*>(s.data()) };
+	return amqp_bytes_t{ s.size(), const_cast<char*>(s.data()) };
 }
 
 /* For struct timeval */
