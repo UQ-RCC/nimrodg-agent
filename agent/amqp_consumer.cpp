@@ -25,7 +25,12 @@
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
 
+using namespace std::string_view_literals;
+
 using namespace nimrod;
+
+/* Application Id. */
+constexpr static std::string_view appid = "nimrod"sv;
 
 static constexpr amqp_bytes_t make_bytes(std::string_view s) noexcept
 {
@@ -202,7 +207,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.type				= make_bytes(net::to_string(msg.type()));
 	props.timestamp			= static_cast<uint64_t>(static_cast<time_t>(msgtime)); /* AMQP assumes this is in seconds. */
 	props.user_id			= make_bytes(m_user);
-	props.app_id			= make_bytes("nimrod");
+	props.app_id			= make_bytes(appid);
 
 	uuid u;
 	uuid::uuid_string_type uuid_string;
