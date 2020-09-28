@@ -20,6 +20,7 @@
 
 #include <cinttypes>
 #include <nim1/make_view.hpp>
+#include <nim1/time.hpp>
 #include "log.hpp"
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
@@ -165,6 +166,8 @@ void amqp_consumer::write_message(const net::message_container& msg)
 {
 	std::string s = net::message_write(msg);
 
+	nim1::nanotime_t msgtime = msg.time();
+
 	// https://github.com/alanxz/rabbitmq-c/blob/master/examples/amqp_sendstring.c
 	amqp_basic_properties_t props;
 	memset(&props, 0, sizeof(props));
@@ -184,7 +187,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.content_type		= make_bytes(net::message_content_type()); /* Same as HTTP "Content-Type" */
 	props.content_encoding	= make_bytes("identity"); /* Same as HTTP "Content-Encoding" */
 	props.type				= make_bytes(net::to_string(msg.type()));
-	props.timestamp			= static_cast<uint64_t>(time(nullptr)); /* AMQP assumes this is in seconds. */
+	props.timestamp			= static_cast<uint64_t>(static_cast<time_t>(msgtime)); /* AMQP assumes this is in seconds. */
 	props.user_id			= make_bytes(m_user);
 	props.app_id			= make_bytes("nimrod");
 
