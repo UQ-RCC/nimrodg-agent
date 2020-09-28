@@ -195,7 +195,7 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	uuid::uuid_string_type uuid_string;
 	u.str(uuid_string, sizeof(uuid_string));
 
-	props.message_id		= { .len = uuid::string_length, .bytes = uuid_string };
+	props.message_id = make_bytes(std::string_view(uuid_string, uuid::string_length));
 
 	/* Add a "User-Agent" header. */
 	amqp_table_entry_t ua = {
