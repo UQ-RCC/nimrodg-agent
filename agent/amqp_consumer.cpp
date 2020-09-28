@@ -176,6 +176,10 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	std::string s = net::message_write(msg);
 
 	nim1::nanotime_t msgtime = msg.time();
+	nim1::nanotime_t sendtime = nim1::current_time();
+
+	nim1::iso8601_string_t sendstring;
+	to_iso8601(sendtime, nim1::iso8601_format_t::extended_nanosec, sendstring);
 
 	// https://github.com/alanxz/rabbitmq-c/blob/master/examples/amqp_sendstring.c
 	amqp_basic_properties_t props;
@@ -207,8 +211,9 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.message_id = make_bytes(std::string_view(uuid_string, uuid::string_length));
 
 	/* Add a "User-Agent" header. */
-	std::array<amqp_table_entry_t, 1> headers = {
+	std::array<amqp_table_entry_t, 2> headers = {
 		make_te("User-Agent", g_compile_info.agent.user_agent),
+		make_te("X-NimrodG-Sent-At", sendstring),
 	};
 
 	props.headers.num_entries = headers.size();
