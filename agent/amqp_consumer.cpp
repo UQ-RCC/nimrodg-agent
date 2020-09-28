@@ -162,6 +162,15 @@ std::string_view amqp_consumer::queue_name() const noexcept
 	return m_queue_name;
 }
 
+static amqp_table_entry_t make_te(std::string_view key, std::string_view value) noexcept
+{
+    amqp_table_entry_t te{};
+    te.key = make_bytes(key);
+    te.value.kind = AMQP_FIELD_KIND_UTF8;
+    te.value.value.bytes = make_bytes(value);
+    return te;
+}
+
 void amqp_consumer::write_message(const net::message_container& msg)
 {
 	std::string s = net::message_write(msg);
@@ -198,16 +207,12 @@ void amqp_consumer::write_message(const net::message_container& msg)
 	props.message_id = make_bytes(std::string_view(uuid_string, uuid::string_length));
 
 	/* Add a "User-Agent" header. */
-	amqp_table_entry_t ua = {
-		.key = make_bytes("User-Agent"),
-		.value = {
-			.kind = AMQP_FIELD_KIND_UTF8,
-			.value = { .bytes = make_bytes(g_compile_info.agent.user_agent) }
-		}
+	std::array<amqp_table_entry_t, 1> headers = {
+		make_te("User-Agent", g_compile_info.agent.user_agent),
 	};
 
-	props.headers.num_entries = 1;
-	props.headers.entries = { &ua };
+	props.headers.num_entries = headers.size();
+	props.headers.entries = headers.data();
 
 	int ret = amqp_basic_publish(
 		m_connection,
