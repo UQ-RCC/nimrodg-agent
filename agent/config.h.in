@@ -15,7 +15,6 @@
 #endif
 
 #define NIMRODG_HTTP_HEADER_UUID        "X-NimrodG-Agent-UUID"
-#define NIMRODG_HTTP_HEADER_TOKEN       "X-NimrodG-File-Auth-Token"
 
 #define NIMRODG_XSTR(s)                 NIMRODG_STR(s)
 #define NIMRODG_STR(s)                  #s
