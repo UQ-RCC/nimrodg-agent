@@ -20,8 +20,6 @@
 #ifndef _NIM1_IP_HPP
 #define _NIM1_IP_HPP
 
-/* Placeholder */
-
 #include <nim1/nim1.hpp>
 
 #endif /* _NIM1_IP_HPP */
