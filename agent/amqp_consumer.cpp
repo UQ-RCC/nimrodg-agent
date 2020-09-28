@@ -286,6 +286,27 @@ static int read_message(amqp_connection_state_t conn, amqp_channel_t channel, ne
 		return 1;
 	}
 
+	if(!(_msg.properties._flags & AMQP_BASIC_APP_ID_FLAG) || appid != nim1::make_view(_msg.properties.app_id))
+		return 1;
+
+	if(!(_msg.properties._flags & AMQP_BASIC_MESSAGE_ID_FLAG))
+		return 1;
+
+	uuid_t uuid;
+	std::string_view uuids = nim1::make_view(_msg.properties.message_id);
+	if(uuid_parse_range(uuids.begin(), uuids.end(), uuid) < 0)
+		return 1;
+
+	if(!(_msg.properties._flags & AMQP_BASIC_CONTENT_TYPE_FLAG))
+		return 1;
+
+	/* FIXME: Absolutely disgusting. */
+	if("application/json; charset=UTF-8"sv != nim1::make_view(_msg.properties.content_type))
+		return 1;
+
+	if(!(_msg.properties._flags & AMQP_BASIC_TIMESTAMP_FLAG))
+		return 1;
+
 	try
 	{
 		msg = net::message_read(reinterpret_cast<char*>(_msg.body.bytes), _msg.body.len);
