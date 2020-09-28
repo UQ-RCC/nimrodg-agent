@@ -33,3 +33,8 @@ nimrod::uuid message_container::uuid() const noexcept
 {
 	return std::visit([](auto&& msg) { return msg.uuid(); }, static_cast<const msg_union&>(*this));
 }
+
+nim1::nanotime_t message_container::time() const noexcept
+{
+	return std::visit([](auto&& msg) { return msg.time(); }, static_cast<const msg_union&>(*this));
+}
