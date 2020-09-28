@@ -212,12 +212,12 @@ void amqp_consumer::write_message(const net::message_container& msg)
 
 	/* Add a "User-Agent" header. */
 	std::array<amqp_table_entry_t, 2> headers = {
-		make_te("User-Agent", g_compile_info.agent.user_agent),
+		make_te("User-Agent",        g_compile_info.agent.user_agent),
 		make_te("X-NimrodG-Sent-At", sendstring),
 	};
 
 	props.headers.num_entries = headers.size();
-	props.headers.entries = headers.data();
+	props.headers.entries     = headers.data();
 
 	int ret = amqp_basic_publish(
 		m_connection,
