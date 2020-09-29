@@ -71,10 +71,21 @@ amqp_exception amqp_exception::from_connection_close(const amqp_connection_close
 	);
 }
 
+amqp_exception amqp_exception::from_connection(amqp_connection_state_t c)
+{
+	return from_rpc_reply(amqp_get_rpc_reply(c));
+}
+
+
 void amqp_exception::throw_if_bad(const amqp_rpc_reply_t& r)
 {
 	if(r.reply_type != AMQP_RESPONSE_NORMAL)
 		throw from_rpc_reply(r);
+}
+
+void amqp_exception::throw_if_bad(amqp_connection_state_t c)
+{
+	throw_if_bad(amqp_get_rpc_reply(c));
 }
 
 amqp_exception::amqp_exception(std::string_view reply, int code, error_type_t type, uint16_t c, uint16_t m) :

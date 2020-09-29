@@ -57,8 +57,10 @@ public:
 	static amqp_exception from_rpc_reply(const amqp_rpc_reply_t& r);
 	static amqp_exception from_channel_close(const amqp_channel_close_t& c);
 	static amqp_exception from_connection_close(const amqp_connection_close_t& c);
+	static amqp_exception from_connection(amqp_connection_state_t c);
 
 	static void throw_if_bad(const amqp_rpc_reply_t& r);
+	static void throw_if_bad(amqp_connection_state_t c);
 
 private:
 	amqp_exception(std::string_view reply, int code, error_type_t type, uint16_t c, uint16_t m);
