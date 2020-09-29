@@ -20,6 +20,14 @@
 #ifndef _NIM1_IP_HPP
 #define _NIM1_IP_HPP
 
+#include <clocale>
+
 #include <nim1/nim1.hpp>
+
+namespace nimrod::nim1 {
+
+void lc_init();
+
+}
 
 #endif /* _NIM1_IP_HPP */

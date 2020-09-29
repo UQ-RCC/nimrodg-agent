@@ -11,6 +11,9 @@ add_library(nim1 STATIC
 
 		./time.cpp
 		./include/nim1/time.hpp
+
+		./lc.cpp
+		./include/nim1/lc.hpp
 )
 
 set_target_properties(nim1 PROPERTIES

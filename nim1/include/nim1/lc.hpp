@@ -17,13 +17,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _NIM1_LC_HPP
+#define _NIM1_LC_HPP
 
-#include "nim1_ip.hpp"
+#include <clocale>
+#include <memory>
 
-using namespace nimrod;
-using namespace nim1;
+#include <nim1/nim1.hpp>
 
-void nim1::init()
-{
-    nim1::lc_init();
+namespace nimrod::nim1::lc {
+
+struct locale_deleter { void operator()(locale_t l) const noexcept; };
+using locale_ptr = std::unique_ptr<std::remove_pointer_t<locale_t>, locale_deleter>;
+
+locale_t locale() noexcept;
+
 }
+
+#endif /* _NIM1_LC_HPP */

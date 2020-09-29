@@ -24,6 +24,7 @@
 
 #include "make_view.hpp"
 #include "time.hpp"
+#include "lc.hpp"
 
 namespace nimrod::nim1 {
 
