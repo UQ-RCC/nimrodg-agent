@@ -72,15 +72,12 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 {
 	try
 	{
-		log::trace("AMQPC", "Opening channel...");
 		amqp_channel_open(conn, channel);
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
-		log::trace("AMQPC", "Setting channel to confirm...");
 		amqp_confirm_select(conn, channel);
 		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
 
-		log::trace("AMQPC", "Declaring queue...");
 		amqp_queue_declare_ok_t *declare_ok = amqp_queue_declare(
 			conn,
 			channel,
@@ -96,10 +93,7 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 		m_queue_name = nim1::make_view(declare_ok->queue);
 		amqp_bytes_t queue_bytes = make_bytes(m_queue_name);
 
-		log::trace("AMQPC", "  Got queue '%s'", m_queue_name);
-
 		/* Bind to the direct exchange */
-		log::trace("AMQPC", "Binding to direct exchange (%s)...", direct);
 		amqp_queue_bind(
 			conn,
 			channel,
