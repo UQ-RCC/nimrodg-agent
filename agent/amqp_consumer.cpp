@@ -72,11 +72,11 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 {
 	try
 	{
-		amqp_channel_open(conn, channel);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
+		(void)amqp_channel_open(conn, channel);
+		amqp_exception::throw_if_bad(conn);
 
-		amqp_confirm_select(conn, channel);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
+		(void)amqp_confirm_select(conn, channel);
+		amqp_exception::throw_if_bad(conn);
 
 		amqp_queue_declare_ok_t *declare_ok = amqp_queue_declare(
 			conn,
@@ -88,13 +88,14 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 			1,					/* Auto-Delete */
 			amqp_empty_table
 		);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
+		amqp_exception::throw_if_bad(conn);
+
+		assert(declare_ok != nullptr);
 
 		m_queue_name = nim1::make_view(declare_ok->queue);
 		amqp_bytes_t queue_bytes = make_bytes(m_queue_name);
 
-		/* Bind to the direct exchange */
-		amqp_queue_bind(
+		(void)amqp_queue_bind(
 			conn,
 			channel,
 			queue_bytes,
@@ -102,10 +103,10 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 			queue_bytes,
 			amqp_empty_table
 		);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
+		amqp_exception::throw_if_bad(conn);
 
 		/* Say that we want our messages asynchronously */
-		amqp_basic_consume(
+		(void)amqp_basic_consume(
 			conn,
 			channel,
 			queue_bytes,
@@ -115,7 +116,7 @@ amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channe
 			0,
 			amqp_empty_table
 		);
-		amqp_exception::throw_if_bad(amqp_get_rpc_reply(conn));
+		amqp_exception::throw_if_bad(conn);
 	}
 	catch(...)
 	{
