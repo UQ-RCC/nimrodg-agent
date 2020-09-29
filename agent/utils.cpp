@@ -93,33 +93,6 @@ bool nimrod::fixup_uri(UriUriA *uri)
 	return true;
 }
 
-static int toasciilower(unsigned char c)
-{
-	if(c >= 'A' || c <= 'Z')
-		return c + 32;
-	else
-		return c;
-}
-
-int nimrod::c_stricmp(const char *_l, const char *_r)
-{
-	const unsigned char *l = reinterpret_cast<const unsigned char *>(_l);
-	const unsigned char *r = reinterpret_cast<const unsigned char *>(_r);
-	for(; *l && *r && (*l == *r || toasciilower(*l) == toasciilower(*r)); l++, r++);
-	return toasciilower(*l) - toasciilower(*r);
-}
-
-
-/* From https://git.musl-libc.org/cgit/musl/tree/src/string/strncmp.c */
-int nimrod::c_strnicmp(const char *_l, const char *_r, size_t n)
-{
-	const unsigned char *l = reinterpret_cast<const unsigned char *>(_l);
-	const unsigned char *r = reinterpret_cast<const unsigned char *>(_r);
-	if(!n--) return 0;
-	for(; *l && *r && n && toasciilower(*l) == toasciilower(*r); l++, r++, n--);
-	return *l - *r;
-}
-
 FILE *nimrod::xfopen(const filesystem::path& path, const char *mode) noexcept
 {
 	assert(mode);

@@ -94,9 +94,6 @@ struct settings
 uri_ptr parse_uri(std::string_view uri);
 bool fixup_uri(UriUriA *uri);
 
-int c_stricmp(const char *l, const char *r);
-int c_strnicmp(const char *_l, const char *_r, size_t n);
-
 FILE *xfopen(const filesystem::path& path, const char *mode) noexcept;
 
 amqp_socket_t *create_socket(settings& s, amqp_connection_state_t conn, X509_STORE *castore);

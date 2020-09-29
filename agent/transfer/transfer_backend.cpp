@@ -17,6 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <nim1/lc.hpp>
+
 #include "config.h"
 #include "agent_common.hpp"
 #include "transfer_backend.hpp"
@@ -127,7 +130,7 @@ txman::future_pair txman::do_transfer(tx::operation_t op, const UriUriA *uri, co
 		if(e.scheme == nullptr)
 			return false;
 
-		return c_strnicmp(uri->scheme.first, e.scheme, static_cast<size_t>(len)) == 0;
+		return nim1::lc::strnicmp(uri->scheme.first, e.scheme, static_cast<size_t>(len)) == 0;
 	});
 
 	if(se == m_schemes.end())

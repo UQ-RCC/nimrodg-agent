@@ -23,6 +23,7 @@
 */
 #include <uriparser/Uri.h>
 #include <sys/stat.h>
+#include <nim1/lc.hpp>
 #include "agent_common.hpp"
 #include "curl_backend.hpp"
 
@@ -129,23 +130,23 @@ static long get_curl_proto(CURL *curl) noexcept
 		strncpy(buf, scheme, sizeof(buf));
 		buf[sizeof(buf) - 1] = '\0';
 
-		if(!c_stricmp(buf, "http"))
+		if(!nim1::lc::stricmp(buf, "http"))
 			return CURLPROTO_HTTP;
-		else if(!c_stricmp(buf, "https"))
+		else if(!nim1::lc::stricmp(buf, "https"))
 			return CURLPROTO_HTTPS;
-		else if(!c_stricmp(buf, "file"))
+		else if(!nim1::lc::stricmp(buf, "file"))
 			return CURLPROTO_FILE;
-		else if(!c_stricmp(buf, "ftp"))
+		else if(!nim1::lc::stricmp(buf, "ftp"))
 			return CURLPROTO_FTP;
-		else if(!c_stricmp(buf, "ftps"))
+		else if(!nim1::lc::stricmp(buf, "ftps"))
 			return CURLPROTO_FTPS;
-		else if(!c_stricmp(buf, "tftp"))
+		else if(!nim1::lc::stricmp(buf, "tftp"))
 			return CURLPROTO_TFTP;
-		else if(!c_stricmp(buf, "gopher"))
+		else if(!nim1::lc::stricmp(buf, "gopher"))
 			return CURLPROTO_GOPHER;
-		else if(!c_stricmp(buf, "sftp"))
+		else if(!nim1::lc::stricmp(buf, "sftp"))
 			return CURLPROTO_SFTP;
-		else if(!c_stricmp(buf, "scp"))
+		else if(!nim1::lc::stricmp(buf, "scp"))
 			return CURLPROTO_SCP;
 	}
 
@@ -159,23 +160,23 @@ static long get_curl_proto(CURL *curl) noexcept
 
 	size_t len = static_cast<size_t>(std::distance(url, end));
 
-	if(!c_strnicmp(url, "http", len))
+	if(!nim1::lc::strnicmp(url, "http", len))
 		return CURLPROTO_HTTP;
-	else if(!c_strnicmp(url, "https", len))
+	else if(!nim1::lc::strnicmp(url, "https", len))
 		return CURLPROTO_HTTPS;
-	else if(!c_strnicmp(url, "file", len))
+	else if(!nim1::lc::strnicmp(url, "file", len))
 		return CURLPROTO_FILE;
-	else if(!c_strnicmp(url, "ftp", len))
+	else if(!nim1::lc::strnicmp(url, "ftp", len))
 		return CURLPROTO_FTP;
-	else if(!c_strnicmp(url, "ftps", len))
+	else if(!nim1::lc::strnicmp(url, "ftps", len))
 		return CURLPROTO_FTPS;
-	else if(!c_strnicmp(url, "tftp", len))
+	else if(!nim1::lc::strnicmp(url, "tftp", len))
 		return CURLPROTO_TFTP;
-	else if(!c_strnicmp(url, "gopher", len))
+	else if(!nim1::lc::strnicmp(url, "gopher", len))
 		return CURLPROTO_GOPHER;
-	else if(!c_strnicmp(url, "sftp", len))
+	else if(!nim1::lc::strnicmp(url, "sftp", len))
 		return CURLPROTO_SFTP;
-	else if(!c_strnicmp(url, "scp", len))
+	else if(!nim1::lc::strnicmp(url, "scp", len))
 		return CURLPROTO_SCP;
 
 	return 0;
