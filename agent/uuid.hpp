@@ -29,6 +29,12 @@ namespace nimrod {
 
 struct uuid
 {
+	enum {
+		UNPARSE_UPPER    = 1 << 0,
+		UNPARSE_COMPACT  = 1 << 1,
+		UNPARSE_DEFAULT  = 0
+	};
+
 	constexpr static size_t string_length = 36;
 	using uuid_string_type = char[string_length + 1];
 
@@ -43,8 +49,8 @@ struct uuid
 	uuid& operator=(uuid&&) noexcept = default;
 	uuid& operator=(std::string_view s);
 
-	std::string str() const;
-	size_t str(char *buf, size_t size) const;
+	std::string str(int flags = UNPARSE_DEFAULT) const;
+	size_t str(char *buf, size_t size, int flags = UNPARSE_DEFAULT) const;
 
 	bool operator==(const uuid& u) const noexcept;
 	bool operator!=(const uuid& u) const noexcept;

@@ -56,23 +56,42 @@ uuid& uuid::operator=(std::string_view s)
 	return *this;
 }
 
-std::string uuid::str() const
+std::string uuid::str(int flags) const
 {
 	uuid_string_type out;
-	str(out, sizeof(out));
+	str(out, sizeof(out), flags);
 	return out;
 }
 
-size_t uuid::str(char *buf, size_t size) const
+size_t uuid::str(char *buf, size_t size, int flags) const
 {
-	uuid_string_type out;
-	uuid_unparse_lower(m_uuid, out);
-	strncpy(buf, out, size);
-	if(size < sizeof(uuid_string_type))
-		buf[size - 1] = '\0';
+	char out[string_length + 1];
+	size_t len = string_length;
 
-	if(size >= sizeof(uuid_string_type))
-		return sizeof(uuid_string_type);
+	/* The util-linux patch was rejected, so we have to do it
+	 * the slow way. */
+	if(flags & UNPARSE_UPPER)
+		uuid_unparse_upper(m_uuid, out);
+	else
+		uuid_unparse_lower(m_uuid, out);
+
+	if(flags & UNPARSE_COMPACT)
+	{
+		/* Strip the dashes. */
+		memmove(out + 23, out + 24, 36 - 24);
+		memmove(out + 18, out + 19, 35 - 19);
+		memmove(out + 13, out + 14, 34 - 14);
+		memmove(out +  8, out +  9, 33 -  9);
+		out[32] = '\0';
+		len = 32;
+	}
+
+	strncpy(buf, out, size);
+	if(size < len)
+		buf[len - 1] = '\0';
+
+	if(size >= len)
+		return len;
 	else
 		return size;
 }
