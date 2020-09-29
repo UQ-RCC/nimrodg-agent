@@ -21,6 +21,7 @@
 #include <cinttypes>
 #include <nim1/make_view.hpp>
 #include <nim1/time.hpp>
+#include <nim1/signature.hpp>
 #include "log.hpp"
 #include "agent_common.hpp"
 #include "amqp_consumer.hpp"
@@ -62,12 +63,16 @@ amqp_consumer::~amqp_consumer() noexcept
 		amqp_channel_close(m_connection, m_channel, AMQP_REPLY_SUCCESS);
 }
 
-amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view direct) :
+
+amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view direct, std::string_view access_key, std::string_view secret_key, const nim1::signature_algorithm_t *signing_algorithm) :
 	m_connection(conn),
 	m_channel(channel),
 	m_user(user),
 	m_routing_key(routing_key),
 	m_direct(direct),
+	m_access_key(access_key),
+	m_secret_key(secret_key),
+	m_signing_algorithm(signing_algorithm),
 	m_last_delivery_tag(0)
 {
 	try
@@ -210,14 +215,25 @@ void amqp_consumer::write_message(const net::message_container& msg)
 
 	props.message_id = make_bytes(std::string_view(uuid_string, uuid::string_length));
 
-	/* Add a "User-Agent" header. */
-	std::array<amqp_table_entry_t, 2> headers = {
+	/* Make sure these are sorted by code-point (if the keys were lowercase) */
+	std::array<amqp_table_entry_t, 3> headers = {
 		make_te("User-Agent",        g_compile_info.agent.user_agent),
 		make_te("X-NimrodG-Sent-At", sendstring),
+		/* Except this one, this one doesn't get sorted. */
+		make_te("Authorization",     "")
 	};
 
-	props.headers.num_entries = headers.size();
+	/* The -1 is so build_auth_header() doesn't know about "Authorization". */
+	props.headers.num_entries = headers.size() - 1;
 	props.headers.entries     = headers.data();
+
+	nim1::auth_header_t authhdr = nim1::build_auth_header(
+		m_authhdr,
+		m_signing_algorithm,
+		m_access_key, m_secret_key, static_cast<time_t>(msgtime), 0, appid, &props, s
+	);
+
+	headers[props.headers.num_entries++] = make_te("Authorization", m_authhdr);
 
 	int ret = amqp_basic_publish(
 		m_connection,
@@ -260,6 +276,29 @@ int amqp_consumer::getsockfd()
 	return amqp_get_sockfd(m_connection);
 }
 
+static bool verify_message(const amqp_basic_properties_t *props, const nim1::auth_header_t& hdr, const net::message_container& msg)
+{
+	if(!(props->_flags & AMQP_BASIC_TIMESTAMP_FLAG))
+		return false;
+
+	if(props->timestamp != hdr._time)
+		return false;
+
+	if(props->timestamp != static_cast<time_t>(msg.time()))
+		return false;
+
+	if(!(props->_flags & AMQP_BASIC_APP_ID_FLAG))
+		return false;
+
+	if(nim1::make_view(props->app_id) != hdr.appid)
+		return false;
+
+	if(hdr.appid != appid)
+		return false;
+
+	return true;
+}
+
 /*
 ** Read a network message from the broker.
 **
@@ -270,10 +309,10 @@ int amqp_consumer::getsockfd()
 ** -  0 on success
 ** - -1 if the backend couldn't parse the message
 */
-static int read_message(amqp_connection_state_t conn, amqp_channel_t channel, net::message_container& msg)
+int amqp_consumer::read_message(net::message_container& msg)
 {
 	amqp_message_t _msg;
-	amqp_rpc_reply_t ret = amqp_read_message(conn, channel, &_msg, 0);
+	amqp_rpc_reply_t ret = amqp_read_message(m_connection, m_channel, &_msg, 0);
 
 	if(ret.reply_type != AMQP_RESPONSE_NORMAL)
 	{
@@ -302,6 +341,13 @@ static int read_message(amqp_connection_state_t conn, amqp_channel_t channel, ne
 	if(!(_msg.properties._flags & AMQP_BASIC_TIMESTAMP_FLAG))
 		return 1;
 
+	nim1::auth_header_t hdr;
+	if(!nim1::verify_signature(m_authhdr, hdr, m_access_key, m_secret_key, &_msg.properties, nim1::make_view(_msg.body)))
+	{
+		log::error("AMQPC", "Invalid message signature");
+		return 1;
+	}
+
 	try
 	{
 		msg = net::message_read(reinterpret_cast<char*>(_msg.body.bytes), _msg.body.len);
@@ -311,6 +357,12 @@ static int read_message(amqp_connection_state_t conn, amqp_channel_t channel, ne
 		log::error("AMQPC", "Error parsing network message.");
 		amqp_destroy_message(&_msg);
 		return -1;
+	}
+
+	if(!verify_message(&_msg.properties, hdr, msg))
+	{
+		log::error("AMQPC", "Message verification failed");
+		return 1;
 	}
 
 	amqp_destroy_message(&_msg);
@@ -404,7 +456,7 @@ void amqp_consumer::read_proc()
 				amqp_basic_deliver_t *del = reinterpret_cast<amqp_basic_deliver_t*>(frame.payload.method.decoded);
 
 				net::message_container msg;
-				int rstat = read_message(m_connection, frame.channel, msg);
+				int rstat = read_message(msg);
 				if(rstat == 0)
 				{
 					std::lock_guard<std::mutex> l(m_recv_mutex);

@@ -43,7 +43,10 @@ public:
 		amqp_channel_t channel,
 		std::string_view user,
 		std::string_view routing_key,
-		std::string_view direct
+		std::string_view direct,
+		std::string_view access_key,
+		std::string_view secret_key,
+		const nim1::signature_algorithm_t *signing_algorithm
 	);
 	amqp_consumer(const amqp_consumer&) = delete;
 	amqp_consumer(amqp_consumer&&) noexcept = delete;
@@ -68,17 +71,23 @@ public:
 private:
 
 	void write_message(const net::message_container& msg);
+	int  read_message(net::message_container& msg);
 
 	void read_proc();
 
 	amqp_connection_state_t m_connection;
 	amqp_channel_t m_channel;
 
-	std::string_view m_user;
-	std::string_view m_routing_key;
-	std::string_view m_direct;
-
+	std::string m_user;
+	std::string m_routing_key;
+	std::string m_direct;
+	std::string m_access_key;
+	std::string m_secret_key;
+	const nim1::signature_algorithm_t *m_signing_algorithm;
 	std::string m_queue_name;
+
+	/* Buffer for the authorisation header. */
+	std::string m_authhdr;
 
 	struct msgstate
 	{
