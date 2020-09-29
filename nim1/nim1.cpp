@@ -17,3 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "nim1_ip.hpp"
+
+using namespace nimrod;
+using namespace nim1;
+
+void nim1::init()
+{
+    /* nop for now */
+}

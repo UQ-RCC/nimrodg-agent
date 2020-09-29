@@ -25,4 +25,10 @@
 #include "make_view.hpp"
 #include "time.hpp"
 
+namespace nimrod::nim1 {
+
+void init();
+
+}
+
 #endif /* _NIM1_HPP */
