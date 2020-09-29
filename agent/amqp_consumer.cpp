@@ -64,7 +64,16 @@ amqp_consumer::~amqp_consumer() noexcept
 }
 
 
-amqp_consumer::amqp_consumer(amqp_connection_state_t conn, amqp_channel_t channel, std::string_view user, std::string_view routing_key, std::string_view direct, std::string_view access_key, std::string_view secret_key, const nim1::signature_algorithm_t *signing_algorithm) :
+amqp_consumer::amqp_consumer(
+	amqp_connection_state_t conn,
+	amqp_channel_t channel,
+	std::string_view user,
+	std::string_view routing_key,
+	std::string_view direct,
+	std::string_view access_key,
+	std::string_view secret_key,
+	const nim1::signature_algorithm_t *signing_algorithm
+) :
 	m_connection(conn),
 	m_channel(channel),
 	m_user(user),
