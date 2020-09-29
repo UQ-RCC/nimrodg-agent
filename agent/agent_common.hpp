@@ -80,6 +80,7 @@ struct settings
 	output_t			output;
 	bool				nohup;
 
+	std::string			access_key;
 	std::string			secret_key;
 
 	string_map_t		environment;

@@ -635,6 +635,7 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 
 	s.nohup = tmp.nohup.value_or(false);
 
+	s.access_key = s.uuid.str(uuid::UNPARSE_COMPACT);
 	s.secret_key = std::move(tmp.secret_key.value_or(""));
 
 	if(s.batch)
@@ -671,5 +672,6 @@ settings::settings() :
 	batch(false),
 	output(output_t::console),
 	nohup(false),
+	access_key(""),
 	secret_key("")
 {}
