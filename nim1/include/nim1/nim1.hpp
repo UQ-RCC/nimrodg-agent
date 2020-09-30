@@ -22,6 +22,11 @@
 
 #include "nim1fwd.hpp"
 
+#include "crypto_exception.hpp"
+#include "evpbuf.hpp"
+#include "hmacbuf.hpp"
+#include "strbuf.hpp"
+#include "auth_header.hpp"
 #include "make_view.hpp"
 #include "time.hpp"
 #include "lc.hpp"

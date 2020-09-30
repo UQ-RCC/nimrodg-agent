@@ -17,26 +17,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _NIM1_NIM1FWD_HPP
-#define _NIM1_NIM1FWD_HPP
+#ifndef _NIM1_HMACBUF_HPP
+#define _NIM1_HMACBUF_HPP
+
+#include <streambuf>
+#include <openssl/hmac.h>
 
 namespace nimrod::nim1 {
 
-class crypto_exception;
-class evpbuf;
-class hmacbuf;
-class strbuf;
+class hmacbuf : public std::streambuf
+{
+public:
+    explicit hmacbuf(HMAC_CTX *ctx = nullptr) noexcept;
 
-struct auth_header_t;
-typedef struct auth_header_t auth_header_t;
+    HMAC_CTX *ctx() const noexcept { return ctx_ ;}
+    void ctx(HMAC_CTX *ctx) noexcept { ctx_ = ctx; }
 
-struct nanotime_t;
-typedef struct nanotime_t nanotime_t;
+    std::streamsize  xsputn(const char_type *s, std::streamsize n) override;
+    int_type         overflow(int_type c) override;
+    void             reset(const EVP_MD *evp, const void *key, unsigned int key_len);
+    void             digest(unsigned char *md, unsigned int *n);
+    std::string_view hexdigest(char *hd, unsigned int *hd_len = nullptr);
 
-/* This is opaque. */
-struct signature_algorithm_t;
-typedef struct signature_algorithm_t signature_algorithm_t;
+private:
+    HMAC_CTX *ctx_;
+};
 
 }
-
-#endif /* _NIM1_NIM1FWD_HPP */
+#endif /* _NIM1_HMACBUF_HPP */

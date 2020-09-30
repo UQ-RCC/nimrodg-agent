@@ -17,22 +17,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _NIM1_LC_HPP
-#define _NIM1_LC_HPP
+#include <nim1/strbuf.hpp>
 
-#include <clocale>
-#include <memory>
+using namespace nimrod::nim1;
 
-namespace nimrod::nim1::lc {
+strbuf::strbuf(std::string *s) noexcept : s_(s) {}
 
-struct locale_deleter { void operator()(locale_t l) const noexcept; };
-using locale_ptr = std::unique_ptr<std::remove_pointer_t<locale_t>, locale_deleter>;
+std::streamsize strbuf::xsputn(const char_type *s, std::streamsize n)
+{
+    if(s_ == nullptr || n < 0)
+        return 0;
 
-locale_t locale() noexcept;
-int      tolower(int c) noexcept;
-int      stricmp(const char *_l, const char *_r) noexcept;
-int      strnicmp(const char *_l, const char *_r, size_t n) noexcept;
-
+    s_->append(s, static_cast<size_t>(n));
+    return n;
 }
 
-#endif /* _NIM1_LC_HPP */
+/* Not sure if this is right, but it seems to never be called :/ */
+strbuf::int_type strbuf::overflow(int_type c)
+{
+    if(s_ == nullptr)
+        return traits_type::eof();
+
+    if(traits_type::eq_int_type(c, traits_type::eof()))
+        return 0;
+
+    s_->append(1, static_cast<char>(c));
+    return 0;
+}

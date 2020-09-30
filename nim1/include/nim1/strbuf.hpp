@@ -17,22 +17,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _NIM1_LC_HPP
-#define _NIM1_LC_HPP
+#ifndef _NIM1_STRBUF_HPP
+#define _NIM1_STRBUF_HPP
 
-#include <clocale>
-#include <memory>
+#include <streambuf>
 
-namespace nimrod::nim1::lc {
+namespace nimrod::nim1 {
 
-struct locale_deleter { void operator()(locale_t l) const noexcept; };
-using locale_ptr = std::unique_ptr<std::remove_pointer_t<locale_t>, locale_deleter>;
+/*
+ * I wanted to call this stringbuf, but that's taken.
+ * Can't use std::stringbuf because it doesn't allow direct access
+ * to the string.
+ */
+class strbuf : public std::streambuf
+{
+public:
+    explicit strbuf(std::string *s = nullptr) noexcept;
 
-locale_t locale() noexcept;
-int      tolower(int c) noexcept;
-int      stricmp(const char *_l, const char *_r) noexcept;
-int      strnicmp(const char *_l, const char *_r, size_t n) noexcept;
+    std::string *string() const noexcept { return s_; }
+    void string(std::string *s) noexcept { s_ = s; }
+
+    std::streamsize  xsputn(const char_type *s, std::streamsize n) override;
+    int_type         overflow(int_type c) override;
+
+private:
+    std::string *s_;
+};
 
 }
-
-#endif /* _NIM1_LC_HPP */
+#endif /* _NIM1_STRBUF_HPP */
