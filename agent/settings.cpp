@@ -29,6 +29,7 @@
 #include <iostream>
 #include <config.h>
 #include <nim1/make_view.hpp>
+#include <nim1/signature.hpp>
 #include "json.hpp"
 #include "agent_common.hpp"
 #include "uuid.hpp"
@@ -55,6 +56,7 @@ enum
 	ARGDEF_OUTPUT,
 	ARGDEF_NOHUP,
 	ARGDEF_SECRET_KEY,
+	ARGDEF_SIGNING_ALGORITHM,
 };
 
 static struct parg_option argdefs[] = {
@@ -77,6 +79,7 @@ static struct parg_option argdefs[] = {
 	{ "output",					PARG_REQARG,	nullptr, ARGDEF_OUTPUT },
 	{ "nohup",					PARG_NOARG,		nullptr, ARGDEF_NOHUP },
 	{ "secret-key",				PARG_REQARG,	nullptr, ARGDEF_SECRET_KEY },
+	{ "signing-algorithm",      PARG_REQARG,    nullptr, ARGDEF_SIGNING_ALGORITHM },
 	{ nullptr, 0, nullptr, 0 }
 };
 
@@ -132,6 +135,8 @@ static const char *USAGE_OPTIONS =
 "                          Ignore SIGHUP. Ignored on non-POSIX systems.\n"
 "  --secret-key\n"
 "                          Secret Key.\n"
+"  --signing-algorithm=NIM1-HMAC-{NULL,SHA{224,256,384,512}}\n"
+"                          Set the message signing algorithm to use. Defaults to NIM1-HMAC-SHA256.\n"
 ;
 
 using namespace nimrod;
@@ -292,6 +297,7 @@ struct tmpargs
 	string_opt_t output;
 	bool_opt_t   nohup;
 	string_opt_t secret_key;
+	string_opt_t signing_algorithm;
 	string_map_t environment;
 };
 
@@ -380,6 +386,9 @@ static int load_config_file(tmpargs& s, std::istream& is, std::ostream& err)
 		return -1;
 
 	if(get_json_value(j, "secret_key", jv_t::string, s.secret_key) < 0)
+		return -1;
+
+	if(get_json_value(j, "signing_algorithm", jv_t::string, s.signing_algorithm) < 0)
 		return -1;
 
 	if(auto it = j.find("environment"); it != j.end())
@@ -550,6 +559,10 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 				tmp.secret_key = ps.optarg;
 				break;
 
+			case ARGDEF_SIGNING_ALGORITHM:
+				tmp.signing_algorithm = ps.optarg;
+				break;
+
 			case '?':
 			default:
 				status = usage(2, out, argv[0]);
@@ -636,6 +649,17 @@ bool nimrod::parse_program_arguments(int argc, char **argv, int& status, std::os
 
 	s.access_key = s.uuid.str(uuid::UNPARSE_COMPACT);
 	s.secret_key = std::move(tmp.secret_key.value_or(""));
+
+	if(tmp.signing_algorithm)
+		s.signing_algorithm = nim1::find_signature_algorithm(tmp.signing_algorithm.value());
+	else
+		s.signing_algorithm = nim1::find_signature_algorithm(nim1::default_algorithm);
+
+	if(s.signing_algorithm == nullptr)
+	{
+		status = usage(2, out, argv[0]);
+		return false;
+	}
 
 	if(s.batch)
 	{

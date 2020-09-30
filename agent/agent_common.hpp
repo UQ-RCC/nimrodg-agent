@@ -82,6 +82,7 @@ struct settings
 
 	std::string			access_key;
 	std::string			secret_key;
+	const nim1::signature_algorithm_t *signing_algorithm;
 
 	string_map_t		environment;
 };
