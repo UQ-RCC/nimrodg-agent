@@ -376,18 +376,6 @@ static bool build_basic_properties(
 
 bool nim1::verify_signature(
     std::string& stor,
-    auth_header_t& hdr,
-    std::string_view access_key,
-    std::string_view secret_key,
-    amqp_basic_properties_t *props,
-    std::string_view payload
-)
-{
-    return verify_signature(stor, nullptr, hdr, access_key, secret_key, props, payload);
-}
-
-bool nim1::verify_signature(
-    std::string& stor,
     const signature_algorithm_t *algorithm,
     auth_header_t& hdr,
     std::string_view access_key,
