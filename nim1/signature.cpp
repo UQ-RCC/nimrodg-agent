@@ -335,8 +335,6 @@ static bool build_basic_properties(
     amqp_basic_properties_t *outprops
 ) noexcept
 {
-    nanotime_t ts;
-
     *outprops = *inprops;
     outprops->_flags = 0;
 
