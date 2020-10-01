@@ -60,8 +60,18 @@ auth_header_t build_auth_header(
     std::string_view payload
 );
 
+[[ deprecated ]] bool verify_signature(
+    std::string& stor,
+    auth_header_t& hdr,
+    std::string_view access_key,
+    std::string_view secret_key,
+    amqp_basic_properties_t *props,
+    std::string_view payload
+);
+
 bool verify_signature(
     std::string& stor,
+    const signature_algorithm_t *algorithm,
     auth_header_t& hdr,
     std::string_view access_key,
     std::string_view secret_key,

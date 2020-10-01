@@ -383,10 +383,22 @@ bool nim1::verify_signature(
     std::string_view payload
 )
 {
+    return verify_signature(stor, nullptr, hdr, access_key, secret_key, props, payload);
+}
+
+bool nim1::verify_signature(
+    std::string& stor,
+    const signature_algorithm_t *algorithm,
+    auth_header_t& hdr,
+    std::string_view access_key,
+    std::string_view secret_key,
+    amqp_basic_properties_t *props,
+    std::string_view payload
+)
+{
     amqp_table_entry_t *te;
     std::string_view header;
     amqp_basic_properties_t nprops;
-    const signature_algorithm_t *algo;
 
     if(!(props->_flags & AMQP_BASIC_HEADERS_FLAG))
         return false; /* No headers */
@@ -403,7 +415,15 @@ bool nim1::verify_signature(
     if(!auth_header_t::parse(header, hdr))
         return false;
 
-    if((algo = find_signature_algorithm(hdr.algorithm)) == nullptr)
+    /* If no algorithm given, use the one from the header. */
+    if(algorithm == nullptr)
+        algorithm = find_signature_algorithm(hdr.algorithm);
+
+    if(algorithm == nullptr)
+        return false;
+
+    /* Check the message is using the same algorithm as we are. */
+    if(algorithm->name != hdr.algorithm)
         return false;
 
     /*
@@ -413,7 +433,7 @@ bool nim1::verify_signature(
     if(!build_basic_properties(&hdr, props, &nprops))
         return false;
 
-    return hdr == build_auth_header(stor, algo,
+    return hdr == build_auth_header(stor, algorithm,
         access_key, secret_key,
         hdr._time, hdr._nonce, hdr.appid,
         &nprops, payload
