@@ -351,7 +351,7 @@ int amqp_consumer::read_message(net::message_container& msg)
 		return 1;
 
 	nim1::auth_header_t hdr;
-	if(!nim1::verify_signature(m_authhdr, hdr, m_access_key, m_secret_key, &_msg.properties, nim1::make_view(_msg.body)))
+	if(!nim1::verify_signature(m_authhdr, m_signing_algorithm, hdr, m_access_key, m_secret_key, &_msg.properties, nim1::make_view(_msg.body)))
 	{
 		log::error("AMQPC", "Invalid message signature");
 		return 1;
