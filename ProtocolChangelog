@@ -1,0 +1,26 @@
+Protocol Changelog
+
+v6:
+Add message signing and verification.
+Add --secret-key command line argument.
+Add --signing-algorithm command line argument.
+Add "secret_key" configuration option.
+Add "signing_algorithm" configuration option.
+
+v5:
+Remove "token" field from agent.submit.
+
+v4:
+Add "timestamp" field to each message.
+
+v3:
+Add client-side state to agent.pong message.
+
+v2:
+Add "version" field to each message.
+Remove "stats" field from agent.pong message.
+- This field was ignored in Nimrod/G for a few versions,
+  hence no major version bump.
+
+v1:
+Original protocol.
