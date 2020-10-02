@@ -106,7 +106,7 @@ curl_backend::curl_backend(txman& tx, result_proc proc, CURLM *mh, X509_STORE *x
 static long get_curl_proto(CURL *curl) noexcept
 {
 	/*
-	** There's a bit of screwy going on here. Sometimes CURLINFO_PROTOCOL is correct.
+	** There's a bit of screwery going on here. Sometimes CURLINFO_PROTOCOL is correct.
 	** Sometimes it's 0. Same with CURLINFO_SCHEME.
 	**
 	** Try protocol, then try scheme. If all else fails, rip it out of the URI ourselves.
