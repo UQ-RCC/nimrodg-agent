@@ -71,12 +71,10 @@ uri_ptr nimrod::parse_uri(std::string_view uri)
 bool nimrod::fixup_uri(UriUriA *uri)
 {
 	/* If the final component isn't a directory, make it one. */
-	UriPathSegmentA *seg;
-	for(seg = uri->pathHead; seg->next != nullptr;)
-		seg = seg->next;
+	UriPathSegmentA *seg = uri->pathTail;
 
 	/* Nothing to do. */
-	if(seg->text.first == seg->text.afterLast)
+	if(seg && seg->text.first == seg->text.afterLast)
 		return true;
 
 	/* Add an empty "segment". */
@@ -90,7 +88,13 @@ bool nimrod::fixup_uri(UriUriA *uri)
 	ssseg->next           = nullptr;
 	ssseg->reserved       = nullptr;
 
-	seg->next = ssseg;
+	if(seg)
+		seg->next = ssseg;
+	else
+		uri->pathHead = ssseg;
+
+	uri->pathTail = ssseg;
+
 	return true;
 }
 
