@@ -63,6 +63,8 @@ stdenv.mkDerivation rec {
     pkgconfig
   ];
 
+  hardeningDisable = [ "all" ];
+
   buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev ];
 
   cmakeFlags = [
