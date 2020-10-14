@@ -85,7 +85,8 @@ bool nimrod::fixup_uri(UriUriA *uri)
 	UriPathSegmentA *ssseg = (UriPathSegmentA*)malloc(sizeof(UriPathSegmentA));
 	if(ssseg == nullptr)
 		throw std::bad_alloc();
-	ssseg->text = { .first = nullptr, .afterLast = nullptr };
+	ssseg->text.first = nullptr;
+	ssseg->text.afterLast = nullptr;
 	ssseg->next = nullptr;
 	ssseg->reserved = nullptr;
 
