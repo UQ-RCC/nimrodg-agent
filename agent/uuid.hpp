@@ -23,7 +23,7 @@
 #include "config.h"
 
 #include <iosfwd>
-#include <uuid.h>
+#include <uuid/uuid.h>
 
 namespace nimrod {
 

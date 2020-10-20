@@ -59,43 +59,6 @@ if(MSVC)
 	endforeach()
 endif()
 
-function(add_libuuid)
-	# Hack in a CMake-ified libuuid
-	# find ./util-linux/libuuid/src -type f -name "*.[cChH]" | sort -u
-	add_library(uuid STATIC
-			./util-linux/libuuid/src/clear.c
-			./util-linux/libuuid/src/compare.c
-			./util-linux/libuuid/src/copy.c
-			./util-linux/libuuid/src/isnull.c
-			./util-linux/libuuid/src/pack.c
-			./util-linux/libuuid/src/parse.c
-			./util-linux/libuuid/src/predefined.c
-			./util-linux/libuuid/src/unpack.c
-			./util-linux/libuuid/src/unparse.c
-			./util-linux/libuuid/src/uuidd.h
-			./util-linux/libuuid/src/uuid.h
-			./util-linux/libuuid/src/uuidP.h
-			./util-linux/libuuid/src/uuid_time.c
-
-			# NB: Excluding these.
-			# gen_uuid.c requires special configuration, where we're just
-			# using OpenSSL.
-			# test_uuid.c has nothing to do with us.
-			#./util-linux/libuuid/src/gen_uuid.c
-			#./util-linux/libuuid/src/test_uuid.c
-	)
-
-	target_include_directories(uuid PUBLIC ./util-linux/libuuid/src)
-
-	set(XXXX ${CMAKE_CURRENT_SOURCE_DIR})
-	set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/util-linux)
-	git_describe(LIBUUID_VERSION_STRING)
-	set(CMAKE_CURRENT_SOURCE_DIR ${XXXX})
-	unset(XXXX)
-
-	set_target_properties(uuid PROPERTIES VERSION ${LIBUUID_VERSION_STRING})
-endfunction()
-
 if(NOT NIMRODG_PLATFORM_STRING)
 	if(MSVC)
 		if(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
@@ -116,7 +79,7 @@ set(NIMRODG_OUTPUT_DIRECTORY ${NIMRODG_OUTPUT_DIRECTORY} CACHE STRING "Agent Ins
 
 add_uriparser()
 add_rabbitmqc()
-add_libuuid()
+
 add_subdirectory(fmt)
 add_subdirectory(nim1)
 add_subdirectory(agent)

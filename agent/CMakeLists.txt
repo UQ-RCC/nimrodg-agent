@@ -11,6 +11,7 @@ find_package(OpenSSL 2.0.0 REQUIRED)
 
 # cURL's find_package() doesn't pull in the required libraries for linking statically
 pkg_check_modules(CURL REQUIRED libcurl>=7.64.0)
+pkg_check_modules(LIBUUID REQUIRED uuid>=2.36.0)
 
 add_library(CURL::libcurl STATIC IMPORTED)
 set_target_properties(CURL::libcurl PROPERTIES
@@ -20,6 +21,26 @@ set_target_properties(CURL::libcurl PROPERTIES
 	IMPORTED_LINK_INTERFACE_LANGUAGES    C
 	IMPORTED_LOCATION                    "${CURL_LINK_LIBRARIES}"
 )
+
+if(LIBUUID_USE_STATIC_LIBS)
+	add_library(LibUUID::LibUUID STATIC IMPORTED)
+	set_target_properties(LibUUID::LibUUID PROPERTIES
+		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${LIBUUID_STATIC_INCLUDE_DIRS}"
+		INTERFACE_LINK_LIBRARIES             "${LIBUUID_STATIC_LIBRARIES}"
+		IMPORTED_LINK_INTERFACE_LANGUAGES    C
+		IMPORTED_LOCATION                    "${LIBUUID_LINK_LIBRARIES}"
+		VERSION	${LIBUUID_VERSION}
+	)
+else()
+	add_library(LibUUID::LibUUID SHARED IMPORTED)
+	set_target_properties(LibUUID::LibUUID PROPERTIES
+		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${LIBUUID_INCLUDE_DIRS}"
+		INTERFACE_LINK_LIBRARIES             "${LIBUUID_LIBRARIES}"
+		IMPORTED_LINK_INTERFACE_LANGUAGES    C
+		IMPORTED_LOCATION                    "${LIBUUID_LINK_LIBRARIES}"
+		VERSION	${LIBUUID_VERSION}
+	)
+endif()
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
@@ -51,7 +72,7 @@ else()
 	set(GIT_DIRTY 0)
 endif()
 
-get_target_property(UUID_VERSION_STRING      uuid      VERSION)
+get_target_property(UUID_VERSION_STRING LibUUID::LibUUID VERSION)
 
 if(NOT NIMRODG_PLATFORM_STRING)
 	message(FATAL_ERROR "No platform string provided")
@@ -187,7 +208,7 @@ target_include_directories(agent
 
 target_link_libraries(agent
 	fmt-header-only
-	uuid
+	LibUUID::LibUUID
 	uriparser
 	rabbitmq-c2
 	CURL::libcurl

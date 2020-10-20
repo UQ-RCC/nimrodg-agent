@@ -65,7 +65,7 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "all" ];
 
-  buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev ];
+  buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev libuuid.dev ];
 
   cmakeFlags = [
     "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"
