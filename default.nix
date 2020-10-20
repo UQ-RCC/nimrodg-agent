@@ -71,6 +71,7 @@ stdenv.mkDerivation rec {
     "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"
     "-DUSE_LTO=ON"
     "-DCMAKE_BUILD_TYPE=MinSizeRel"
+    "-DOPENSSL_USE_STATIC_LIBS=${if useStatic then "ON" else "OFF"}"
   ];
 
   enableParallelBuilding = true;

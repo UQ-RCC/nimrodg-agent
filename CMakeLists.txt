@@ -8,8 +8,6 @@ include(CheckIPOSupported)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(GetGitRevisionDescription)
 
-set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
-
 function(add_uriparser)
 	set(BUILD_SHARED_LIBS		OFF CACHE BOOL "" FORCE)
 	set(URIPARSER_BUILD_DOCS	OFF CACHE BOOL "" FORCE)
