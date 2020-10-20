@@ -17,7 +17,7 @@ function(add_uriparser)
 	set(URIPARSER_BUILD_TOOLS	OFF CACHE BOOL "" FORCE)
 	set(URIPARSER_BUILD_CHAR	ON CACHE BOOL "" FORCE)
 	set(URIPARSER_BUILD_WCHAR_T	OFF CACHE BOOL "" FORCE)
-	add_subdirectory(uriparser)
+	add_subdirectory(uriparser EXCLUDE_FROM_ALL)
 
 
 	# Absolutely disgusting
@@ -41,7 +41,7 @@ function(add_rabbitmqc)
 	set(BUILD_API_DOCS			OFF	CACHE BOOL "" FORCE)
 	set(ENABLE_SSL_SUPPORT		ON	CACHE BOOL "" FORCE)
 	set(ENABLE_THREAD_SAFETY	ON	CACHE BOOL "" FORCE)
-	add_subdirectory(rabbitmq-c)
+	add_subdirectory(rabbitmq-c EXCLUDE_FROM_ALL)
 
 	# Hack to workaround the new install()
 	add_library(rabbitmq-c2 INTERFACE)
