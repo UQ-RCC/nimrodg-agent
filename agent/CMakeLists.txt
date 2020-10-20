@@ -51,7 +51,6 @@ else()
 	set(GIT_DIRTY 0)
 endif()
 
-get_target_property(URIPARSER_VERSION_STRING uriparser VERSION)
 get_target_property(UUID_VERSION_STRING      uuid      VERSION)
 
 if(NOT NIMRODG_PLATFORM_STRING)
