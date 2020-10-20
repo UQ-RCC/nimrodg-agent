@@ -7,6 +7,7 @@
 
 #include <amqp.h>
 #include <curl/curlver.h>
+#include <uriparser/UriBase.h>
 
 const compile_info_t g_compile_info = {
 	.git = {
@@ -18,7 +19,7 @@ const compile_info_t g_compile_info = {
 		.agent			= NIMRODG_VERSION_STRING,
 		.openssl		= "@OPENSSL_VERSION@",
 		.curl			= LIBCURL_VERSION,
-		.uriparser		= "@URIPARSER_VERSION_STRING@",
+		.uriparser		= URI_VER_ANSI,
 		.rabbitmq_c		= AMQ_VERSION_STRING,
 		.libuuid		= "@UUID_VERSION_STRING@",
 	},
