@@ -2,10 +2,6 @@
 	path = fmt
 	url = https://github.com/fmtlib/fmt
 	branch = release-4.0
-[submodule "uriparser"]
-	path = uriparser
-	url = https://github.com/uriparser/uriparser
-	branch = master
 [submodule "rabbitmq-c"]
 	path = rabbitmq-c
 	url = https://github.com/alanxz/rabbitmq-c

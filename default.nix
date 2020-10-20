@@ -53,6 +53,12 @@ let
 
     NIX_CFLAGS_COMPILE = stdenv.lib.optionals useStatic ["-DNGHTTP2_STATICLIB"];
   });
+
+  xuriparser = pkgs.uriparser.overrideDerivation(old: {
+    # gtest breaks when building statically
+    cmakeFlags = old.cmakeFlags ++ ["-DURIPARSER_BUILD_TESTS=OFF"];
+  });
+
 in
 stdenv.mkDerivation rec {
   name = "nimrodg-agent";
@@ -65,7 +71,7 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "all" ];
 
-  buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev libuuid.dev ];
+  buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev libuuid.dev xuriparser ];
 
   cmakeFlags = [
     "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"

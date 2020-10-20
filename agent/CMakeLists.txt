@@ -52,6 +52,8 @@ else()
 	)
 endif()
 
+find_package(uriparser REQUIRED)
+
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
 check_include_file("windows.h" HAVE_WINDOWS_H)
@@ -219,7 +221,7 @@ target_include_directories(agent
 target_link_libraries(agent
 	fmt-header-only
 	LibUUID::LibUUID
-	uriparser
+	uriparser::uriparser
 	rabbitmq-c2
 	CURL::libcurl
 	nim1
