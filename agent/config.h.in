@@ -49,7 +49,6 @@ typedef struct
 	{
 		const char *sha1;
 		const char *description;
-		int dirty;
 	} git;
 
 	struct

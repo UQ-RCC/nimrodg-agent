@@ -82,17 +82,9 @@ endif()
 
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_describe(GIT_DESCRIBE)
-git_local_changes(GIT_LOCAL_CHANGES)
 
 if(GIT_DESCRIBE MATCHES "-NOTFOUND$")
 	set(GIT_DESCRIBE "UNKNOWN")
-endif()
-
-if(GIT_LOCAL_CHANGES MATCHES "DIRTY")
-	set(GIT_DESCRIBE "${GIT_DESCRIBE}-${GIT_LOCAL_CHANGES}")
-	set(GIT_DIRTY 1)
-else()
-	set(GIT_DIRTY 0)
 endif()
 
 get_target_property(UUID_VERSION_STRING LibUUID::LibUUID VERSION)
