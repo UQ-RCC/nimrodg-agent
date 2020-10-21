@@ -11,7 +11,7 @@
 
 const compile_info_t g_compile_info = {
 	.git = {
-		.sha1			= "@GIT_SHA1@",
+		.hash			= "@GIT_HASH@",
 		.description	= "@GIT_DESCRIBE@",
 	},
 	.version = {

@@ -47,7 +47,7 @@ typedef struct
 {
 	struct
 	{
-		const char *sha1;
+		const char *hash;
 		const char *description;
 	} git;
 

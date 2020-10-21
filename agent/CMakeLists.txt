@@ -80,7 +80,7 @@ else()
 	set(NIMRODG_USE_POSIX 0)
 endif()
 
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+get_git_head_revision(GIT_REFSPEC GIT_HASH)
 git_describe(GIT_DESCRIBE)
 
 if(GIT_DESCRIBE MATCHES "-NOTFOUND$")
