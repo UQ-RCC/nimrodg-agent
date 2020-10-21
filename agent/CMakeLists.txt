@@ -80,7 +80,10 @@ else()
 	set(NIMRODG_USE_POSIX 0)
 endif()
 
-get_git_head_revision(GIT_REFSPEC GIT_HASH)
+if(NOT GIT_HASH)
+	get_git_head_revision(GIT_REFSPEC GIT_HASH)
+endif()
+
 string(SUBSTRING ${GIT_HASH} 0 7 GIT_HASH_SHORT)
 
 get_target_property(UUID_VERSION_STRING LibUUID::LibUUID VERSION)
