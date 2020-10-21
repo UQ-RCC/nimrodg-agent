@@ -49,7 +49,6 @@ typedef struct
 	{
 		const char *hash;
 		const char *hash_short;
-		const char *description;
 	} git;
 
 	struct

@@ -81,12 +81,6 @@ else()
 endif()
 
 get_git_head_revision(GIT_REFSPEC GIT_HASH)
-git_describe(GIT_DESCRIBE)
-
-if(GIT_DESCRIBE MATCHES "-NOTFOUND$")
-	set(GIT_DESCRIBE "UNKNOWN")
-endif()
-
 string(SUBSTRING ${GIT_HASH} 0 7 GIT_HASH_SHORT)
 
 get_target_property(UUID_VERSION_STRING LibUUID::LibUUID VERSION)
