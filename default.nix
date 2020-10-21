@@ -5,7 +5,7 @@
 let
   systems = (import <nixpkgs/lib>).systems.examples;
 
-  crossPkgs = (import ~/Documents/Coding/nixpkgs {
+  crossPkgs = (import <nixpkgs> {
     crossSystem = system;
     #crossSystem = systems.mingwW64;
     #crossSystem = systems.musl64;
@@ -61,11 +61,15 @@ let
 
 in
 stdenv.mkDerivation rec {
+  inherit xlibressl;
+  inherit xcurlFull;
+  inherit xuriparser;
+
   name = "nimrodg-agent";
 
   nativeBuildInputs = with pkgs; [
-    nixpkgs.cmake # Need non-static cmake for this, rhash doesn't like pkgsStatic
-    nixpkgs.git
+    cmake
+    git
     pkgconfig
   ];
 
