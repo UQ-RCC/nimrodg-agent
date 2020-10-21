@@ -1,24 +1,21 @@
-{ nixpkgs ? (import <nixpkgs> {})
-, system ? nixpkgs.hostPlatform
-, useStatic ? true
+{ nixpkgs   ? import <nixpkgs> {}
+, lib       ? nixpkgs.lib
+, pkgconfig ? nixpkgs.pkgconfig
+, cmake     ? nixpkgs.cmake
+, pkgs      ? nixpkgs
 }:
 let
-  systems = (import <nixpkgs/lib>).systems.examples;
-
-  crossPkgs = (import <nixpkgs> {
-    crossSystem = system;
-    #crossSystem = systems.mingwW64;
-    #crossSystem = systems.musl64;
-  });
-
-  pkgs = if useStatic then crossPkgs.pkgsStatic else crossPkgs;
-
+  ##
+  # Use the stdenv of pkgs, so we get the static compiler.
+  ##
   stdenv = pkgs.stdenv;
+
+  isStatic = stdenv.hostPlatform.isStatic;
 
   xlibressl = pkgs.libressl.overrideAttrs(old: rec {
     # Fixes build issues on Windows
-    cmakeFlags = pkgs.lib.remove "-DENABLE_NC=ON" old.cmakeFlags;
-    outputs    = pkgs.lib.remove "nc" old.outputs;
+    cmakeFlags = lib.remove "-DENABLE_NC=ON" old.cmakeFlags;
+    outputs    = lib.remove "nc" old.outputs;
   });
 
   xcurlFull = (pkgs.curlFull.override {
@@ -47,51 +44,48 @@ let
       "--disable-openssl-auto-load-config"
       "--without-ca-bundle" "--without-ca-path"
     ]
-    ++ stdenv.lib.optionals stdenv.hostPlatform.isWindows [
+    ++ lib.optionals stdenv.hostPlatform.isWindows [
       "--with-winidn"
     ];
 
-    NIX_CFLAGS_COMPILE = stdenv.lib.optionals useStatic ["-DNGHTTP2_STATICLIB"];
+    NIX_CFLAGS_COMPILE = lib.optionals isStatic ["-DNGHTTP2_STATICLIB"];
   });
 
-  xuriparser = pkgs.uriparser.overrideDerivation(old: {
+  xuriparser = if isStatic then pkgs.uriparser.overrideDerivation(old: {
     # gtest breaks when building statically
     cmakeFlags = old.cmakeFlags ++ ["-DURIPARSER_BUILD_TESTS=OFF"];
-  });
-
+  }) else pkgs.uriparser;
 in
 stdenv.mkDerivation rec {
   inherit xlibressl;
   inherit xcurlFull;
   inherit xuriparser;
 
-  name = "nimrodg-agent";
+  pname = "nimrodg-agent";
+  version = "dev-git";
 
-  nativeBuildInputs = with pkgs; [
-    cmake
-    git
-    pkgconfig
-  ];
+  src = builtins.filterSource (path: type: baseNameOf path != ".git") ./.;
+
+  nativeBuildInputs = [ pkgconfig cmake ];
 
   hardeningDisable = [ "all" ];
 
-  buildInputs = with pkgs; [ xlibressl.dev xcurlFull.dev libuuid.dev xuriparser ];
+  buildInputs = [ xlibressl.dev xcurlFull.dev pkgs.libuuid.dev xuriparser ];
 
   cmakeFlags = [
     "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"
     "-DUSE_LTO=ON"
     "-DCMAKE_BUILD_TYPE=MinSizeRel"
-    "-DOPENSSL_USE_STATIC_LIBS=${if useStatic then "ON" else "OFF"}"
+    "-DOPENSSL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
+    "-DLIBUUID_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
+    "-DLIBCURL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
   ];
 
   enableParallelBuilding = true;
 
-  src = builtins.filterSource (path: type: baseNameOf path != ".git") ./.;
-
-  dontInstall = true;
-  preFixup = ''
-    mkdir -p $out/bin
-    cp bin/agent-* $out/bin
+  installPhase = ''
+    mkdir -p "$out/bin"
+    cp bin/agent-* "$out/bin"
   '';
 
   meta = with stdenv.lib; {
