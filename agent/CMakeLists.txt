@@ -7,52 +7,63 @@ if(NOT WIN32)
 	find_package(Threads REQUIRED)
 endif()
 
+function(find_package_pkgconfig name alias libname minver static)
+	pkg_check_modules(LIB REQUIRED ${libname}>=${minver})
+
+	##
+	# Handy for debugging
+	# https://cmake.org/cmake/help/latest/module/FindPkgConfig.html
+	##
+#	message(NOTICE "LIB_${XXSTATIC}VERSION        = ${LIB_${XXSTATIC}VERSION}")
+#	message(NOTICE "LIB_${XXSTATIC}INCLUDE_DIRS   = ${LIB_${XXSTATIC}INCLUDE_DIRS}")
+#	message(NOTICE "LIB_${XXSTATIC}LINK_LIBRARIES = ${LIB_${XXSTATIC}LINK_LIBRARIES}")
+#	message(NOTICE "LIB_${XXSTATIC}LIBRARIES      = ${LIB_${XXSTATIC}LIBRARIES}")
+#	message(NOTICE "LIB_${XXSTATIC}LIBRARY_DIRS   = ${LIB_${XXSTATIC}LIBRARY_DIRS}")
+#	message(NOTICE "LIB_${XXSTATIC}LDFLAGS        = ${LIB_${XXSTATIC}LDFLAGS}")
+#	message(NOTICE "LIB_${XXSTATIC}LDFLAGS_OTHER  = ${LIB_${XXSTATIC}LDFLAGS_OTHER}")
+#	message(NOTICE "LIB_${XXSTATIC}CFLAGS         = ${LIB_${XXSTATIC}CFLAGS}")
+#	message(NOTICE "LIB_${XXSTATIC}CFLAGS_OTHER   = ${LIB_${XXSTATIC}CFLAGS_OTHER}")
+
+	list(GET LIB_${XXSTATIC}LINK_LIBRARIES 0 imported_location)
+#	message(NOTICE "imported_location = ${imported_location}")
+
+	##
+	# NB: Make sure IMPORTED_LOCATION is set.
+	# See https://gitlab.kitware.com/cmake/cmake/-/issues/19080
+	##
+	if(${static})
+		add_library(${name} STATIC IMPORTED)
+		set(XXSTATIC, "STATIC_")
+	else()
+		add_library(${name} SHARED IMPORTED)
+		set(XXSTATIC "")
+	endif()
+
+	set_property(TARGET ${name} PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${LIB_${XXSTATIC}INCLUDE_DIRS})
+	set_property(TARGET ${name} PROPERTY INTERFACE_COMPILE_OPTIONS     ${LIB_${XXSTATIC}CFLAGS_OTHER})
+	set_property(TARGET ${name} PROPERTY INTERFACE_LINK_LIBRARIES      ${LIB_${XXSTATIC}LIBRARIES})
+	set_property(TARGET ${name} PROPERTY INTERFACE_LINK_DIRECTORIES    ${LIB_${XXSTATIC}LIBRARY_DIRS})
+	set_property(TARGET ${name} PROPERTY INTERFACE_LINK_OPTIONS        ${LIB_${XXSTATIC}LDFLAGS_OTHER})
+	set_property(TARGET ${name} PROPERTY IMPORTED_LOCATION             ${imported_location})
+	set_property(TARGET ${name} PROPERTY VERSION                       ${LIB_${XXSTATIC}VERSION})
+	add_library(${alias} ALIAS ${name})
+endfunction(find_package_pkgconfig)
+
+option(LIBCURL_USE_STATIC_LIBS "Link libcurl statically" OFF)
+option(LIBUUID_USE_STATIC_LIBS "Link libuuid statically" OFF)
+
+##
+# LibreSSL and uriparser play nicely with CMake.
+##
 find_package(OpenSSL 2.0.0 REQUIRED)
-
-# cURL's find_package() doesn't pull in the required libraries for linking statically
-pkg_check_modules(CURL REQUIRED libcurl>=7.64.0)
-pkg_check_modules(LIBUUID REQUIRED uuid>=2.36.0)
-
-if(LIBCURL_USE_STATIC_LIBS)
-	add_library(CURL::libcurl STATIC IMPORTED)
-	set_target_properties(CURL::libcurl PROPERTIES
-		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CURL_STATIC_INCLUDE_DIRS}"
-		INTERFACE_COMPILE_DEFINITIONS        CURL_STATICLIB
-		INTERFACE_LINK_LIBRARIES             "${CURL_STATIC_LIBRARIES}"
-		IMPORTED_LINK_INTERFACE_LANGUAGES    C
-		IMPORTED_LOCATION                    "${CURL_LINK_LIBRARIES}"
-	)
-else()
-	add_library(CURL::libcurl SHARED IMPORTED)
-	set_target_properties(CURL::libcurl PROPERTIES
-		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CURL_INCLUDE_DIRS}"
-		INTERFACE_LINK_LIBRARIES             "${CURL_LIBRARIES}"
-		IMPORTED_LINK_INTERFACE_LANGUAGES    C
-		IMPORTED_LOCATION                    "${CURL_LINK_LIBRARIES}"
-	)
-endif()
-
-if(LIBUUID_USE_STATIC_LIBS)
-	add_library(LibUUID::LibUUID STATIC IMPORTED)
-	set_target_properties(LibUUID::LibUUID PROPERTIES
-		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${LIBUUID_STATIC_INCLUDE_DIRS}"
-		INTERFACE_LINK_LIBRARIES             "${LIBUUID_STATIC_LIBRARIES}"
-		IMPORTED_LINK_INTERFACE_LANGUAGES    C
-		IMPORTED_LOCATION                    "${LIBUUID_LINK_LIBRARIES}"
-		VERSION	${LIBUUID_VERSION}
-	)
-else()
-	add_library(LibUUID::LibUUID SHARED IMPORTED)
-	set_target_properties(LibUUID::LibUUID PROPERTIES
-		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${LIBUUID_INCLUDE_DIRS}"
-		INTERFACE_LINK_LIBRARIES             "${LIBUUID_LIBRARIES}"
-		IMPORTED_LINK_INTERFACE_LANGUAGES    C
-		IMPORTED_LOCATION                    "${LIBUUID_LINK_LIBRARIES}"
-		VERSION	${LIBUUID_VERSION}
-	)
-endif()
-
 find_package(uriparser REQUIRED)
+
+##
+# cURL and libuuid don't.
+# cURL's find_package() doesn't pull in the required libraries for linking statically.
+##
+find_package_pkgconfig(CURL    CURL::libcurl    libcurl 7.64.0 ${LIBCURL_USE_STATIC_LIBS})
+find_package_pkgconfig(LIBUUID LibUUID::LibUUID uuid    2.36.0 ${LIBUUID_USE_STATIC_LIBS})
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
@@ -230,13 +241,6 @@ target_link_libraries(agent
 if(NOT WIN32)
 	target_link_libraries(agent Threads::Threads)
 endif()
-
-
-# Mainly for Windows, but doesn't hurt on others
-target_compile_definitions(agent PRIVATE
-		-DCURL_STATICLIB
-		-DAMQP_STATIC
-)
 
 # Add -lstdc++fs on GCC/Clang
 if(NOT MINGW AND (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
