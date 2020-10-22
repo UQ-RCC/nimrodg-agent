@@ -3,6 +3,8 @@
 , pkgconfig ? nixpkgs.pkgconfig
 , cmake     ? nixpkgs.cmake
 , pkgs      ? nixpkgs
+, gitHash
+, gitDescribe
 }:
 let
   ##
@@ -61,24 +63,35 @@ stdenv.mkDerivation rec {
   inherit xcurlFull;
   inherit xuriparser;
 
+  xlibuuid = pkgs.libuuid;
+
   pname = "nimrodg-agent";
-  version = "dev-git";
+  version = gitDescribe;
 
   src = builtins.filterSource (path: type: baseNameOf path != ".git") ./.;
 
-  nativeBuildInputs = [ pkgconfig cmake ];
+  nativeBuildInputs = [ nixpkgs.gitMinimal pkgconfig cmake ];
 
   hardeningDisable = [ "all" ];
 
   buildInputs = [ xlibressl.dev xcurlFull.dev pkgs.libuuid.dev xuriparser ];
 
+  ##
+  # Nimrod's always used -pc, not -unknown. I'm not game to change it.
+  ##
+  platformString = with stdenv.hostPlatform; if parsed.vendor.name == "unknown" then
+      "${parsed.cpu.name}-${platform.name}-${parsed.kernel.name}-${parsed.abi.name}"
+    else
+      config;
+
   cmakeFlags = [
-    "-DNIMRODG_PLATFORM_STRING=${stdenv.hostPlatform.config}"
+    "-DNIMRODG_PLATFORM_STRING=${platformString}"
     "-DUSE_LTO=ON"
     "-DCMAKE_BUILD_TYPE=MinSizeRel"
     "-DOPENSSL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
     "-DLIBUUID_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
     "-DLIBCURL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
+    "-DGIT_HASH=${gitHash}"
   ];
 
   enableParallelBuilding = true;
