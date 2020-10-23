@@ -5,7 +5,7 @@ dist: bionic
 
 cache:
   directories:
-    - /nix
+    - /nix/store
 
 script:
   - |
