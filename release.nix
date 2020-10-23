@@ -10,11 +10,13 @@
 { nixpkgs ? import <nixpkgs> {}, gitHash, gitDescribe }:
 let
   systems   = nixpkgs.lib.systems.examples;
-  baseAgent = nixpkgs.callPackage ./default.nix {
+  baseAgent = (nixpkgs.callPackage ./default.nix {
     inherit nixpkgs;
     inherit gitHash;
     inherit gitDescribe;
-  };
+  }).overrideDerivation(old: {
+    hardeningDisable = [];
+  });
 
   agents = {
     musl32Static = baseAgent.override {
