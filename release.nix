@@ -46,7 +46,13 @@ nixpkgs.stdenv.mkDerivation {
   dontUnpack = true;
 
   installPhase = ''
-    mkdir -p $out
-    cp ${agents.musl64Static}/bin/* $out
+    mkdir -p "$out"
+
+    cp "${agents.musl64Static}/bin/agent-${agents.musl64Static.platformString}" \
+      "$out/agent-${agents.musl64Static.platformString}-${gitDescribe}"
+
+    cd "$out" && for i in *; do
+      sha256sum -b "$i" > "$i.sha256"
+    done
   '';
 }
