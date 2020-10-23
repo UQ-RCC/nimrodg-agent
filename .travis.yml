@@ -1,0 +1,38 @@
+language: nix
+nix: 2.3.7
+os: linux
+dist: bionic
+
+cache:
+  directories:
+    - /nix/store
+
+script:
+  - |
+    nix-build \
+      --argstr gitHash $(git rev-parse HEAD) \
+      --argstr gitDescribe $(git describe)   \
+      release.nix
+
+# See https://github.com/travis-ci/travis-ci/issues/8667
+install: true
+
+deploy:
+  provider: releases
+  token:
+    secure: i8N3nZYFzW3NzLH9ay0Y3fjy/y9+o20Jzokf7+A7OWnXFfqJYHDs5TKStWG3H68rFqlIru1CnF/veGtwq7zHeJHJD8zq3jw0CvEjmmVK0hWleoVys3G3p2MU+a4XLxJD+KxYQ4QhSj6lv2hcXXMWdE4C5uEBus03q338lz5uMfCrBhwiUpTWyAYhner4FQrykxOgOXzPMCOR1Bm0nikEXrgm8wrhqg3izo0Pz+C4LaXNtX981jtBMBMt9+vB5ONkzBuVAO8E0Vvcb5Wus4b3KdDoWSh25lhagkS3UAihAgs+95PHmdORiwso3r2KsDEfoekTWV6ZMEQZjiwoRKHXW6Nj1MZmjPTlfDXvnXOckeW4upujdo+NC4X1zPLFXWcJWiKGt9zQsfzjTS05e7xERdFLtYHkASHSDpr5Z044r+iCBDzKP+Wzhz9mNFgUrQkKTzayLlHlvZjTUr5bmyokyH7S6Kd8j/x7usEj/RadYfGQ9cRiQOTkgVJT/KqMXwABblz6bqxjTJwvqQa23ExnbblL3sODSiQUGvC228woUIs1B8CRnl8eVCnwHGDU/lppTEJjWHWHG/0blsTIpUr+v+p0T2NKcMWvRhMcA1jiEtMZ4EhwTxQ8H4AspDPnWeLz45FWQh7h2e4O7hmTJqOQku72jcumoTYTwBbHu/qU74g=
+  file_glob: true
+  file:
+    - result/*
+  on:
+    tags: true
+  cleanup: false
+  # Until dplv2
+  skip_cleanup: true
+
+notifications:
+  slack:
+    rooms:
+      - secure: VyCriP/iEKwddHuVECUYsv63dla2X4ABnpUzpwhk3ukUZd5vmgFP2QU8I3HS9EyGq2VbgQPH4LO5YrLctvZMZzkU1cS01WSPerXF6ViDcTN0qaveLExfNh6kmrxFSBQP0Fc+PEQfFrsDYwhdD7fEVARhUOobpc1ItQoaaKxBXgTeZ5WnarFGIcaVhmpImHlQcHzX3IO0OqxqKhIV7X6fA6QkgcljmX57n8ZOLrUIkpl3JfGTI/336EbzFXzxa7klBjliolcnlhoXvDa9ff8CWN1S8NM334RNe8Dmb4RTjKcDUvV2tO/4WMIPk0KvLpSvKjmwhNuwzgc5+hX9MH29IiVoIplQfbectwJmkDYlWjL0Fg2R9is6zf33P+7TfDymu9cTsQExt5psEaJpzWWvRdnCVmbf2Xa1hZe6fvGc6GE9c4j9JxDtvRc0ru5iaqV584wfAQhrJAb/2Z/w6RyQmaXy7ZcLcyCCwEe9/b+Fn1Lb/klIQCvbeZnopWdl0YD6dGIEPb8dGYqP+7EshwzrTLEnwcvUAv+vldlEZsXmGclVTVFDaR/Z/A6EgNBnvRoYzKVGonddd6LYXKUPtVwsYCKxJ3dUUcGqBuwTSyQ9NdN7F1wIpi5pS6jkXdJ9uswwz95mGyQo+jBtfzd275KZ3rzL8FFiZKxuYpUR+J3EFqo=
+    on_success: change
+    on_failure: always
