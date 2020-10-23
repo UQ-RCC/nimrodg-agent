@@ -1,0 +1,19 @@
+language: nix
+nix: 2.3.7
+os: linux
+dist: bionic
+
+cache:
+  directories:
+    - /nix
+
+script:
+  - |
+    nix-build \
+      --argstr gitHash $(git rev-parse HEAD) \
+      --argstr gitDescribe $(git describe)   \
+      release.nix
+  - ls -laR result/
+
+# See https://github.com/travis-ci/travis-ci/issues/8667
+install: true
