@@ -12,6 +12,7 @@ script:
     nix-build \
       --argstr gitHash $(git rev-parse HEAD) \
       --argstr gitDescribe $(git describe)   \
+      -A release \
       release.nix
 
 # See https://github.com/travis-ci/travis-ci/issues/8667

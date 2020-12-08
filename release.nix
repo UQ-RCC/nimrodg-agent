@@ -17,42 +17,28 @@ let
   }).overrideDerivation(old: {
     hardeningDisable = [];
   });
-
-  agents = {
-    musl32Static = baseAgent.override {
-      pkgs = (import <nixpkgs> { crossSystem = systems.musl32; }).pkgsStatic;
-    };
-
-    musl64Static = baseAgent.override {
-      pkgs = (import <nixpkgs> { crossSystem = systems.musl64; }).pkgsStatic;
-    };
-
-    win32Static = baseAgent.override {
-      pkgs = (import <nixpkgs> { crossSystem = systems.mingw32; }).pkgsStatic;
-    };
-
-    win64Static = baseAgent.override {
-      pkgs = (import <nixpkgs> { crossSystem = systems.mingW64; }).pkgsStatic;
-    };
+in rec {
+  musl64Static = baseAgent.override {
+    pkgs = (import <nixpkgs> { crossSystem = systems.musl64; }).pkgsStatic;
   };
-in
-nixpkgs.stdenv.mkDerivation {
-  name = "nimrodg-agent-ci";
-  version = gitDescribe;
 
-  # Only build x86_64-pc-linux-musl for now
-  buildInputs = [ agents.musl64Static ];
+  release = nixpkgs.stdenv.mkDerivation {
+    pname = "nimrodg-agent-release";
+    version = gitDescribe;
 
-  dontUnpack = true;
+    buildInputs = [ musl64Static ];
 
-  installPhase = ''
-    mkdir -p "$out"
+    dontUnpack = true;
 
-    cp "${agents.musl64Static}/bin/agent-${agents.musl64Static.platformString}" \
-      "$out/agent-${agents.musl64Static.platformString}-${gitDescribe}"
+    installPhase = ''
+      mkdir -p "$out"
 
-    cd "$out" && for i in *; do
-      sha256sum -b "$i" > "$i.sha256"
-    done
-  '';
+      cp "${musl64Static}/bin/agent-${musl64Static.platformString}" \
+        "$out/agent-${musl64Static.platformString}-${gitDescribe}"
+
+      cd "$out" && for i in *; do
+        sha256sum -b "$i" > "$i.sha256"
+      done
+    '';
+  };
 }
