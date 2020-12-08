@@ -17,8 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <cassert>
 #include <cinttypes>
+#include <cstring>
 #include <nim1/make_view.hpp>
 #include <nim1/time.hpp>
 #include <nim1/signature.hpp>
