@@ -13,6 +13,7 @@ script:
       --argstr gitHash $(git rev-parse HEAD) \
       --argstr gitDescribe $(git describe)   \
       -A release \
+      -I nixpkgs=channel:nixos-20.09 \
       release.nix
 
 # See https://github.com/travis-ci/travis-ci/issues/8667
