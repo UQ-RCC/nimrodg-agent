@@ -55,11 +55,28 @@ let
     NIX_CFLAGS_COMPILE = lib.optionals isStatic ["-DNGHTTP2_STATICLIB"];
   });
 
-  xxuriparser = pkgs.uriparser.override { inherit cmake; };
-  xuriparser = if isStatic then xxuriparser.overrideDerivation(old: {
-    # gtest breaks when building statically
-    cmakeFlags = old.cmakeFlags ++ ["-DURIPARSER_BUILD_TESTS=OFF"];
-  }) else xxuriparser;
+  ##
+  # nixpkgs one is too heavy
+  ##
+  xuriparser = stdenv.mkDerivation rec {
+    pname = "uriparser";
+    version = "0.9.4";
+
+    src = builtins.fetchurl {
+      url = "https://github.com/uriparser/uriparser/releases/download/${pname}-${version}/${pname}-${version}.tar.bz2";
+      sha256 = "0yzqp1j6sglyrmwcasgn7zlwg841p3nbxy0h78ngq20lc7jspkdp";
+    };
+
+    nativeBuildInputs = [ cmake ];
+
+    cmakeFlags = [
+      "-DBUILD_SHARED_LIBS=${if isStatic then "OFF" else "ON"}"
+      "-DURIPARSER_BUILD_DOCS=OFF"
+      "-DURIPARSER_BUILD_TESTS=OFF"
+      "-DURIPARSER_BUILD_TOOLS=OFF"
+      "-DURIPARSER_ENABLE_INSTALL=ON"
+    ];
+  };
 in
 stdenv.mkDerivation rec {
   inherit xlibressl;
