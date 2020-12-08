@@ -50,7 +50,6 @@ function(find_package_pkgconfig name alias libname minver static)
 endfunction(find_package_pkgconfig)
 
 option(LIBCURL_USE_STATIC_LIBS "Link libcurl statically" OFF)
-option(LIBUUID_USE_STATIC_LIBS "Link libuuid statically" OFF)
 
 ##
 # LibreSSL and uriparser play nicely with CMake.
@@ -63,7 +62,6 @@ find_package(uriparser REQUIRED)
 # cURL's find_package() doesn't pull in the required libraries for linking statically.
 ##
 find_package_pkgconfig(CURL    CURL::libcurl    libcurl 7.64.0 ${LIBCURL_USE_STATIC_LIBS})
-find_package_pkgconfig(LIBUUID LibUUID::LibUUID uuid    2.36.0 ${LIBUUID_USE_STATIC_LIBS})
 
 include(CheckIncludeFiles)
 check_include_file("unistd.h" HAVE_UNISTD_H)
@@ -86,7 +84,7 @@ endif()
 
 string(SUBSTRING ${GIT_HASH} 0 7 GIT_HASH_SHORT)
 
-get_target_property(UUID_VERSION_STRING LibUUID::LibUUID VERSION)
+get_target_property(UUID_VERSION_STRING libuuid VERSION)
 
 if(NOT NIMRODG_PLATFORM_STRING)
 	message(FATAL_ERROR "No platform string provided")
@@ -222,7 +220,7 @@ target_include_directories(agent
 
 target_link_libraries(agent
 	fmt-header-only
-	LibUUID::LibUUID
+	libuuid
 	uriparser::uriparser
 	rabbitmq-c2
 	CURL::libcurl

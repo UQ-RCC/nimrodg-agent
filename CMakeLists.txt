@@ -70,9 +70,9 @@ set(NIMRODG_OUTPUT_DIRECTORY ${NIMRODG_OUTPUT_DIRECTORY} CACHE STRING "Agent Ins
 add_rabbitmqc()
 
 add_subdirectory(fmt)
+add_subdirectory(libuuid)
 add_subdirectory(nim1)
 add_subdirectory(agent)
-
 
 option(USE_LTO "Use LTO" OFF)
 if(USE_LTO)

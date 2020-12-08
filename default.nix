@@ -63,8 +63,6 @@ stdenv.mkDerivation rec {
   inherit xcurlFull;
   inherit xuriparser;
 
-  xlibuuid = pkgs.libuuid;
-
   pname = "nimrodg-agent";
   version = gitDescribe;
 
@@ -74,7 +72,7 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "all" ];
 
-  buildInputs = [ xlibressl.dev xcurlFull.dev pkgs.libuuid.dev xuriparser ];
+  buildInputs = [ xlibressl.dev xcurlFull.dev xuriparser ];
 
   ##
   # Nimrod's always used -pc, not -unknown. I'm not game to change it.
@@ -89,7 +87,6 @@ stdenv.mkDerivation rec {
     "-DUSE_LTO=ON"
     "-DCMAKE_BUILD_TYPE=MinSizeRel"
     "-DOPENSSL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
-    "-DLIBUUID_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
     "-DLIBCURL_USE_STATIC_LIBS=${if isStatic then "ON" else "OFF"}"
     "-DGIT_HASH=${gitHash}"
   ];
