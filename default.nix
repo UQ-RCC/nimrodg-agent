@@ -14,7 +14,9 @@ let
 
   isStatic = stdenv.hostPlatform.isStatic;
 
-  xlibressl = pkgs.libressl.overrideAttrs(old: rec {
+  xlibressl = (pkgs.libressl.override {
+    inherit cmake;
+  }).overrideAttrs(old: rec {
     # Fixes build issues on Windows
     cmakeFlags = lib.remove "-DENABLE_NC=ON" old.cmakeFlags;
     outputs    = lib.remove "nc" old.outputs;
@@ -53,10 +55,11 @@ let
     NIX_CFLAGS_COMPILE = lib.optionals isStatic ["-DNGHTTP2_STATICLIB"];
   });
 
-  xuriparser = if isStatic then pkgs.uriparser.overrideDerivation(old: {
+  xxuriparser = pkgs.uriparser.override { inherit cmake; };
+  xuriparser = if isStatic then xxuriparser.overrideDerivation(old: {
     # gtest breaks when building statically
     cmakeFlags = old.cmakeFlags ++ ["-DURIPARSER_BUILD_TESTS=OFF"];
-  }) else pkgs.uriparser;
+  }) else xxuriparser;
 in
 stdenv.mkDerivation rec {
   inherit xlibressl;
