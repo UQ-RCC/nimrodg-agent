@@ -90,8 +90,6 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ nixpkgs.gitMinimal pkgconfig cmake ];
 
-  hardeningDisable = [ "all" ];
-
   buildInputs = [ xlibressl.dev xcurlFull.dev xuriparser ];
 
   ##

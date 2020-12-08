@@ -10,13 +10,11 @@
 { nixpkgs ? import <nixpkgs> {}, gitHash, gitDescribe }:
 let
   systems   = nixpkgs.lib.systems.examples;
-  baseAgent = (nixpkgs.callPackage ./default.nix {
+  baseAgent = nixpkgs.callPackage ./default.nix {
     inherit nixpkgs;
     inherit gitHash;
     inherit gitDescribe;
-  }).overrideDerivation(old: {
-    hardeningDisable = [];
-  });
+  };
 in rec {
   musl64Static = baseAgent.override {
     pkgs = (import <nixpkgs> { crossSystem = systems.musl64; }).pkgsStatic;
