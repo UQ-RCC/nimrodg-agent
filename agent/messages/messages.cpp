@@ -127,3 +127,24 @@ agent_state_t pong_message::state() const noexcept
 {
 	return m_state;
 }
+
+
+log_message::log_message(nimrod::uuid uuid, nim1::nanotime_t time, log::level_t level,
+                         const std::string& message) noexcept :
+    message_base_type(uuid, time), m_level(level), m_message(message)
+{}
+
+log_message::log_message(nimrod::uuid uuid, nim1::nanotime_t time, log::level_t level,
+                         std::string&& message) noexcept :
+	message_base_type(uuid, time), m_level(level), m_message(std::move(message))
+{}
+
+log::level_t log_message::level() const noexcept
+{
+	return m_level;
+}
+
+const std::string& log_message::message() const noexcept
+{
+	return m_message;
+}

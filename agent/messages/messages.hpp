@@ -26,6 +26,7 @@
 #include <nim1/time.hpp>
 #include <job_definition.hpp>
 #include <process/command_result.hpp>
+#include <log.hpp>
 #include "agent_common.hpp"
 #include "uuid.hpp"
 
@@ -44,7 +45,8 @@ enum class message_type_t
 	agent_shutdown,
 	agent_update,
 	agent_ping,
-	agent_pong
+	agent_pong,
+	agent_log,
 };
 
 /*
@@ -186,6 +188,33 @@ private:
 	agent_state_t m_state;
 };
 
+class log_message : public base_message<log_message>
+{
+public:
+	constexpr static message_type_t type_value = message_type_t::agent_log;
+
+	explicit log_message(
+		nimrod::uuid uuid,
+		nim1::nanotime_t time,
+		log::level_t level,
+		const std::string& message
+	) noexcept;
+
+	explicit log_message(
+		nimrod::uuid uuid,
+		nim1::nanotime_t time,
+		log::level_t level,
+		std::string&& message
+	) noexcept;
+
+	log::level_t level() const noexcept;
+	const std::string& message() const noexcept;
+
+private:
+	log::level_t m_level;
+	std::string m_message;
+};
+
 template <typename T>
 constexpr std::optional<T> from_string(std::string_view s) noexcept = delete;
 
@@ -201,6 +230,7 @@ constexpr std::string_view to_string(message_type_t type)
 		case message_type_t::agent_update:		return "agent.update";
 		case message_type_t::agent_ping:		return "agent.ping";
 		case message_type_t::agent_pong:		return "agent.pong";
+		case message_type_t::agent_log:			return "agent.log";
 		default: throw std::domain_error("message_type_t");
 	}
 }
@@ -216,6 +246,7 @@ constexpr std::optional<message_type_t> from_string<message_type_t>(std::string_
 	if(s == "agent.update")			return message_type_t::agent_update;
 	if(s == "agent.ping")			return message_type_t::agent_ping;
 	if(s == "agent.pong")			return message_type_t::agent_pong;
+	if(s == "agent.log")			return message_type_t::agent_log;
 									return std::optional<message_type_t>();
 }
 
