@@ -55,28 +55,17 @@ let
     NIX_CFLAGS_COMPILE = lib.optionals isStatic ["-DNGHTTP2_STATICLIB"];
   });
 
-  ##
-  # nixpkgs one is too heavy
-  ##
-  xuriparser = stdenv.mkDerivation rec {
-    pname = "uriparser";
-    version = "0.9.4";
-
-    src = builtins.fetchurl {
-      url = "https://github.com/uriparser/uriparser/releases/download/${pname}-${version}/${pname}-${version}.tar.bz2";
-      sha256 = "0yzqp1j6sglyrmwcasgn7zlwg841p3nbxy0h78ngq20lc7jspkdp";
-    };
-
+  xuriparser = pkgs.uriparser.overrideDerivation(old: {
     nativeBuildInputs = [ cmake ];
 
     cmakeFlags = [
       "-DBUILD_SHARED_LIBS=${if isStatic then "OFF" else "ON"}"
       "-DURIPARSER_BUILD_DOCS=OFF"
-      "-DURIPARSER_BUILD_TESTS=OFF"
+      "-DURIPARSER_BUILD_TESTS=OFF" # gtest breaks when building statically
       "-DURIPARSER_BUILD_TOOLS=OFF"
       "-DURIPARSER_ENABLE_INSTALL=ON"
     ];
-  };
+  });
 in
 stdenv.mkDerivation rec {
   inherit xlibressl;
@@ -96,7 +85,7 @@ stdenv.mkDerivation rec {
   # Nimrod's always used -pc, not -unknown. I'm not game to change it.
   ##
   platformString = with stdenv.hostPlatform; if parsed.vendor.name == "unknown" then
-      "${parsed.cpu.name}-${platform.name}-${parsed.kernel.name}-${parsed.abi.name}"
+      "${parsed.cpu.name}-pc-${parsed.kernel.name}-${parsed.abi.name}"
     else
       config;
 
@@ -116,7 +105,7 @@ stdenv.mkDerivation rec {
     cp bin/agent-* "$out/bin"
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Nimrod/G Agent";
     homepage    = "https://rcc.uq.edu.au/nimrod";
     platforms   = platforms.all;
