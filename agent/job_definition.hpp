@@ -24,6 +24,7 @@
 #include <vector>
 #include <unordered_map>
 #include <variant>
+#include <string>
 #include "uuid.hpp"
 
 namespace nimrod {
